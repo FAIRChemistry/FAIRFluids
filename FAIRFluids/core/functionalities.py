@@ -1,12 +1,7 @@
 from typing import Optional, List, Dict, Any
 
 import xml.etree.ElementTree as ET
-from FAIRFluids.core.lib import (
-    FAIRFluidsDocument, Version, Citation, Author, Compound, 
-    Fluid, Property, Property_Group, Variable, Constraint, 
-    NumValue, PropertyValue, VariableValue, ConstraintVariableType,
-    eTemperature, ePressure, eComponentComposition, C_id
-)
+from FAIRFluids.core.lib import *
 
 class myFAIRFluidsDocument(FAIRFluidsDocument):
     """
@@ -54,28 +49,36 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
         for fluid in self.fluid:
             # Skip if not a viscosity property
             if not (fluid.property and 
-                    fluid.property.property_group and
-                    fluid.property.property_group.property_name == "Dynamic viscosity, mPa·s"):
+                    fluid.property.property_information and
+                    fluid.property.property_information.property_name == "Dynamic viscosity, mPa·s"):
                 continue
                 
             # Extract values
             viscosity = fluid.num_value.propertyValue.propValue
-            temperature = (fluid.num_value.variableValue.varValue 
-                         if fluid.num_value and fluid.num_value.variableValue 
+            temperature = (fluid.num_value.parameterValue.varValue 
+                         if fluid.num_value and fluid.num_value.parameterValue 
                          else None)
             
-            # Get mole fraction from constraints with compound identifiers
+            # Get mole fraction from parameters - extract from varNumber field where we stored them
             mole_fractions = []
             compound_identifiers = []
-            if fluid.constraint:
-                for constraint in fluid.constraint:
-                    if (constraint.constraint_type and 
-                        constraint.constraint_type.e_component_composition == eComponentComposition.MOLE_FRACTION):
-                        mole_fractions.append(constraint.constraint_value)
-                        # Get compound identifier if available
-                        compound_id = (constraint.compound_identifier.c_id 
-                                     if constraint.compound_identifier else None)
-                        compound_identifiers.append(compound_id)
+            
+            if fluid.num_value and fluid.num_value.parameterValue and fluid.num_value.parameterValue.varNumber:
+                var_number = fluid.num_value.parameterValue.varNumber
+                # Check if varNumber contains mole fraction data (format: var_ID_mf1,mf2,mf3)
+                if "_" in var_number and "," in var_number:
+                    try:
+                        # Extract mole fraction values from varNumber
+                        mole_fraction_part = var_number.split("_", 2)[2]  # Get part after var_ID_
+                        mole_fraction_values = [float(x) for x in mole_fraction_part.split(",")]
+                        mole_fractions = mole_fraction_values
+                        
+                        # Get compound identifiers from the fluid's compounds
+                        if hasattr(self, 'compound') and self.compound:
+                            compound_identifiers = [comp.compound_identifier.c_id for comp in self.compound if comp.compound_identifier]
+                    except (ValueError, IndexError):
+                        # If parsing fails, return empty lists
+                        pass
                          
             results.append({
                 'temperature': temperature,
@@ -139,39 +142,31 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
                         parameters[param_type] = scalar.text
         return parameters
 
-    def _create_pressure_constraint(self, param_value: str, constraint_number: int) -> Constraint:
-        """Create pressure constraint"""
-        return Constraint(
-            constraint_type=ConstraintVariableType(e_Pressure="Pressure, kPa"),
-            constraint_digits=3,
-            constraint_value=float(param_value),
-            constraint_number=constraint_number
+    def _create_pressure_parameter(self, param_value: str, param_number: int) -> Parameter:
+        """Create pressure parameter"""
+        return Parameter(
+            parameterID=f"pressure_param_{param_number}",
+            parameterType=ParameterType(e_pressure=ePressure.PRESSURE_KPA),
+            componentID=None
         )
 
-    def _create_temperature_variable(self, param_value: str, var_number: int) -> Variable:
-        """Create temperature variable"""
-        return Variable(
-            variableID=f"temp_var_{var_number}",
-            variableType=ConstraintVariableType(e_temperature=eTemperature.TEMPERATURE_K),
-            variableName="Temperature"
+    def _create_temperature_variable(self, param_value: str, var_number: int) -> Parameter:
+        """Create temperature parameter"""
+        return Parameter(
+            parameterID=f"temp_var_{var_number}",
+            parameterType=ParameterType(e_temperature=eTemperature.TEMPERATURE_K),
+            componentID=None
         )
 
-    def _create_mole_fraction_constraint(self, param_value: str, constraint_number: int, compound_identifier: Optional[str] = None) -> Constraint:
-        """Create mole fraction constraint with optional compound identifier"""
-        constraint_params = {
-            "constraint_type": ConstraintVariableType(
-                e_component_composition=eComponentComposition.MOLE_FRACTION
-            ),
-            "constraint_digits": 3,
-            "constraint_value": float(param_value),
-            "constraint_number": constraint_number
+    def _create_mole_fraction_parameter(self, param_value: str, param_number: int, compound_identifier: Optional[str] = None) -> Parameter:
+        """Create mole fraction parameter with optional compound identifier"""
+        param_params = {
+            "parameterID": f"mole_fraction_param_{param_number}",
+            "parameterType": ParameterType(e_component_composition=eComponentComposition.MOLE_FRACTION),
+            "componentID": None
         }
         
-        # Add compound identifier if provided
-        if compound_identifier:
-            constraint_params["compound_identifier"] = C_id(c_id=compound_identifier)
-            
-        return Constraint(**constraint_params)
+        return Parameter(**param_params)
 
     def _calculate_component_mole_fractions(self, molar_ratio_des: float, mole_fraction_water: float) -> Dict[str, float]:
         """
@@ -198,7 +193,7 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
             'component_2': molar_constraint_component_2
         }
 
-    def _create_variables(self, exp: Dict[str, str]) -> List[Variable]:
+    def _create_variables(self, exp: Dict[str, str]) -> List[Parameter]:
         """Create variables from experiment parameters"""
         variables = []
         if 'temperature' in exp:
@@ -254,10 +249,10 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
         
         return component_to_cid
 
-    def _create_constraints(self, exp: Dict[str, str]) -> List[Constraint]:
-        """Create constraints from experiment parameters"""
-        constraints = []
-        constraint_count = 1
+    def _create_parameters(self, exp: Dict[str, str]) -> List[Parameter]:
+        """Create parameters from experiment parameters"""
+        parameters = []
+        param_count = 1
         
         # Build a mapping from commonName to c_id for all compounds in the document
         compound_name_to_cid = {}
@@ -277,55 +272,68 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
             # Automatically map components to compounds
             component_to_cid = self._auto_map_components_to_compounds(component_fractions, compound_name_to_cid)
             
-            # Create constraints for each component
+            # Create parameters for each component
             for component_name, fraction in component_fractions.items():
                 c_id = component_to_cid.get(component_name)
-                constraints.append(self._create_mole_fraction_constraint(str(fraction), constraint_count, c_id))
-                constraint_count += 1
+                parameters.append(self._create_mole_fraction_parameter(str(fraction), param_count, c_id))
+                param_count += 1
         else:
             # Fallback to original logic if we don't have both parameters
             # This handles cases where we only have individual mole fractions
             if 'mole_fraction_of_water' in exp:
                 c_id = compound_name_to_cid.get('Water')
-                constraints.append(self._create_mole_fraction_constraint(exp['mole_fraction_of_water'], constraint_count, c_id))
-                constraint_count += 1
+                parameters.append(self._create_mole_fraction_parameter(exp['mole_fraction_of_water'], param_count, c_id))
+                param_count += 1
                 
             if 'molar_ratio_of_DES' in exp:
                 # For molar ratio, we need to determine which component it refers to
                 # This could be the first non-water component
                 non_water_compounds = [name for name in compound_name_to_cid.keys() if name.lower() != 'water']
                 c_id = compound_name_to_cid.get(non_water_compounds[0]) if non_water_compounds else None
-                constraints.append(self._create_mole_fraction_constraint(exp['molar_ratio_of_DES'], constraint_count, c_id))
-                constraint_count += 1
+                parameters.append(self._create_mole_fraction_parameter(exp['molar_ratio_of_DES'], param_count, c_id))
+                param_count += 1
                 
         if 'pressure' in exp:
-            constraints.append(self._create_pressure_constraint(exp['pressure'], constraint_count))
+            parameters.append(self._create_pressure_parameter(exp['pressure'], param_count))
             
-        return constraints
+        return parameters
 
     def _create_property(self, exp_id: str) -> Property:
         """Create property from experiment ID"""
         return Property(
             propertyID=f"viscosity_{exp_id}",
-            property_group=Property_Group(
+            property_information=Property_Information(
                 group="TransportProp",
                 method="experimental",
                 property_name="Dynamic viscosity, mPa·s"
             )
         )
         
-    def _add_fluid_data(self, doi: str, exp: Dict[str, str], variables: List[Variable], 
-                        constraints: List[Constraint]) -> None:
+    def _add_fluid_data(self, doi: str, exp: Dict[str, str], variables: List[Parameter], 
+                        parameters: List[Parameter]) -> None:
         """Add fluid data to document"""
         viscosity_value = exp.get('value_viscosity') or exp.get('c', 0)
         temperature_value = exp.get('temperature', 0)
         exp_id = exp.get('ID', '001')
         
+        # Extract mole fraction values for storage
+        mole_fraction_values = []
+        if 'molar_ratio_of_DES' in exp and 'mole_fraction_of_water' in exp:
+            molar_ratio = float(exp['molar_ratio_of_DES'])
+            water_fraction = float(exp['mole_fraction_of_water'])
+            component_fractions = self._calculate_component_mole_fractions(molar_ratio, water_fraction)
+            mole_fraction_values = list(component_fractions.values())
+        elif 'mole_fraction_of_water' in exp:
+            mole_fraction_values = [float(exp['mole_fraction_of_water'])]
+        
+        # Store mole fraction values in the parameterValue if available
+        # For now, we'll store them as a comma-separated string in the varNumber field
+        mole_fraction_str = ",".join(map(str, mole_fraction_values)) if mole_fraction_values else ""
+        
         self.add_to_fluid(
             source_doi=doi,
             property=self._create_property(exp_id),
-            variable=variables[0] if variables else None,
-            constraint=constraints,
+            parameter=parameters,
             num_value=NumValue(
                 propertyValue=PropertyValue(
                     propDigits=4,
@@ -333,9 +341,9 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
                     propValue=float(viscosity_value),
                     uncertainty=float(exp.get('error_viscosity', 0)) if exp.get('error_viscosity') != 'NG' else 0
                 ),
-                variableValue=VariableValue(
+                parameterValue=ParameterValue(
                     varDigits=2,
-                    varNumber=f"var_{exp_id}",
+                    varNumber=f"var_{exp_id}_{mole_fraction_str}" if mole_fraction_str else f"var_{exp_id}",
                     varValue=float(temperature_value)
                 )
             )
@@ -368,7 +376,7 @@ class myFAIRFluidsDocument(FAIRFluidsDocument):
         for doi, experiments in doi_properties.items():
             for exp in experiments:
                 variables = self._create_variables(exp)
-                constraints = self._create_constraints(exp)
-                self._add_fluid_data(doi, exp, variables, constraints)
+                parameters = self._create_parameters(exp)
+                self._add_fluid_data(doi, exp, variables, parameters)
         
         return self

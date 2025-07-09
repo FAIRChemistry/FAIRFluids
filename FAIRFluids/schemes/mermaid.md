@@ -2,7 +2,7 @@
 classDiagram
     %% Class definitions with attributes
     class FAIRFluidsDocument {
-        +version: Version
+        +version?: Version
         +citation?: Citation
         +compound[0..*]: Compound
         +fluid[0..*]: Fluid
@@ -14,18 +14,18 @@ classDiagram
     }
 
     class Citation {
-        +Type?: string
+        +etype?: eType
         +author[0..*]: Author
     }
 
     class Author {
-        +given_name: string
-        +family_name: string
+        +given_name?: string
+        +family_name?: string
     }
 
     class Compound {
         +pubChemID?: integer
-        +compund_identifier?: string
+        +compound_identifier?: C_id
         +commonName?: string
         +SELFIE?: string
         +name_IUPAC?: string
@@ -33,41 +33,36 @@ classDiagram
         +standard_InChI_key?: string
     }
 
+    class C_id {
+        +c_id?: string
+    }
+
     class Fluid {
         +components[0..*]: string
         +source_doi?: string
         +property?: Property
-        +variable?: Variable
-        +constraint[0..*]: Constraint
+        +parameter[0..*]: Parameter
         +num_value?: NumValue
     }
 
     class Property {
         +propertyID?: string
-        +property_group?: Property_Group
+        +property_information?: Property_Information
     }
 
-    class Property_Group {
+    class Property_Information {
         +group?: string
         +method?: string
         +property_name?: string
     }
 
-    class Variable {
-        +variableID?: string
-        +variableType?: ConstraintVariableType
-        +variableName?: string
+    class Parameter {
+        +parameterID?: string
+        +parameterType?: ParameterType
         +componentID?: integer
     }
 
-    class Constraint {
-        +constraint_type?: ConstraintVariableType
-        +constraint_digits?: integer
-        +constraint_value?: float
-        +constraint_number?: integer
-    }
-
-    class ConstraintVariableType {
+    class ParameterType {
         +e_bio_variables?: eBioVariables
         +e_component_composition?: eComponentComposition
         +e_miscellaneous?: eMiscellaneous
@@ -79,7 +74,7 @@ classDiagram
 
     class NumValue {
         +propertyValue?: PropertyValue
-        +variableValue?: VariableValue
+        +parameterValue?: ParameterValue
     }
 
     class PropertyValue {
@@ -89,7 +84,7 @@ classDiagram
         +uncertainty?: float
     }
 
-    class VariableValue {
+    class ParameterValue {
         +varDigits?: integer
         +varNumber?: string
         +varValue?: float
@@ -192,21 +187,21 @@ classDiagram
     FAIRFluidsDocument "1" <|-- "1" Citation
     FAIRFluidsDocument "1" <|-- "*" Compound
     FAIRFluidsDocument "1" <|-- "*" Fluid
+    Citation "1" <|-- "1" eType
     Citation "1" <|-- "*" Author
+    Compound "1" <|-- "1" C_id
     Fluid "1" <|-- "1" Property
-    Fluid "1" <|-- "1" Variable
-    Fluid "1" <|-- "*" Constraint
+    Fluid "1" <|-- "*" Parameter
     Fluid "1" <|-- "1" NumValue
-    Property "1" <|-- "1" Property_Group
-    Variable "1" <|-- "1" ConstraintVariableType
-    Constraint "1" <|-- "1" ConstraintVariableType
-    ConstraintVariableType "1" <|-- "1" eBioVariables
-    ConstraintVariableType "1" <|-- "1" eComponentComposition
-    ConstraintVariableType "1" <|-- "1" eMiscellaneous
-    ConstraintVariableType "1" <|-- "1" eParticipantAmount
-    ConstraintVariableType "1" <|-- "1" ePressure
-    ConstraintVariableType "1" <|-- "1" eSolventComposition
-    ConstraintVariableType "1" <|-- "1" eTemperature
+    Property "1" <|-- "1" Property_Information
+    Parameter "1" <|-- "1" ParameterType
+    ParameterType "1" <|-- "1" eBioVariables
+    ParameterType "1" <|-- "1" eComponentComposition
+    ParameterType "1" <|-- "1" eMiscellaneous
+    ParameterType "1" <|-- "1" eParticipantAmount
+    ParameterType "1" <|-- "1" ePressure
+    ParameterType "1" <|-- "1" eSolventComposition
+    ParameterType "1" <|-- "1" eTemperature
     NumValue "1" <|-- "1" PropertyValue
-    NumValue "1" <|-- "1" VariableValue
+    NumValue "1" <|-- "1" ParameterValue
 ```

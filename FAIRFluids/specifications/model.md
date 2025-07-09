@@ -35,8 +35,8 @@ Description
   - Description: Add the minor version number to your datareport
 
 ### Citation
-- Type
-  - Type:string
+- litType
+  - Type:LitType
   - Description: indicates the type of source document (book, journal, report, patent, thesis, conference proceedings, archived document, personal correspondence, published translation, unspecified).
 - author
   - Type: Author[]
@@ -45,7 +45,7 @@ Description
     
 ### Author
 
-Add more Info from ThermoML
+Add more Info 
 - given_name
   - Type:string
   - Description: Name of the Author
@@ -65,9 +65,9 @@ Here the Metadata of each compound are listed.
 - commonName
   - Type: string
   - Description: The generic name of a substance, e.g. H20 - Water
-- SELFIE:
+- SELFIE
   - Type: string
-  -Description: SELFIES Representation from the Molecule
+  - Description: SELFIES Representation from the Molecule
 - name_IUPAC
   - Type: string
 - standard_InChI
@@ -81,23 +81,20 @@ Here the Metadata of each compound are listed.
   - Description: Unique id of the compound
 
 ### Fluid
- This block contains nonbibliographic information about the source of the ThermoML file contents, identifies the experimental purpose, specifies meta- and numerical data, and specifies the compound (or mixture) and particular samples to which the data are related.
+ This block contains nonbibliographic information about the source of the file contents, identifies the experimental purpose, specifies meta- and numerical data, and specifies the compound (or mixture) and particular samples to which the data are related.
 
 - components
   - Type: Identifier[]
   - Description: Add the ID of the compund into the fluid
-- source_doi:
+- source_doi
   - Type: string
   - Description: The source where the data come form
 - property
   - Type: Property
   - Description: Property [complex] (Fig. 8) is characterized by Property-MethodID [complex], which identifies the property and experimental method used;
-- variable
-  - Type: Variable
-  - Description:  A variable refers to an independent experimental parameter that varies across data points within a data set. Examples include temperature, pressure, composition, and other input conditions under which thermodynamic properties are measured.
-- constraint
-  - Type: Constraint[]
-  - Description: A constraint refers to a condition or a fixed parameter that applies to an entire data set, rather than to each individual data point. Constraints are used to define experimental or calculated conditions that remain constant across all the measurements in a data set. Examples might include fixed composition, pressure, or volume during an experiment.
+- parameter
+  - Type: Parameter[]
+  - Description:  A variable refers to an independent experimental parameter that varies across data points within a data set. Examples include temperature, pressure, composition, and other input conditions under which thermodynamic properties are measured. A constraint refers to a condition or a fixed parameter that applies to an entire data set, rather than to each individual data point. Constraints are used to define experimental or calculated conditions that remain constant across all the measurements in a data set. Examples might include fixed composition, pressure, or volume during an experiment.
 - num_value
   - Type:NumValue
   - Description: Actual meassurement data
@@ -107,11 +104,12 @@ Definition: This is the main quantity being measured or reported.
 - propertyID
   - Type: Identifier
   - Description: Unique ID of the fluid property
-- property_group
-  - Type: Property_Group
+- property_information
+  - Type: Property_Information
   - Description: An identfication to which group the porperty belongs to
 
-### Property_Group
+### Property_Information
+How was the Property Derived, how was it calculated, etc.
 - group
   - Type: string
   - Description: To which group does the property belong: volumetricProp_, TransportProp, HeatCapacityAndDerivedProp, ExcessPartialApparentEnergyProp, CompositionAtPhaseEquilibrium
@@ -122,56 +120,38 @@ Definition: This is the main quantity being measured or reported.
   - Type: string
   - Description: What is the name of the property, eg. Mass Density, (and Units?)
   
-### Variable
+### Parameter
 Definition: A quantity that was varied during the experiment to observe its effect on the Property.
-- variableID
+- parameterID
   - Type: Identifier
-- variableType
-  - Type: ConstraintVariableType
-  - Description: eTemperture, ePressure, eComponentCompositon, eSolventComposition, eMiscellanous
-- variableName
-  - Type: string
+- parameterType
+  - Type: ParameterType
   - Description: Name of the Variable- e.g. Temerpature
 - componentID
   - Type: integer
   - Description: Add to Identify to which compound the variable applies to
 
-### Constraint
-Definition: A condition that was kept fixed during the experiment.
-- compound_identifier
-  - Type: C_id
-- constraint_type
-  - Type: ConstraintVariableType
-  - Description: Description what constraint is applicaple to the data. E.g. Pressure
-- constraint_digits
-  - Type: integer
-- constraint_value
-  - Type: float
-- constraint_number
-  - Type: integer
-
-
-### ConstraintVariableType
-- e_bio_variables
-  - Type: eBioVariables
-- e_component_composition
-  - Type: eComponentComposition
-- e_miscellaneous
-  - Type: eMiscellaneous
-- e_participant_amount
-  - Type: eParticipantAmount
-- e_pressure
-  - Type: ePressure, string
-- e_solvent_composition
-  - Type: eSolventComposition
-- e_temperature
-  - Type: eTemperature
+### ParameterType
+- bio_variables
+  - Type: BioVariables
+- component_composition
+  - Type: ComponentComposition
+- miscellaneous
+  - Type: Miscellaneous
+- participant_amount
+  - Type: ParticipantAmount
+- pressure
+  - Type: Pressure
+- solvent_composition
+  - Type: SolventComposition
+- temperature
+  - Type: Temperature
 
 ### NumValue
 - propertyValue
   - Type: PropertyValue
-- variableValue
-  - Type: VariableValue
+- parameterValue
+  - Type: ParameterValue
   
 ### PropertyValue
 - propDigits
@@ -184,7 +164,7 @@ Definition: A condition that was kept fixed during the experiment.
 - uncertainty
   - Type: float
 
-### VariableValue
+### ParameterValue
 - varDigits
   - Type: integer
 - varNumber
@@ -196,7 +176,7 @@ Definition: A condition that was kept fixed during the experiment.
 
 ## Enumerations
 
-### eType
+### LitType
 
 ```python
 BOOK = 'book'
@@ -211,7 +191,7 @@ PUBLISHEDTRANSLATION = 'publishedTranslation'
 UNSPECIFIED = 'unspecified'
 ```
 
-### eTemperature
+### Temperature
 
 ```python
 TEMPERATURE_K = 'Temperature, K'
@@ -219,7 +199,7 @@ UPPER_TEMPERATURE_K = 'Upper temperature, K'
 LOWER_TEMPERATURE_K = 'Lower temperature, K'
 ```
 
-### ePressure
+### Pressure
 
 ```python
 PRESSURE_KPA = 'Pressure, kPa'
@@ -228,7 +208,7 @@ UPPER_PRESSURE_KPA = 'Upper pressure, kPa'
 LOWER_PRESSURE_KPA = 'Lower pressure, kPa'
 ```
 
-### eComponentComposition
+### ComponentComposition
 
 ```python
 MOLE_FRACTION = 'Mole fraction'
@@ -249,7 +229,7 @@ INITIAL_MOLALITY_OF_SOLUTE_MOLKG = 'Initial molality of solute, mol/kg'
 FINAL_MOLALITY_OF_SOLUTE_MOLKG = 'Final molality of solute, mol/kg'
 ```
 
-### eSolventComposition
+### SolventComposition
 
 ```python
 SOLVENT_MOLE_FRACTION = 'Solvent: Mole fraction'
@@ -264,7 +244,7 @@ SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG = 'Solvent: Ratio 
 SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3 = 'Solvent: Ratio of component mass to volume of solvent, kg/m3'
 ```
 
-### eMiscellaneous
+### Miscellaneous
 
 ```python
 WAVELENGTH_NM = 'Wavelength, nm'
@@ -278,7 +258,7 @@ RELATIVE_ACTIVITY = '(Relative) activity'
 ACTIVITY_COEFFICIENT = 'Activity coefficient'
 ```
 
-### eBioVariables
+### BioVariables
 
 ```python
 PH = 'pH'
@@ -288,7 +268,7 @@ PC_AMOUNT_CONCENTRATION_BASIS = 'pC (amount concentration basis)'
 SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS = 'Solvent: pC (amount concentration basis)'
 ```
 
-### eParticipantAmount
+### ParticipantAmount
 
 ```python
 AMOUNT_MOL = 'Amount, mol'
