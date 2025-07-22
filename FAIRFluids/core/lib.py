@@ -72,15 +72,15 @@ class FAIRFluidsDocument(
     fluid: list[Fluid] = element(
         default_factory=list,
         tag="fluid",
-        description="""Specifcations of the Fluid""",
+        description="""Specifcations of the Fluid. There can be multible Fluids in one document""",
         json_schema_extra=dict(),
     )
 
 
     def add_to_compound(
         self,
+        compoundID: Optional[str]= None,
         pubChemID: Optional[int]= None,
-        compound_identifier: Optional[C_id]= None,
         commonName: Optional[str]= None,
         SELFIE: Optional[str]= None,
         name_IUPAC: Optional[str]= None,
@@ -90,8 +90,8 @@ class FAIRFluidsDocument(
     ):
         """Helper method to add a new Compound to the compound list."""
         params = {
+            "compoundID": compoundID,
             "pubChemID": pubChemID,
-            "compound_identifier": compound_identifier,
             "commonName": commonName,
             "SELFIE": SELFIE,
             "name_IUPAC": name_IUPAC,
@@ -107,20 +107,18 @@ class FAIRFluidsDocument(
 
     def add_to_fluid(
         self,
-        components: list[str]= [],
-        source_doi: Optional[str]= None,
-        property: Optional[Property]= None,
+        compounds: list[str]= [],
+        property: list[Property]= [],
         parameter: list[Parameter]= [],
-        num_value: Optional[NumValue]= None,
+        measurement: list[Measurement]= [],
         **kwargs,
     ):
         """Helper method to add a new Fluid to the fluid list."""
         params = {
-            "components": components,
-            "source_doi": source_doi,
+            "compounds": compounds,
             "property": property,
             "parameter": parameter,
-            "num_value": num_value
+            "measurement": measurement
         }
 
         self.fluid.append(
@@ -144,6 +142,51 @@ class FAIRFluidsDocument(
         raw_xml = self.to_xml(encoding=None)
         parsed_xml = minidom.parseString(raw_xml)
         return parsed_xml.toprettyxml(indent="  ")
+
+    def get_viscosity_data(self):
+        """
+        Returns a list of dicts with keys:
+            - 'compound_identifiers': list of compound names or IDs
+            - 'mole_fractions': list of mole fractions (same order as compounds)
+            - 'temperature': temperature in K
+            - 'viscosity': viscosity value (mPa·s)
+        """
+        data = []
+        for fluid in self.fluid:
+            # Get compound names or IDs
+            compounds = []
+            for idx in fluid.compounds:
+                comp = None
+                for c in self.compound:
+                    if str(c.compoundID) == str(idx):
+                        comp = c
+                        break
+                if comp and comp.commonName:
+                    compounds.append(comp.commonName)
+                elif comp and comp.compoundID:
+                    compounds.append(str(comp.compoundID))
+                else:
+                    compounds.append(str(idx))
+            for meas in fluid.measurement:
+                viscosity = None
+                for pv in meas.propertyValue:
+                    if pv.propertyID == 'viscosity':
+                        viscosity = pv.propValue
+                temperature = None
+                mole_fractions = []
+                for par_val in meas.parameterValue:
+                    if par_val.parameterID.startswith('T_'):
+                        temperature = par_val.paramValue
+                    if par_val.parameterID.startswith('x_'):
+                        mole_fractions.append(par_val.paramValue)
+                if viscosity is not None and temperature is not None and mole_fractions:
+                    data.append({
+                        'compound_identifiers': compounds,
+                        'mole_fractions': mole_fractions,
+                        'temperature': temperature,
+                        'viscosity': viscosity
+                    })
+        return data
 
 
 class Version(
@@ -189,15 +232,65 @@ class Citation(
     litType: Optional[LitType] = element(
         default= None,
         tag="litType",
-        description="""indicates the type of source document (book, journal, report, patent, thesis,
-            conference proceedings, archived document, personal correspondence,
-            published translation, unspecified).""",
+        description="""Specifies the type of literature or source document. Accepted values include:
+            book, journal, report, patent, thesis, conference proceedings,
+            archived document, personal correspondence, published translation,
+            or unspecified.""",
         json_schema_extra=dict(),
     )
     author: list[Author] = element(
         default_factory=list,
         tag="author",
-        description="""X""",
+        description="""A list of authors who contributed to the publication. Each entry should include
+            structured information such as full name and optionally additional
+            metadata like affiliation or identifier.""",
+        json_schema_extra=dict(),
+    )
+    doi: Optional[str] = element(
+        default= None,
+        tag="doi",
+        description="""Digital Object Identifier (DOI) for the publication. A unique alphanumeric
+            string used to identify and provide a permanent link to the document
+            online.""",
+        json_schema_extra=dict(),
+    )
+    page: Optional[str] = element(
+        default= None,
+        tag="page",
+        description="""The page range in which the publication appears, typically formatted as a string
+            (e.g., '123–135').""",
+        json_schema_extra=dict(),
+    )
+    pub_name: Optional[str] = element(
+        default= None,
+        tag="pub_name",
+        description="""The name of the publication source, such as the journal title, book title, or
+            conference name.""",
+        json_schema_extra=dict(),
+    )
+    title: Optional[str] = element(
+        default= None,
+        tag="title",
+        description="""The title of the cited work or publication.""",
+        json_schema_extra=dict(),
+    )
+    lit_volume_num: Optional[str] = element(
+        default= None,
+        tag="lit_volume_num",
+        description="""The volume number of the source publication, if applicable (e.g., journal
+            volume).""",
+        json_schema_extra=dict(),
+    )
+    url_citation: Optional[str] = element(
+        default= None,
+        tag="url_citation",
+        description="""A direct URL link to the publication or citation landing page.""",
+        json_schema_extra=dict(),
+    )
+    publication_year: Optional[str] = element(
+        default= None,
+        tag="publication_year",
+        description="""The year in which the publication was officially released or published.""",
         json_schema_extra=dict(),
     )
 
@@ -206,12 +299,18 @@ class Citation(
         self,
         given_name: Optional[str]= None,
         family_name: Optional[str]= None,
+        email: Optional[str]= None,
+        orcid: Optional[str]= None,
+        affiliation: Optional[str]= None,
         **kwargs,
     ):
         """Helper method to add a new Author to the author list."""
         params = {
             "given_name": given_name,
-            "family_name": family_name
+            "family_name": family_name,
+            "email": email,
+            "orcid": orcid,
+            "affiliation": affiliation
         }
 
         self.author.append(
@@ -242,18 +341,41 @@ class Author(
     search_mode="unordered",
 ):
     """
-    Add more Info
+    Description: Represents an individual contributor or creator of the cited
+    work. Each author entry includes identifying details such as name, contact
+    information, unique identifiers, and institutional affiliation.
     """
     given_name: Optional[str] = element(
         default= None,
         tag="given_name",
-        description="""Name of the Author""",
+        description="""The given name (first name or personal name) of the author or contributor.""",
         json_schema_extra=dict(),
     )
     family_name: Optional[str] = element(
         default= None,
         tag="family_name",
-        description="""Family name ot the author or contributor""",
+        description="""The family name (surname or last name) of the author or contributor.""",
+        json_schema_extra=dict(),
+    )
+    email: Optional[str] = element(
+        default= None,
+        tag="email",
+        description="""The email address of the author, if available. Used for contact or
+            identification purposes.""",
+        json_schema_extra=dict(),
+    )
+    orcid: Optional[str] = element(
+        default= None,
+        tag="orcid",
+        description="""The ORCID iD of the author, a unique, persistent identifier used to distinguish
+            researchers (e.g., '0000-0002-1825-0097').""",
+        json_schema_extra=dict(),
+    )
+    affiliation: Optional[str] = element(
+        default= None,
+        tag="affiliation",
+        description="""The name of the institution or organization the author is affiliated with at the
+            time of publication.""",
         json_schema_extra=dict(),
     )
 
@@ -281,75 +403,57 @@ class Compound(
     search_mode="unordered",
 ):
     """
-    Here the Metadata of each compound are listed.
+    Description: Contains metadata for a chemical compound, including identifiers,
+    names, and structural representations. Each entry describes one unique
+    compound referenced in the data report.
     """
+    compoundID: Optional[str] = element(
+        default= None,
+        tag="compoundID",
+        description="""A unique identifier assigned to the compound within the scope of this specific
+            data report or dataset. Used for internal tracking.""",
+        json_schema_extra=dict(),
+    )
     pubChemID: Optional[int] = element(
         default= None,
         tag="pubChemID",
-        description="""PubChemID of the Compound""",
-        json_schema_extra=dict(),
-    )
-    compound_identifier: Optional[C_id] = element(
-        default= None,
-        tag="compound_identifier",
-        description="""Unique Id of the compund in this datareport""",
+        description="""The PubChem Compound Identifier (CID), a unique numeric ID assigned by the
+            PubChem database to this compound.""",
         json_schema_extra=dict(),
     )
     commonName: Optional[str] = element(
         default= None,
         tag="commonName",
-        description="""The generic name of a substance, e.g. H20 - Water""",
+        description="""The common or generic name of the compound, such as 'Water' for H₂O.""",
         json_schema_extra=dict(),
     )
     SELFIE: Optional[str] = element(
         default= None,
         tag="SELFIE",
-        description="""SELFIES Representation from the Molecule""",
+        description="""The SELFIES (Self-referencing Embedded Strings) representation of the compound’s
+            molecular structure. A robust, machine-readable encoding for
+            molecules.""",
         json_schema_extra=dict(),
     )
     name_IUPAC: Optional[str] = element(
         default= None,
         tag="name_IUPAC",
+        description="""The full IUPAC (International Union of Pure and Applied Chemistry) name of the
+            compound, representing its standardized chemical nomenclature.""",
         json_schema_extra=dict(),
     )
     standard_InChI: Optional[str] = element(
         default= None,
         tag="standard_InChI",
+        description="""The Standard International Chemical Identifier (InChI) string that uniquely
+            represents the compound’s molecular structure.""",
         json_schema_extra=dict(),
     )
     standard_InChI_key: Optional[str] = element(
         default= None,
         tag="standard_InChI_key",
-        json_schema_extra=dict(),
-    )
-
-
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
-
-        Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
-
-        Returns:
-            str | bytes: The XML representation of the object
-        """
-        if encoding == "bytes":
-            return self.to_xml()
-
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
-
-
-class C_id(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    c_id: Optional[str] = element(
-        default= None,
-        tag="c_id",
-        description="""Unique id of the compound""",
+        description="""The hashed version of the InChI string, known as the InChIKey. It is a fixed-
+            length, easier-to-search identifier for databases and indexing.""",
         json_schema_extra=dict(),
     )
 
@@ -377,64 +481,83 @@ class Fluid(
     search_mode="unordered",
 ):
     """
-    This block contains nonbibliographic information about the source of the file
-    contents, identifies the experimental purpose, specifies meta- and numerical
-    data, and specifies the compound (or mixture) and particular samples to
-    which the data are related.
+    Description: Contains metadata and experimental context for a dataset related
+    to a fluid system. This includes the chemical composition (pure substance
+    or mixture), source of the data, properties measured, varying experimental
+    parameters, and the corresponding numerical results. There can exist
+    multible fluids in one document.
     """
-    components: list[str] = element(
+    compounds: list[str] = element(
         default_factory=list,
-        tag="components",
-        description="""Add the ID of the compund into the fluid""",
+        tag="compounds",
+        description="""A list of unique identifiers referencing the compounds present in the fluid
+            system. Multiple identifiers indicate a mixture; single entries
+            indicate a pure substance.v""",
         json_schema_extra=dict(),
     )
-    source_doi: Optional[str] = element(
-        default= None,
-        tag="source_doi",
-        description="""The source where the data come form""",
-        json_schema_extra=dict(),
-    )
-    property: Optional[Property] = element(
-        default= None,
+    property: list[Property] = element(
+        default_factory=list,
         tag="property",
-        description="""Property[] complex (Fig. 8) is characterized by Property-MethodID[] complex ,
-            which identifies the property and experimental method used;""",
+        description="""A list of physical or thermodynamic properties that were measured or calculated
+            for the fluid. Each property is associated with a method identifier
+            (propertyID) that defines both the property type (e.g., viscosity,
+            density, heat capacity) and the experimental or computational method
+            used.""",
         json_schema_extra=dict(),
     )
     parameter: list[Parameter] = element(
         default_factory=list,
         tag="parameter",
-        description="""A variable refers to an independent experimental parameter that varies across
-            data points within a data set. Examples include temperature,
-            pressure, composition, and other input conditions under which
-            thermodynamic properties are measured. A constraint refers to a
-            condition or a fixed parameter that applies to an entire data set,
-            rather than to each individual data point. Constraints are used to
-            define experimental or calculated conditions that remain constant
-            across all the measurements in a data set. Examples might include
-            fixed composition, pressure, or volume during an experiment.""",
+        description="""A list of experimental parameters. Parameters may vary across data points
+            (e.g., temperature, pressure, composition) or serve as constraints
+            that remain fixed across the dataset (e.g., constant pressure or
+            fixed mole ratio). These define the input conditions under which
+            properties are observed or measured.""",
         json_schema_extra=dict(),
     )
-    num_value: Optional[NumValue] = element(
-        default= None,
-        tag="num_value",
-        description="""Actual meassurement data""",
+    measurement: list[Measurement] = element(
+        default_factory=list,
+        tag="measurement",
+        description="""A collection of measured or calculated numerical data points associated with the
+            specified properties and experimental parameters.""",
         json_schema_extra=dict(),
     )
 
+
+    def add_to_property(
+        self,
+        propertyID: Optional[str]= None,
+        properties: Optional[Properties]= None,
+        unit: Optional[UnitDefinition]= None,
+        **kwargs,
+    ):
+        """Helper method to add a new Property to the property list."""
+        params = {
+            "propertyID": propertyID,
+            "properties": properties,
+            "unit": unit
+        }
+
+        self.property.append(
+            Property(**params)
+        )
+
+        return self.property[-1]
 
     def add_to_parameter(
         self,
         parameterID: Optional[str]= None,
-        parameterType: Optional[ParameterType]= None,
-        componentID: Optional[int]= None,
+        parameter: Optional[Parameters]= None,
+        unit: Optional[UnitDefinition]= None,
+        associated_compound: Optional[str]= None,
         **kwargs,
     ):
         """Helper method to add a new Parameter to the parameter list."""
         params = {
             "parameterID": parameterID,
-            "parameterType": parameterType,
-            "componentID": componentID
+            "parameter": parameter,
+            "unit": unit,
+            "associated_compound": associated_compound
         }
 
         self.parameter.append(
@@ -442,6 +565,32 @@ class Fluid(
         )
 
         return self.parameter[-1]
+
+    def add_to_measurement(
+        self,
+        measurement_id: Optional[str]= None,
+        source_doi: Optional[str]= None,
+        propertyValue: list[PropertyValue]= [],
+        parameterValue: list[ParameterValue]= [],
+        method: Optional[Method]= None,
+        method_description: Optional[str]= None,
+        **kwargs,
+    ):
+        """Helper method to add a new Measurement to the measurement list."""
+        params = {
+            "measurement_id": measurement_id,
+            "source_doi": source_doi,
+            "propertyValue": propertyValue,
+            "parameterValue": parameterValue,
+            "method": method,
+            "method_description": method_description
+        }
+
+        self.measurement.append(
+            Measurement(**params)
+        )
+
+        return self.measurement[-1]
     def xml(self, encoding: str = "unicode") -> str | bytes:
         """Converts the object to an XML string
 
@@ -465,65 +614,28 @@ class Property(
     search_mode="unordered",
 ):
     """
-    Definition: This is the main quantity being measured or reported.
+    Description: Defines the primary quantity being measured, calculated,
+    or otherwise reported for a fluid system. Each property includes its
+    identifier, grouping, and methodological context.
     """
     propertyID: Optional[str] = element(
         default= None,
         tag="propertyID",
-        description="""Unique ID of the fluid property""",
+        description="""A unique identifier for the specific property being reported (e.g., viscosity,
+            density, heat capacity).""",
         json_schema_extra=dict(),
     )
-    property_information: Optional[Property_Information] = element(
+    properties: Optional[Properties] = element(
         default= None,
-        tag="property_information",
-        description="""An identfication to which group the porperty belongs to""",
+        tag="properties",
+        description="""Indicates the broader category or group to which the property belongs (e.g.,
+            thermodynamic, transport, phase behavior). Used to organize related
+            properties.""",
         json_schema_extra=dict(),
     )
-
-
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
-
-        Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
-
-        Returns:
-            str | bytes: The XML representation of the object
-        """
-        if encoding == "bytes":
-            return self.to_xml()
-
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
-
-
-class Property_Information(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    How was the Property Derived, how was it calculated, etc.
-    """
-    group: Optional[str] = element(
+    unit: Optional[UnitDefinition] = element(
         default= None,
-        tag="group",
-        description="""To which group does the property belong: volumetricProp _ , TransportProp,
-            HeatCapacityAndDerivedProp, ExcessPartialApparentEnergyProp,
-            CompositionAtPhaseEquilibrium""",
-        json_schema_extra=dict(),
-    )
-    method: Optional[str] = element(
-        default= None,
-        tag="method",
-        description="""How was the property obtained. (Maybe add prediction field)""",
-        json_schema_extra=dict(),
-    )
-    property_name: Optional[str] = element(
-        default= None,
-        tag="property_name",
-        description="""What is the name of the property, eg. Mass Density, (and Units?)""",
+        tag="unit",
         json_schema_extra=dict(),
     )
 
@@ -551,83 +663,40 @@ class Parameter(
     search_mode="unordered",
 ):
     """
-    Definition: A quantity that was varied during the experiment to observe its
-    effect on the Property.
+    Description: Represents an independent variable or experimental input that was
+    varied during data collection to observe its effect on a reported property.
+    Parameters can apply globally to the system or specifically to one component
+    in a mixture. Categorizes the type of experimental or system variable
+    that is being controlled or varied during data collection. Each category
+    represents a specific kind of parameter relevant to fluid or chemical
+    systems.
     """
     parameterID: Optional[str] = element(
         default= None,
         tag="parameterID",
+        description="""A unique identifier for this parameter within the dataset. Used for referencing
+            in conjunction with numerical values.""",
         json_schema_extra=dict(),
     )
-    parameterType: Optional[ParameterType] = element(
+    parameter: Optional[Parameters] = element(
         default= None,
-        tag="parameterType",
-        description="""Name of the Variable- e.g. Temerpature""",
+        tag="parameter",
+        description="""The type or name of the parameter being varied, such as temperature, pressure,
+            or mole fraction. Indicates what was controlled or changed during
+            the experiment.""",
         json_schema_extra=dict(),
     )
-    componentID: Optional[int] = element(
+    unit: Optional[UnitDefinition] = element(
         default= None,
-        tag="componentID",
-        description="""Add to Identify to which compound the variable applies to""",
+        tag="unit",
         json_schema_extra=dict(),
     )
-
-
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
-
-        Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
-
-        Returns:
-            str | bytes: The XML representation of the object
-        """
-        if encoding == "bytes":
-            return self.to_xml()
-
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
-
-
-class ParameterType(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    bio_variables: Optional[BioVariables] = element(
+    associated_compound: Optional[str] = element(
         default= None,
-        tag="bio_variables",
-        json_schema_extra=dict(),
-    )
-    component_composition: Optional[ComponentComposition] = element(
-        default= None,
-        tag="component_composition",
-        json_schema_extra=dict(),
-    )
-    miscellaneous: Optional[Miscellaneous] = element(
-        default= None,
-        tag="miscellaneous",
-        json_schema_extra=dict(),
-    )
-    participant_amount: Optional[ParticipantAmount] = element(
-        default= None,
-        tag="participant_amount",
-        json_schema_extra=dict(),
-    )
-    pressure: Optional[Pressure] = element(
-        default= None,
-        tag="pressure",
-        json_schema_extra=dict(),
-    )
-    solvent_composition: Optional[SolventComposition] = element(
-        default= None,
-        tag="solvent_composition",
-        json_schema_extra=dict(),
-    )
-    temperature: Optional[Temperature] = element(
-        default= None,
-        tag="temperature",
+        tag="associated_compound",
+        description="""Identifies the specific compound (by its index or ID) to which this parameter
+            applies. Useful in multicomponent systems where a parameter (e.g.,
+            mole fraction) pertains to a specific compound.""",
         json_schema_extra=dict(),
     )
 
@@ -650,22 +719,101 @@ class ParameterType(
         return parsed_xml.toprettyxml(indent="  ")
 
 
-class NumValue(
+class Measurement(
     BaseXmlModel,
     search_mode="unordered",
 ):
-    propertyValue: Optional[PropertyValue] = element(
+    """
+    Description: Contains the numerical data values related to both properties and
+    parameters. These values represent the measured or calculated quantities
+    recorded in the experiment or dataset.
+    """
+    measurement_id: Optional[str] = element(
         default= None,
+        tag="measurement_id",
+        json_schema_extra=dict(),
+    )
+    source_doi: Optional[str] = element(
+        default= None,
+        tag="source_doi",
+        description="""The Digital Object Identifier (DOI) of the source publication or dataset from
+            which the fluid data was obtained.""",
+        json_schema_extra=dict(),
+    )
+    propertyValue: list[PropertyValue] = element(
+        default_factory=list,
         tag="propertyValue",
+        description="""An array of numerical values corresponding to the measured or calculated
+            properties (e.g., density, viscosity). Each entry should include the
+            value, units, and possibly uncertainty or error margins.""",
         json_schema_extra=dict(),
     )
-    parameterValue: Optional[ParameterValue] = element(
-        default= None,
+    parameterValue: list[ParameterValue] = element(
+        default_factory=list,
         tag="parameterValue",
+        description="""An array of numerical values corresponding to the parameters that were varied or
+            held constant during the experiment (e.g., temperature, pressure).
+            Each entry should specify the value, units, and related parameter
+            identifier.3""",
+        json_schema_extra=dict(),
+    )
+    method: Optional[Method] = element(
+        default= None,
+        tag="method",
+        description="""Describes how the property value was obtained. Accepted values may
+            include: , , , , or . This field helps distinguish between
+            experimental and non-experimental data sources.""",
+        json_schema_extra=dict(),
+    )
+    method_description: Optional[str] = element(
+        default= None,
+        tag="method_description",
+        description="""A free-text description providing additional detail about the method used to
+            generate the data (e.g., specific experimental setup, calculation
+            model, simulation type, or literature source details).""",
         json_schema_extra=dict(),
     )
 
 
+    def add_to_propertyValue(
+        self,
+        propertyID: Optional[str]= None,
+        propValue: Optional[float]= None,
+        uncertainty: Optional[float]= None,
+        **kwargs,
+    ):
+        """Helper method to add a new PropertyValue to the propertyValue list."""
+        params = {
+            "propertyID": propertyID,
+            "propValue": propValue,
+            "uncertainty": uncertainty
+        }
+
+        self.propertyValue.append(
+            PropertyValue(**params)
+        )
+
+        return self.propertyValue[-1]
+
+    def add_to_parameterValue(
+        self,
+        parameterID: Optional[str]= None,
+        paramValue: Optional[float]= None,
+        uncertainty: Optional[float]= None,
+        **kwargs,
+    ):
+        """Helper method to add a new ParameterValue to the parameterValue list."""
+        params = {
+            "parameterID": parameterID,
+            "paramValue": paramValue,
+            "uncertainty": uncertainty
+        }
+
+        self.parameterValue.append(
+            ParameterValue(**params)
+        )
+
+        return self.parameterValue[-1]
     def xml(self, encoding: str = "unicode") -> str | bytes:
         """Converts the object to an XML string
 
@@ -688,25 +836,27 @@ class PropertyValue(
     BaseXmlModel,
     search_mode="unordered",
 ):
-    propDigits: Optional[int] = element(
+    """
+    Description: Represents a numerical value associated with a specific property
+    measurement, including precision and uncertainty information.
+    """
+    propertyID: Optional[str] = element(
         default= None,
-        tag="propDigits",
-        json_schema_extra=dict(),
-    )
-    propNumber: Optional[str] = element(
-        default= None,
-        tag="propNumber",
+        tag="propertyID",
+        description="""Identifier referencing the property to which this value corresponds.""",
         json_schema_extra=dict(),
     )
     propValue: Optional[float] = element(
         default= None,
         tag="propValue",
-        description="""Actual value of the property""",
+        description="""The actual measured or calculated numerical value of the property.""",
         json_schema_extra=dict(),
     )
     uncertainty: Optional[float] = element(
         default= None,
         tag="uncertainty",
+        description="""The estimated uncertainty or error margin associated with the property value,
+            typically representing standard deviation or confidence interval.""",
         json_schema_extra=dict(),
     )
 
@@ -733,20 +883,142 @@ class ParameterValue(
     BaseXmlModel,
     search_mode="unordered",
 ):
-    varDigits: Optional[int] = element(
+    """
+    Description: Represents a numerical value for a parameter that was varied
+    or controlled during the experiment, including precision and uncertainty
+    details.
+    """
+    parameterID: Optional[str] = element(
         default= None,
-        tag="varDigits",
+        tag="parameterID",
+        description="""Identifier referencing the specific parameter this value corresponds to.""",
         json_schema_extra=dict(),
     )
-    varNumber: Optional[str] = element(
+    paramValue: Optional[float] = element(
         default= None,
-        tag="varNumber",
+        tag="paramValue",
+        description="""The actual measured or set numerical value of the parameter.""",
         json_schema_extra=dict(),
     )
-    varValue: Optional[float] = element(
+    uncertainty: Optional[float] = element(
         default= None,
-        tag="varValue",
-        description="""Actual value of the variable""",
+        tag="uncertainty",
+        description="""The estimated uncertainty or error margin associated with the parameter value.""",
+        json_schema_extra=dict(),
+    )
+
+
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
+class UnitDefinition(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    unitID: Optional[str] = element(
+        default= None,
+        tag="unitID",
+        description="""Unique identifier for the unit definition, used for referencing in data fields.""",
+        json_schema_extra=dict(),
+    )
+    name: Optional[str] = element(
+        default= None,
+        tag="name",
+        description="""Human-readable name of the unit (e.g., 'kilogram per cubic meter').""",
+        json_schema_extra=dict(),
+    )
+    base_units: list[BaseUnit] = element(
+        default_factory=list,
+        tag="base_units",
+        description="""A list of base unit components that, together with exponents, scale, and
+            multipliers, define the full derived unit.""",
+        json_schema_extra=dict(),
+    )
+
+
+    def add_to_base_units(
+        self,
+        kind: Optional[str]= None,
+        exponent: Optional[int]= None,
+        multiplier: Optional[float]= None,
+        scale: Optional[float]= None,
+        **kwargs,
+    ):
+        """Helper method to add a new BaseUnit to the base_units list."""
+        params = {
+            "kind": kind,
+            "exponent": exponent,
+            "multiplier": multiplier,
+            "scale": scale
+        }
+
+        self.base_units.append(
+            BaseUnit(**params)
+        )
+
+        return self.base_units[-1]
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
+class BaseUnit(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    kind: Optional[str] = element(
+        default= None,
+        tag="kind",
+        description="""The physical quantity represented by the unit (e.g., mass, length, time,
+            temperature).""",
+        json_schema_extra=dict(),
+    )
+    exponent: Optional[int] = element(
+        default= None,
+        tag="exponent",
+        description="""Exponent applied to the base unit (e.g., m² has exponent 2 for 'length').""",
+        json_schema_extra=dict(),
+    )
+    multiplier: Optional[float] = element(
+        default= None,
+        tag="multiplier",
+        description="""Numerical multiplier applied to the base unit (e.g., 1000 for gram when
+            converting to kilogram).""",
+        json_schema_extra=dict(),
+    )
+    scale: Optional[float] = element(
+        default= None,
+        tag="scale",
+        description="""Power-of-ten scale factor applied to the unit (e.g., 3 for kilo, -6 for micro).
+            Applied as 10^scale.""",
         json_schema_extra=dict(),
     )
 
@@ -771,83 +1043,80 @@ class ParameterValue(
 
 class LitType(Enum):
     """Enumeration for LitType values"""
-    ARCHIVEDDOCUMENT = "'archivedDocument'"
-    BOOK = "'book'"
-    CONFERENCEPROCEEDINGS = "'conferenceProceedings'"
-    JOURNAL = "'journal'"
-    PATENT = "'patent'"
-    PERSONALCORRESPONDENCE = "'personalCorrespondence'"
-    PUBLISHEDTRANSLATION = "'publishedTranslation'"
-    REPORT = "'report'"
-    THESIS = "'thesis'"
-    UNSPECIFIED = "'unspecified'"
+    ARCHIVEDDOCUMENT = "archivedDocument"
+    BOOK = "book"
+    CONFERENCEPROCEEDINGS = "conferenceProceedings"
+    JOURNAL = "journal"
+    PATENT = "patent"
+    PERSONALCORRESPONDENCE = "personalCorrespondence"
+    PUBLISHEDTRANSLATION = "publishedTranslation"
+    REPORT = "report"
+    THESIS = "thesis"
+    UNSPECIFIED = "unspecified"
 
-class Temperature(Enum):
-    """Enumeration for Temperature values"""
-    LOWER_TEMPERATURE_K = "'Lower temperature, K'"
-    TEMPERATURE_K = "'Temperature, K'"
-    UPPER_TEMPERATURE_K = "'Upper temperature, K'"
+class Method(Enum):
+    """Enumeration for Method values"""
+    CALCULATED = "calculated,"
+    LITERATURE = "literature"
+    MEASURED = "measured,"
+    SIMULATED = "simulated,"
 
-class Pressure(Enum):
-    """Enumeration for Pressure values"""
-    LOWER_PRESSURE_KPA = "'Lower pressure, kPa'"
-    PARTIAL_PRESSURE_KPA = "'Partial pressure, kPa'"
-    PRESSURE_KPA = "'Pressure, kPa'"
-    UPPER_PRESSURE_KPA = "'Upper pressure, kPa'"
+class Properties(Enum):
+    """Enumeration for Properties values"""
+    BOILING_POINT = "boilingPoint"
+    COMPRESSIBILITY = "Compressibility"
+    DENSITY = "density"
+    MELTING_POINT = "meltingPoint"
+    PH = "pH"
+    POLARITY = "polarity"
+    SPECIFIC_HEAT_CAPACITY = "specificHeatCapacity"
+    THERMAL_CONDUCTIVITY = "thermalConductivity"
+    VAPOR_PRESSURE = "vaporPressure"
+    VISCOSITY = "viscosity"
 
-class ComponentComposition(Enum):
-    """Enumeration for ComponentComposition values"""
-    AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = "'Amount concentration (molarity), mol/dm3'"
-    AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT = "'Amount ratio of solute to solvent'"
-    FINAL_MASS_FRACTION_OF_SOLUTE = "'Final mass fraction of solute'"
-    FINAL_MOLALITY_OF_SOLUTE_MOLKG = "'Final molality of solute, mol/kg'"
-    FINAL_MOLE_FRACTION_OF_SOLUTE = "'Final mole fraction of solute'"
-    INITIAL_MASS_FRACTION_OF_SOLUTE = "'Initial mass fraction of solute'"
-    INITIAL_MOLALITY_OF_SOLUTE_MOLKG = "'Initial molality of solute, mol/kg'"
-    INITIAL_MOLE_FRACTION_OF_SOLUTE = "'Initial mole fraction of solute'"
-    MASS_FRACTION = "'Mass fraction'"
-    MASS_RATIO_OF_SOLUTE_TO_SOLVENT = "'Mass ratio of solute to solvent'"
-    MOLALITY_MOLKG = "'Molality, mol/kg'"
-    MOLE_FRACTION = "'Mole fraction'"
-    RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG = "'Ratio of amount of solute to mass of solution, mol/kg'"
-    RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3 = "'Ratio of mass of solute to volume of solution, kg/m3'"
-    VOLUME_FRACTION = "'Volume fraction'"
-    VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT = "'Volume ratio of solute to solvent'"
-
-class SolventComposition(Enum):
-    """Enumeration for SolventComposition values"""
-    SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = "'Solvent: Amount concentration (molarity), mol/dm3'"
-    SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "'Solvent: Amount ratio of component to other component of binary solvent'"
-    SOLVENT_MASS_FRACTION = "'Solvent: Mass fraction'"
-    SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "'Solvent: Mass ratio of component to other component of binary solvent'"
-    SOLVENT_MOLALITY_MOLKG = "'Solvent: Molality, mol/kg'"
-    SOLVENT_MOLE_FRACTION = "'Solvent: Mole fraction'"
-    SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG = "'Solvent: Ratio of amount of component to mass of solvent, mol/kg'"
-    SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3 = "'Solvent: Ratio of component mass to volume of solvent, kg/m3'"
-    SOLVENT_VOLUME_FRACTION = "'Solvent: Volume fraction'"
-    SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "'Solvent: Volume ratio of component to other component of binary solvent'"
-
-class Miscellaneous(Enum):
-    """Enumeration for Miscellaneous values"""
-    ACTIVITY_COEFFICIENT = "'Activity coefficient'"
-    AMOUNT_DENSITY_MOLM3 = "'Amount density, mol/m3'"
-    FREQUENCY_MHZ = "'Frequency, MHz'"
-    MASS_DENSITY_KGM3 = "'Mass density, kg/m3'"
-    MOLAR_ENTROPY_JKMOL = "'Molar entropy, J/K/mol'"
-    MOLAR_VOLUME_M3MOL = "'Molar volume, m3/mol'"
-    RELATIVE_ACTIVITY = "'(Relative) activity'"
-    SPECIFIC_VOLUME_M3KG = "'Specific volume, m3/kg'"
-    WAVELENGTH_NM = "'Wavelength, nm'"
-
-class BioVariables(Enum):
-    """Enumeration for BioVariables values"""
-    IONIC_STRENGTH_AMOUNT_CONCENTRATION_BASIS_MOLDM3 = "'Ionic strength (amount concentration basis), mol/dm3'"
-    IONIC_STRENGTH_MOLALITY_BASIS_MOLKG = "'Ionic strength (molality basis), mol/kg'"
-    PC_AMOUNT_CONCENTRATION_BASIS = "'pC (amount concentration basis)'"
-    PH = "'pH'"
-    SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS = "'Solvent: pC (amount concentration basis)'"
-
-class ParticipantAmount(Enum):
-    """Enumeration for ParticipantAmount values"""
-    AMOUNT_MOL = "'Amount, mol'"
-    MASS_KG = "'Mass, kg'"
+class Parameters(Enum):
+    """Enumeration for Parameters values"""
+    ACTIVITY_COEFFICIENT = "Activity coefficient"
+    AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = "Amount concentration (molarity), mol/dm3"
+    AMOUNT_DENSITY_MOLM3 = "Amount density, mol/m3"
+    AMOUNT_MOL = "Amount, mol"
+    AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT = "Amount ratio of solute to solvent"
+    FINAL_MASS_FRACTION_OF_SOLUTE = "Final mass fraction of solute"
+    FINAL_MOLALITY_OF_SOLUTE_MOLKG = "Final molality of solute, mol/kg"
+    FINAL_MOLE_FRACTION_OF_SOLUTE = "Final mole fraction of solute"
+    FREQUENCY_MHZ = "Frequency, MHz"
+    INITIAL_MASS_FRACTION_OF_SOLUTE = "Initial mass fraction of solute"
+    INITIAL_MOLALITY_OF_SOLUTE_MOLKG = "Initial molality of solute, mol/kg"
+    INITIAL_MOLE_FRACTION_OF_SOLUTE = "Initial mole fraction of solute"
+    LOWER_PRESSURE_KPA = "Lower pressure, kPa"
+    LOWER_TEMPERATURE_K = "Lower temperature, K"
+    MASS_DENSITY_KGM3 = "Mass density, kg/m3"
+    MASS_FRACTION = "Mass fraction"
+    MASS_KG = "Mass, kg"
+    MASS_RATIO_OF_SOLUTE_TO_SOLVENT = "Mass ratio of solute to solvent"
+    MOLALITY_MOLKG = "Molality, mol/kg"
+    MOLAR_ENTROPY_JKMOL = "Molar entropy, J/K/mol"
+    MOLAR_VOLUME_M3MOL = "Molar volume, m3/mol"
+    MOLE_FRACTION = "Mole fraction"
+    PARTIAL_PRESSURE_KPA = "Partial pressure, kPa"
+    PRESSURE_KPA = "Pressure, kPa"
+    RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG = "Ratio of amount of solute to mass of solution, mol/kg"
+    RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3 = "Ratio of mass of solute to volume of solution, kg/m3"
+    RELATIVE_ACTIVITY = "(Relative) activity"
+    SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = "Solvent: Amount concentration (molarity), mol/dm3"
+    SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Amount ratio of component to other component of binary solvent"
+    SOLVENT_MASS_FRACTION = "Solvent: Mass fraction"
+    SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Mass ratio of component to other component of binary solvent"
+    SOLVENT_MOLALITY_MOLKG = "Solvent: Molality, mol/kg"
+    SOLVENT_MOLE_FRACTION = "Solvent: Mole fraction"
+    SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG = "Solvent: Ratio of amount of component to mass of solvent, mol/kg"
+    SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3 = "Solvent: Ratio of component mass to volume of solvent, kg/m3"
+    SOLVENT_VOLUME_FRACTION = "Solvent: Volume fraction"
+    SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Volume ratio of component to other component of binary solvent"
+    SPECIFIC_VOLUME_M3KG = "Specific volume, m3/kg"
+    TEMPERATURE_K = "Temperature, K"
+    UPPER_PRESSURE_KPA = "Upper pressure, kPa"
+    UPPER_TEMPERATURE_K = "Upper temperature, K"
+    VOLUME_FRACTION = "Volume fraction"
+    VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT = "Volume ratio of solute to solvent"
+    WAVELENGTH_NM = "Wavelength, nm"
