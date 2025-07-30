@@ -93,6 +93,15 @@ class FAIRFluidsCMLParser:
                         parameters[param_type] = scalar.text
         return parameters
 
+    def _extract_measurement_modules(self) -> List[tuple]:
+        """
+        Extract both experiment and simulation modules, returning a list of (element, method_type) tuples.
+        """
+        ns = '{http://www.xml-cml.org/schema}'
+        experiments = [(el, 'EXPERIMENTAL') for el in self.root.findall(f".//{ns}module[@dictRef='des:experiment']")]
+        simulations = [(el, 'SIMULATION') for el in self.root.findall(f".//{ns}module[@dictRef='des:simulation']")]
+        return experiments + simulations
+
     def _make_unit(self, name: str) -> UnitDefinition:
         if name == "K":
             return UnitDefinition(unitID="K", name="kelvin", base_units=[BaseUnit(symbol="K", power=1, multiplier=1.0, scale=0.0)])
@@ -183,14 +192,14 @@ class FAIRFluidsCMLParser:
 
     def populate_fluids_and_measurements(self):
         """
-        Populate a single fluid and add all measurements from CML experiments to it.
+        Populate a single fluid and add all measurements from CML experiments and simulations to it.
         Now supports viscosity, conductivity, and density as possible properties.
         """
-        experiments = self._extract_experiments()
+        measurement_modules = self._extract_measurement_modules()
         fluid_compounds = [self.index_to_compoundID.get(i, str(i)) for i in range(len(self.compound_common_names))]
-        # Scan all experiments to find all unique property types
+        # Scan all modules to find all unique property types
         property_types = set()
-        for exp in experiments:
+        for exp, _ in measurement_modules:
             props = self._extract_properties(exp)
             if "value_viscosity" in props:
                 property_types.add("viscosity")
@@ -200,8 +209,8 @@ class FAIRFluidsCMLParser:
                 property_types.add("density")
         # Build property objects for all found types
         property_objs = [self._make_property(pt, property_type=pt) for pt in property_types]
-        # Build parameter template as before (from first experiment)
-        first_exp = experiments[0] if experiments else None
+        # Build parameter template as before (from first module)
+        first_exp = measurement_modules[0][0] if measurement_modules else None
         parameters_template = []
         if first_exp is not None:
             props = self._extract_properties(first_exp)
@@ -242,7 +251,7 @@ class FAIRFluidsCMLParser:
             measurement=[]
         )
         # Add all measurements
-        for exp in experiments:
+        for exp, method_type in measurement_modules:
             props = self._extract_properties(exp)
             params = self._extract_parameters(exp)
             exp_id = props.get("ID", "unknown")
@@ -279,13 +288,18 @@ class FAIRFluidsCMLParser:
                 property_values.append(self._make_property_value("conductivity", props["value_conductivity"], props.get("error_conductivity")))
             if "value_density" in props:
                 property_values.append(self._make_property_value("density", props["value_density"], props.get("error_density")))
+            # Set method
+            if method_type == 'EXPERIMENTAL':
+                method = Method.EXPERIMENTAL if hasattr(Method, 'EXPERIMENTAL') else Method.MEASURED
+            else:
+                method = Method.SIMULATION if hasattr(Method, 'SIMULATION') else Method.SIMULATED
             fluid.add_to_measurement(
                 measurement_id=f"meas_{exp_id}",
                 source_doi=doi,
                 propertyValue=property_values,
                 parameterValue=parameter_values,
-                method=Method.LITERATURE,
-                method_description="Experimental measurement"
+                method=method,
+                method_description="Experimental measurement" if method_type == 'EXPERIMENTAL' else "Simulation measurement"
             )
 
     def parse(self) -> FAIRFluidsDocument:
