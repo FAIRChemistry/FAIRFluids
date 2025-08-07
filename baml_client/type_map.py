@@ -19,8 +19,8 @@ type_map = {
     "types.Author": types.Author,
     "stream_types.Author": stream_types.Author,
 
-    "types.C_id": types.C_id,
-    "stream_types.C_id": stream_types.C_id,
+    "types.BaseUnit": types.BaseUnit,
+    "stream_types.BaseUnit": stream_types.BaseUnit,
 
     "types.Citation": types.Citation,
     "stream_types.Citation": stream_types.Citation,
@@ -34,14 +34,11 @@ type_map = {
     "types.Fluid": types.Fluid,
     "stream_types.Fluid": stream_types.Fluid,
 
-    "types.NumValue": types.NumValue,
-    "stream_types.NumValue": stream_types.NumValue,
+    "types.Measurement": types.Measurement,
+    "stream_types.Measurement": stream_types.Measurement,
 
     "types.Parameter": types.Parameter,
     "stream_types.Parameter": stream_types.Parameter,
-
-    "types.ParameterType": types.ParameterType,
-    "stream_types.ParameterType": stream_types.ParameterType,
 
     "types.ParameterValue": types.ParameterValue,
     "stream_types.ParameterValue": stream_types.ParameterValue,
@@ -52,27 +49,21 @@ type_map = {
     "types.PropertyValue": types.PropertyValue,
     "stream_types.PropertyValue": stream_types.PropertyValue,
 
-    "types.Property_Information": types.Property_Information,
-    "stream_types.Property_Information": stream_types.Property_Information,
+    "types.UnitDefinition": types.UnitDefinition,
+    "stream_types.UnitDefinition": stream_types.UnitDefinition,
 
     "types.Version": types.Version,
     "stream_types.Version": stream_types.Version,
 
 
-    "types.BioVariables": types.BioVariables,
-
-    "types.ComponentComposition": types.ComponentComposition,
-
     "types.LitType": types.LitType,
 
-    "types.Miscellaneous": types.Miscellaneous,
+    "types.Method": types.Method,
 
-    "types.ParticipantAmount": types.ParticipantAmount,
+    "types.Parameters": types.Parameters,
 
-    "types.Pressure": types.Pressure,
+    "types.Properties": types.Properties,
 
-    "types.SolventComposition": types.SolventComposition,
-
-    "types.Temperature": types.Temperature,
+    "types.UnitType": types.UnitType,
 
 }

@@ -37,17 +37,35 @@ def get_checks(checks: typing.Dict[CheckName, Check]) -> typing.List[Check]:
 def all_succeeded(checks: typing.Dict[CheckName, Check]) -> bool:
     return all(check.status == "succeeded" for check in get_checks(checks))
 # #########################################################################
-# Generated enums (8)
+# Generated enums (5)
 # #########################################################################
 
-class BioVariables(str, Enum):
-    PH = "PH"
-    IONIC_STRENGTH_MOLALITY_BASIS_MOLKG = "IONIC_STRENGTH_MOLALITY_BASIS_MOLKG"
-    IONIC_STRENGTH_AMOUNT_CONCENTRATION_BASIS_MOLDM3 = "IONIC_STRENGTH_AMOUNT_CONCENTRATION_BASIS_MOLDM3"
-    PC_AMOUNT_CONCENTRATION_BASIS = "PC_AMOUNT_CONCENTRATION_BASIS"
-    SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS = "SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS"
+class LitType(str, Enum):
+    BOOK = "BOOK"
+    JOURNAL = "JOURNAL"
+    REPORT = "REPORT"
+    PATENT = "PATENT"
+    THESIS = "THESIS"
+    CONFERENCEPROCEEDINGS = "CONFERENCEPROCEEDINGS"
+    ARCHIVEDDOCUMENT = "ARCHIVEDDOCUMENT"
+    PERSONALCORRESPONDENCE = "PERSONALCORRESPONDENCE"
+    PUBLISHEDTRANSLATION = "PUBLISHEDTRANSLATION"
+    UNSPECIFIED = "UNSPECIFIED"
 
-class ComponentComposition(str, Enum):
+class Method(str, Enum):
+    MEASURED = "MEASURED"
+    CALCULATED = "CALCULATED"
+    SIMULATED = "SIMULATED"
+    LITERATURE = "LITERATURE"
+
+class Parameters(str, Enum):
+    TEMPERATURE_K = "TEMPERATURE_K"
+    UPPER_TEMPERATURE_K = "UPPER_TEMPERATURE_K"
+    LOWER_TEMPERATURE_K = "LOWER_TEMPERATURE_K"
+    PRESSURE_KPA = "PRESSURE_KPA"
+    PARTIAL_PRESSURE_KPA = "PARTIAL_PRESSURE_KPA"
+    UPPER_PRESSURE_KPA = "UPPER_PRESSURE_KPA"
+    LOWER_PRESSURE_KPA = "LOWER_PRESSURE_KPA"
     MOLE_FRACTION = "MOLE_FRACTION"
     MASS_FRACTION = "MASS_FRACTION"
     MOLALITY_MOLKG = "MOLALITY_MOLKG"
@@ -64,41 +82,6 @@ class ComponentComposition(str, Enum):
     FINAL_MASS_FRACTION_OF_SOLUTE = "FINAL_MASS_FRACTION_OF_SOLUTE"
     INITIAL_MOLALITY_OF_SOLUTE_MOLKG = "INITIAL_MOLALITY_OF_SOLUTE_MOLKG"
     FINAL_MOLALITY_OF_SOLUTE_MOLKG = "FINAL_MOLALITY_OF_SOLUTE_MOLKG"
-
-class LitType(str, Enum):
-    BOOK = "BOOK"
-    JOURNAL = "JOURNAL"
-    REPORT = "REPORT"
-    PATENT = "PATENT"
-    THESIS = "THESIS"
-    CONFERENCEPROCEEDINGS = "CONFERENCEPROCEEDINGS"
-    ARCHIVEDDOCUMENT = "ARCHIVEDDOCUMENT"
-    PERSONALCORRESPONDENCE = "PERSONALCORRESPONDENCE"
-    PUBLISHEDTRANSLATION = "PUBLISHEDTRANSLATION"
-    UNSPECIFIED = "UNSPECIFIED"
-
-class Miscellaneous(str, Enum):
-    WAVELENGTH_NM = "WAVELENGTH_NM"
-    FREQUENCY_MHZ = "FREQUENCY_MHZ"
-    MOLAR_VOLUME_M3MOL = "MOLAR_VOLUME_M3MOL"
-    SPECIFIC_VOLUME_M3KG = "SPECIFIC_VOLUME_M3KG"
-    MASS_DENSITY_KGM3 = "MASS_DENSITY_KGM3"
-    AMOUNT_DENSITY_MOLM3 = "AMOUNT_DENSITY_MOLM3"
-    MOLAR_ENTROPY_JKMOL = "MOLAR_ENTROPY_JKMOL"
-    RELATIVE_ACTIVITY = "RELATIVE_ACTIVITY"
-    ACTIVITY_COEFFICIENT = "ACTIVITY_COEFFICIENT"
-
-class ParticipantAmount(str, Enum):
-    AMOUNT_MOL = "AMOUNT_MOL"
-    MASS_KG = "MASS_KG"
-
-class Pressure(str, Enum):
-    PRESSURE_KPA = "PRESSURE_KPA"
-    PARTIAL_PRESSURE_KPA = "PARTIAL_PRESSURE_KPA"
-    UPPER_PRESSURE_KPA = "UPPER_PRESSURE_KPA"
-    LOWER_PRESSURE_KPA = "LOWER_PRESSURE_KPA"
-
-class SolventComposition(str, Enum):
     SOLVENT_MOLE_FRACTION = "SOLVENT_MOLE_FRACTION"
     SOLVENT_MASS_FRACTION = "SOLVENT_MASS_FRACTION"
     SOLVENT_VOLUME_FRACTION = "SOLVENT_VOLUME_FRACTION"
@@ -109,30 +92,64 @@ class SolventComposition(str, Enum):
     SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT"
     SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG = "SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG"
     SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3 = "SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3"
+    WAVELENGTH_NM = "WAVELENGTH_NM"
+    FREQUENCY_MHZ = "FREQUENCY_MHZ"
+    MOLAR_VOLUME_M3MOL = "MOLAR_VOLUME_M3MOL"
+    SPECIFIC_VOLUME_M3KG = "SPECIFIC_VOLUME_M3KG"
+    MASS_DENSITY_KGM3 = "MASS_DENSITY_KGM3"
+    AMOUNT_DENSITY_MOLM3 = "AMOUNT_DENSITY_MOLM3"
+    MOLAR_ENTROPY_JKMOL = "MOLAR_ENTROPY_JKMOL"
+    RELATIVE_ACTIVITY = "RELATIVE_ACTIVITY"
+    ACTIVITY_COEFFICIENT = "ACTIVITY_COEFFICIENT"
+    AMOUNT_MOL = "AMOUNT_MOL"
+    MASS_KG = "MASS_KG"
 
-class Temperature(str, Enum):
-    TEMPERATURE_K = "TEMPERATURE_K"
-    UPPER_TEMPERATURE_K = "UPPER_TEMPERATURE_K"
-    LOWER_TEMPERATURE_K = "LOWER_TEMPERATURE_K"
+class Properties(str, Enum):
+    DENSITY = "DENSITY"
+    SPECIFIC_HEAT_CAPACITY = "SPECIFIC_HEAT_CAPACITY"
+    THERMAL_CONDUCTIVITY = "THERMAL_CONDUCTIVITY"
+    MELTING_POINT = "MELTING_POINT"
+    BOILING_POINT = "BOILING_POINT"
+    VAPOR_PRESSURE = "VAPOR_PRESSURE"
+    COMPRESSIBILITY = "COMPRESSIBILITY"
+    VISCOSITY = "VISCOSITY"
+    PH = "PH"
+    POLARITY = "POLARITY"
+
+class UnitType(str, Enum):
+    MOLE = "MOLE"
 
 # #########################################################################
-# Generated classes (14)
+# Generated classes (13)
 # #########################################################################
 
 class Author(BaseModel):
     given_name: str
     family_name: str
+    email: str
+    orcid: str
+    affiliation: str
 
-class C_id(BaseModel):
-    c_id: str
+class BaseUnit(BaseModel):
+    kind: UnitType
+    exponent: int
+    multiplier: float
+    scale: float
 
 class Citation(BaseModel):
     litType: LitType
     author: typing.List["Author"]
+    doi: str
+    page: str
+    pub_name: str
+    title: str
+    lit_volume_num: str
+    url_citation: str
+    publication_year: str
 
 class Compound(BaseModel):
     pubChemID: int
-    compound_identifier: "C_id"
+    compound_identifier: int
     commonName: str
     SELFIE: str
     name_IUPAC: str
@@ -146,49 +163,46 @@ class FAIRFluidsDocument(BaseModel):
     fluid: typing.List["Fluid"]
 
 class Fluid(BaseModel):
-    components: typing.List[str]
-    source_doi: str
-    property: "Property"
+    compounds: typing.List[int]
+    property: typing.List["Property"]
     parameter: typing.List["Parameter"]
-    num_value: "NumValue"
+    measurement: typing.List["Measurement"]
 
-class NumValue(BaseModel):
-    propertyValue: "PropertyValue"
-    parameterValue: "ParameterValue"
+class Measurement(BaseModel):
+    measurement_id: int
+    source_doi: str
+    propertyValue: typing.List["PropertyValue"]
+    parameterValue: typing.List["ParameterValue"]
+    method: Method
+    method_description: str
 
 class Parameter(BaseModel):
-    parameterID: str
-    parameterType: "ParameterType"
-    componentID: int
-
-class ParameterType(BaseModel):
-    bio_variables: BioVariables
-    component_composition: ComponentComposition
-    miscellaneous: Miscellaneous
-    participant_amount: ParticipantAmount
-    pressure: Pressure
-    solvent_composition: SolventComposition
-    temperature: Temperature
+    parameterID: int
+    parameter: Parameters
+    unit: "UnitDefinition"
+    associated_compound: int
 
 class ParameterValue(BaseModel):
-    varDigits: int
-    varNumber: str
-    varValue: float
+    param_id: int
+    paramDigits: int
+    paramValue: float
+    uncertainty: float
 
 class Property(BaseModel):
-    propertyID: str
-    property_information: "Property_Information"
+    propertyID: int
+    properties: Properties
+    unit: "UnitDefinition"
 
 class PropertyValue(BaseModel):
+    prop_id: int
     propDigits: int
-    propNumber: str
     propValue: float
     uncertainty: float
 
-class Property_Information(BaseModel):
-    group: str
-    method: str
-    property_name: str
+class UnitDefinition(BaseModel):
+    id: str
+    name: str
+    base_units: typing.List["BaseUnit"]
 
 class Version(BaseModel):
     versionMajor: int

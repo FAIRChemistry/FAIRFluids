@@ -1,0 +1,78 @@
+Comp1,Comp2,Comp3,Water,MolarComp1,MolarComp2,MolarComp3,MolarComp4,Temperature,Viscosity,Pressure (Mpa),Water Content,Source
+Glucose,Cholinechloride,,,"0,5","0,5",,,"293,15","8897,9",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"298,15","5250,6",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"303,15","3213,7",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"313,15","1341,1",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"323,15","623,97",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"333,15","319,88",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"343,15","178,31",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,"353,15","109,64",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"293,15",15051,0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"298,15",8696,0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"303,15","5061,2",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"313,15","2028,4",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"323,15","913,44",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"333,15","455,37",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"343,15","244,44",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,,,"0,5","0,5",,,"353,15","142,06",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"293,15","1433,4",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"298,15","938,97",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"303,15","632,62",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"313,15","311,29",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"323,15","167,97",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"333,15","98,17",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"343,15","61,43",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Xylose,Cholinechloride,,,"0,5","0,5",,,"353,15","40,7",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"293,15",16453,0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"298,15","9157,1",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"303,15","5521,6",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"313,15","2151,1",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"323,15","951,07",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"333,15","465,38",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"343,15","248,41",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,,,"0,5","0,5",,,"353,15","143,41",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"293,15",1477,0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"298,15","977,02",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"303,15","666,14",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"313,15","333,35",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"323,15","182,33",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"333,15","107,39",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"343,15","67,43",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Mannose,Cholinechloride,Xylose,,"0,205","0,59","0,205",,"353,15","44,7",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"293,15","2894,5",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"298,15","1872,8",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"303,15","1241,9",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"313,15","597,78",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"323,15","315,11",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"333,15","181,7",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"343,15","111,63",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Fructose,Cholinechloride,Glucose,,"0,24","0,62","0,24",,"353,15","72,56",0.1,,https://dx.doi.org/10.22606/afse.2018.24004
+Glucose,Cholinechloride,,,"0,5","0,5",,,300,"9037,1",NA,,Hayyan et al. (2013a)
+Glucose,Cholinechloride,,,"0,2","0,8",,,298,"8,88",NA,,Zain et al. (2021)
+Glucose,Cholinechloride,,,"0,25","0,625","0,125",,300,10910,NA,,Hayyan et al. (2013b)
+Glucose,Cholinechloride,,,"0,714285714285714","0,285714285714286",,,313,"479,62",NA,,Dai et al. (2013)
+Glucose,Cholinechloride,,Water,03:02:03,"0,25","0,375",,298,"3939,4",NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Glucose,Citric acid,,Water,01:01:03,"0,2","0,6",,298,159,NA,,Benvenutti et al. (2020)
+Glucose,Citric acid,,Water,01:01:02,"0,25",,,298,"437768,5",NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Glucose,Lactic acid,,,5:1 (7.89 wt%),,,,313,"46,24",NA,,Dai et al. (2013)
+Glucose,Malic acid,,Water,01:01:03,,,,298,"3735,3",NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Glucose,Malic acid,,,1:1 (25 wt%),,,,NA,"81,7",NA,,Panić et al. (2019)
+Glucose,Malic acid,Glycerol,,1:1:1 (25 wt%),,,,NA,"44,7",NA,,Panić et al. (2019)
+Glucose,Urea,,Water,01:01:02,,,,298,"2638,1",NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Fructose,Glucose,Sucrose,,1:1:1 (22 wt%),,,,313,"983,3",NA,,Dai et al. (2013)
+Fructose,Cholinechloride,,,1:1 (30 wt%),,,,293,"28,31",NA,,Jurić et al. (2021)
+Fructose,Cholinechloride,,,1:2 (30 wt%),,,,293,"72,42",NA,,Jurić et al. (2021)
+Fructose,Cholinechloride,,,5:2 (7.84 wt%),,,,313,"339,15",NA,,Dai et al. (2013)
+Fructose,Cholinechloride,,Water,03:02:03,,,,298,2504,NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Fructose,Citric acid,,Water,01:01:02,,,,298,115039,NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Fructose,Malic acid,,Water,01:01:03,,,,298,"2343,1",NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Fructose,Glycerol,,,01:01:00,,,,298,"383,9",NA,,Rathnasamy et al. (2019)
+Fructose,Urea,,Water,01:01:02,,,,298,"2048,8",NA,,"Gómez et al., 2019a, Gómez et al., 2019b"
+Maltose,Cholinechloride,,,01:02:00,,,,313,"975,5",NA,,Chanioti and Tzia (2018)
+Maltose,Cholinechloride,,,01:02:00,,,,333,"331,2",NA,,Chanioti and Tzia (2018)
+Maltose,Cholinechloride,,,1:3 (50 wt%),,,,298,"7,92",NA,,Zain et al. (2021)
+Sucrose,Cholinechloride,,,4:1 (7.40 wt%),,,,313,"712,83",NA,,Dai et al. (2013)
+Sucrose,Glycerol,,,01:01:00,,,,298,1182,NA,,Rathnasamy et al. (2019)
+Xylose,Cholinechloride,,,2:1 (7.74 wt%),,,,313,"372,89",NA,,Dai et al. (2013)
+Trehalose,Cholinechloride,,,03:01:00,,,,293,64510,NA,,Xin et al. (2017)
+Trehalose,Cholinechloride,,,3:1 (25 wt%),,,,293,"57,27",NA,,Xin et al. (2017)

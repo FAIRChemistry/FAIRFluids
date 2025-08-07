@@ -80,8 +80,8 @@ class ModelMarkdownParser:
             elif current_field and re.match(r'^\s*- Type:', line):
                 # Type on indented line
                 type_val = line.split(':', 1)[1].strip()
-                # Convert 'integer' to 'int'
-                if type_val == 'integer':
+                # Convert 'integer' to 'int' and 'Identifier' to 'int'
+                if type_val == 'integer' or type_val == 'Identifier':
                     type_val = 'int'
                 current_field["type"] = type_val
             elif current_field and re.match(r'^\s*- Description:', line):
@@ -162,20 +162,11 @@ def generate_baml_from_markdown(markdown_file: str, template_file: str, output_f
     for enum in parsed_data['enums']:
         print(f"  - {enum['name']} ({len(enum['enum_values'])} values)")
     
-    # Debug: Print first class and enum
-    if parsed_data['classes']:
-        print(f"\nDebug - First class: {parsed_data['classes'][0]}")
-    if parsed_data['enums']:
-        print(f"Debug - First enum: {parsed_data['enums'][0]}")
-    
     # Load and render Jinja template
     env = Environment(loader=FileSystemLoader("."), trim_blocks=True, lstrip_blocks=True)
     template = env.get_template(template_file)
     
     output = template.render(**parsed_data)
-    
-    print(f"\nDebug - Generated output length: {len(output)}")
-    print(f"Debug - First 200 chars: {output[:200]}")
     
     # Write output file
     with open(output_file, "w") as f:

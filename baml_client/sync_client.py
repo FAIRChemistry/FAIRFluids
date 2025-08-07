@@ -85,11 +85,11 @@ class BamlSyncClient:
     def parse_stream(self):
       return self.__llm_stream_parser
     
-    def ExtractResume(self, resume: str,
+    def ExtractResume(self, resume_text: str,
         baml_options: BamlCallOptions = {},
     ) -> types.FAIRFluidsDocument:
         result = self.__options.merge_options(baml_options).call_function_sync(function_name="ExtractResume", args={
-            "resume": resume,
+            "resume_text": resume_text,
         })
         return typing.cast(types.FAIRFluidsDocument, result.cast_to(types, types, stream_types, False, __runtime__))
     
@@ -101,11 +101,11 @@ class BamlStreamClient:
     def __init__(self, options: DoNotUseDirectlyCallManager):
         self.__options = options
 
-    def ExtractResume(self, resume: str,
+    def ExtractResume(self, resume_text: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlSyncStream[stream_types.FAIRFluidsDocument, types.FAIRFluidsDocument]:
         ctx, result = self.__options.merge_options(baml_options).create_sync_stream(function_name="ExtractResume", args={
-            "resume": resume,
+            "resume_text": resume_text,
         })
         return baml_py.BamlSyncStream[stream_types.FAIRFluidsDocument, types.FAIRFluidsDocument](
           result,
@@ -121,11 +121,11 @@ class BamlHttpRequestClient:
     def __init__(self, options: DoNotUseDirectlyCallManager):
         self.__options = options
 
-    def ExtractResume(self, resume: str,
+    def ExtractResume(self, resume_text: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.baml_py.HTTPRequest:
         result = self.__options.merge_options(baml_options).create_http_request_sync(function_name="ExtractResume", args={
-            "resume": resume,
+            "resume_text": resume_text,
         }, mode="request")
         return result
     
@@ -136,11 +136,11 @@ class BamlHttpStreamRequestClient:
     def __init__(self, options: DoNotUseDirectlyCallManager):
         self.__options = options
 
-    def ExtractResume(self, resume: str,
+    def ExtractResume(self, resume_text: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.baml_py.HTTPRequest:
         result = self.__options.merge_options(baml_options).create_http_request_sync(function_name="ExtractResume", args={
-            "resume": resume,
+            "resume_text": resume_text,
         }, mode="stream")
         return result
     

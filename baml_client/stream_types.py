@@ -23,23 +23,36 @@ class StreamState(BaseModel, typing.Generic[StreamStateValueT]):
     value: StreamStateValueT
     state: typing_extensions.Literal["Pending", "Incomplete", "Complete"]
 # #########################################################################
-# Generated classes (14)
+# Generated classes (13)
 # #########################################################################
 
 class Author(BaseModel):
     given_name: typing.Optional[str] = None
     family_name: typing.Optional[str] = None
+    email: typing.Optional[str] = None
+    orcid: typing.Optional[str] = None
+    affiliation: typing.Optional[str] = None
 
-class C_id(BaseModel):
-    c_id: typing.Optional[str] = None
+class BaseUnit(BaseModel):
+    kind: typing.Optional[types.UnitType] = None
+    exponent: typing.Optional[int] = None
+    multiplier: typing.Optional[float] = None
+    scale: typing.Optional[float] = None
 
 class Citation(BaseModel):
     litType: typing.Optional[types.LitType] = None
     author: typing.List["Author"]
+    doi: typing.Optional[str] = None
+    page: typing.Optional[str] = None
+    pub_name: typing.Optional[str] = None
+    title: typing.Optional[str] = None
+    lit_volume_num: typing.Optional[str] = None
+    url_citation: typing.Optional[str] = None
+    publication_year: typing.Optional[str] = None
 
 class Compound(BaseModel):
     pubChemID: typing.Optional[int] = None
-    compound_identifier: typing.Optional["C_id"] = None
+    compound_identifier: typing.Optional[int] = None
     commonName: typing.Optional[str] = None
     SELFIE: typing.Optional[str] = None
     name_IUPAC: typing.Optional[str] = None
@@ -53,49 +66,46 @@ class FAIRFluidsDocument(BaseModel):
     fluid: typing.List["Fluid"]
 
 class Fluid(BaseModel):
-    components: typing.List[str]
-    source_doi: typing.Optional[str] = None
-    property: typing.Optional["Property"] = None
+    compounds: typing.List[int]
+    property: typing.List["Property"]
     parameter: typing.List["Parameter"]
-    num_value: typing.Optional["NumValue"] = None
+    measurement: typing.List["Measurement"]
 
-class NumValue(BaseModel):
-    propertyValue: typing.Optional["PropertyValue"] = None
-    parameterValue: typing.Optional["ParameterValue"] = None
+class Measurement(BaseModel):
+    measurement_id: typing.Optional[int] = None
+    source_doi: typing.Optional[str] = None
+    propertyValue: typing.List["PropertyValue"]
+    parameterValue: typing.List["ParameterValue"]
+    method: typing.Optional[types.Method] = None
+    method_description: typing.Optional[str] = None
 
 class Parameter(BaseModel):
-    parameterID: typing.Optional[str] = None
-    parameterType: typing.Optional["ParameterType"] = None
-    componentID: typing.Optional[int] = None
-
-class ParameterType(BaseModel):
-    bio_variables: typing.Optional[types.BioVariables] = None
-    component_composition: typing.Optional[types.ComponentComposition] = None
-    miscellaneous: typing.Optional[types.Miscellaneous] = None
-    participant_amount: typing.Optional[types.ParticipantAmount] = None
-    pressure: typing.Optional[types.Pressure] = None
-    solvent_composition: typing.Optional[types.SolventComposition] = None
-    temperature: typing.Optional[types.Temperature] = None
+    parameterID: typing.Optional[int] = None
+    parameter: typing.Optional[types.Parameters] = None
+    unit: typing.Optional["UnitDefinition"] = None
+    associated_compound: typing.Optional[int] = None
 
 class ParameterValue(BaseModel):
-    varDigits: typing.Optional[int] = None
-    varNumber: typing.Optional[str] = None
-    varValue: typing.Optional[float] = None
+    param_id: typing.Optional[int] = None
+    paramDigits: typing.Optional[int] = None
+    paramValue: typing.Optional[float] = None
+    uncertainty: typing.Optional[float] = None
 
 class Property(BaseModel):
-    propertyID: typing.Optional[str] = None
-    property_information: typing.Optional["Property_Information"] = None
+    propertyID: typing.Optional[int] = None
+    properties: typing.Optional[types.Properties] = None
+    unit: typing.Optional["UnitDefinition"] = None
 
 class PropertyValue(BaseModel):
+    prop_id: typing.Optional[int] = None
     propDigits: typing.Optional[int] = None
-    propNumber: typing.Optional[str] = None
     propValue: typing.Optional[float] = None
     uncertainty: typing.Optional[float] = None
 
-class Property_Information(BaseModel):
-    group: typing.Optional[str] = None
-    method: typing.Optional[str] = None
-    property_name: typing.Optional[str] = None
+class UnitDefinition(BaseModel):
+    id: typing.Optional[str] = None
+    name: typing.Optional[str] = None
+    base_units: typing.List["BaseUnit"]
 
 class Version(BaseModel):
     versionMajor: typing.Optional[int] = None

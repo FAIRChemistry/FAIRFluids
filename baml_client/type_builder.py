@@ -18,50 +18,38 @@ from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIM
 class TypeBuilder(type_builder.TypeBuilder):
     def __init__(self):
         super().__init__(classes=set(
-          ["Author","C_id","Citation","Compound","FAIRFluidsDocument","Fluid","NumValue","Parameter","ParameterType","ParameterValue","Property","PropertyValue","Property_Information","Version",]
+          ["Author","BaseUnit","Citation","Compound","FAIRFluidsDocument","Fluid","Measurement","Parameter","ParameterValue","Property","PropertyValue","UnitDefinition","Version",]
         ), enums=set(
-          ["BioVariables","ComponentComposition","LitType","Miscellaneous","ParticipantAmount","Pressure","SolventComposition","Temperature",]
+          ["LitType","Method","Parameters","Properties","UnitType",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
     # #########################################################################
-    # Generated enums 8
+    # Generated enums 5
     # #########################################################################
-
-    @property
-    def BioVariables(self) -> "BioVariablesViewer":
-        return BioVariablesViewer(self)
-
-    @property
-    def ComponentComposition(self) -> "ComponentCompositionViewer":
-        return ComponentCompositionViewer(self)
 
     @property
     def LitType(self) -> "LitTypeViewer":
         return LitTypeViewer(self)
 
     @property
-    def Miscellaneous(self) -> "MiscellaneousViewer":
-        return MiscellaneousViewer(self)
+    def Method(self) -> "MethodViewer":
+        return MethodViewer(self)
 
     @property
-    def ParticipantAmount(self) -> "ParticipantAmountViewer":
-        return ParticipantAmountViewer(self)
+    def Parameters(self) -> "ParametersViewer":
+        return ParametersViewer(self)
 
     @property
-    def Pressure(self) -> "PressureViewer":
-        return PressureViewer(self)
+    def Properties(self) -> "PropertiesViewer":
+        return PropertiesViewer(self)
 
     @property
-    def SolventComposition(self) -> "SolventCompositionViewer":
-        return SolventCompositionViewer(self)
-
-    @property
-    def Temperature(self) -> "TemperatureViewer":
-        return TemperatureViewer(self)
+    def UnitType(self) -> "UnitTypeViewer":
+        return UnitTypeViewer(self)
 
 
     # #########################################################################
-    # Generated classes 14
+    # Generated classes 13
     # #########################################################################
 
     @property
@@ -69,8 +57,8 @@ class TypeBuilder(type_builder.TypeBuilder):
         return AuthorViewer(self)
 
     @property
-    def C_id(self) -> "C_idViewer":
-        return C_idViewer(self)
+    def BaseUnit(self) -> "BaseUnitViewer":
+        return BaseUnitViewer(self)
 
     @property
     def Citation(self) -> "CitationViewer":
@@ -89,16 +77,12 @@ class TypeBuilder(type_builder.TypeBuilder):
         return FluidViewer(self)
 
     @property
-    def NumValue(self) -> "NumValueViewer":
-        return NumValueViewer(self)
+    def Measurement(self) -> "MeasurementViewer":
+        return MeasurementViewer(self)
 
     @property
     def Parameter(self) -> "ParameterViewer":
         return ParameterViewer(self)
-
-    @property
-    def ParameterType(self) -> "ParameterTypeViewer":
-        return ParameterTypeViewer(self)
 
     @property
     def ParameterValue(self) -> "ParameterValueViewer":
@@ -113,8 +97,8 @@ class TypeBuilder(type_builder.TypeBuilder):
         return PropertyValueViewer(self)
 
     @property
-    def Property_Information(self) -> "Property_InformationViewer":
-        return Property_InformationViewer(self)
+    def UnitDefinition(self) -> "UnitDefinitionViewer":
+        return UnitDefinitionViewer(self)
 
     @property
     def Version(self) -> "VersionViewer":
@@ -123,160 +107,8 @@ class TypeBuilder(type_builder.TypeBuilder):
 
 
 # #########################################################################
-# Generated enums 8
+# Generated enums 5
 # #########################################################################
-
-class BioVariablesAst:
-    def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("BioVariables")
-        self._values: typing.Set[str] = set([  "PH",  "IONIC_STRENGTH_MOLALITY_BASIS_MOLKG",  "IONIC_STRENGTH_AMOUNT_CONCENTRATION_BASIS_MOLDM3",  "PC_AMOUNT_CONCENTRATION_BASIS",  "SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS",  ])
-        self._vals = BioVariablesValues(self._bldr, self._values)
-
-    def type(self) -> baml_py.FieldType:
-        return self._bldr.field()
-
-    @property
-    def values(self) -> "BioVariablesValues":
-        return self._vals
-
-
-class BioVariablesViewer(BioVariablesAst):
-    def __init__(self, tb: type_builder.TypeBuilder):
-        super().__init__(tb)
-
-    
-    def list_values(self) -> typing.List[typing.Tuple[str, type_builder.EnumValueViewer]]:
-        return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
-    
-
-class BioVariablesValues:
-    def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
-        self.__bldr = enum_bldr
-        self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
-
-    
-    
-    @property
-    def PH(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("PH"))
-    
-    @property
-    def IONIC_STRENGTH_MOLALITY_BASIS_MOLKG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("IONIC_STRENGTH_MOLALITY_BASIS_MOLKG"))
-    
-    @property
-    def IONIC_STRENGTH_AMOUNT_CONCENTRATION_BASIS_MOLDM3(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("IONIC_STRENGTH_AMOUNT_CONCENTRATION_BASIS_MOLDM3"))
-    
-    @property
-    def PC_AMOUNT_CONCENTRATION_BASIS(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("PC_AMOUNT_CONCENTRATION_BASIS"))
-    
-    @property
-    def SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("SOLVENT_PC_AMOUNT_CONCENTRATION_BASIS"))
-    
-    
-
-
-class ComponentCompositionAst:
-    def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("ComponentComposition")
-        self._values: typing.Set[str] = set([  "MOLE_FRACTION",  "MASS_FRACTION",  "MOLALITY_MOLKG",  "AMOUNT_CONCENTRATION_MOLARITY_MOLDM3",  "VOLUME_FRACTION",  "RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG",  "RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3",  "AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT",  "MASS_RATIO_OF_SOLUTE_TO_SOLVENT",  "VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT",  "INITIAL_MOLE_FRACTION_OF_SOLUTE",  "FINAL_MOLE_FRACTION_OF_SOLUTE",  "INITIAL_MASS_FRACTION_OF_SOLUTE",  "FINAL_MASS_FRACTION_OF_SOLUTE",  "INITIAL_MOLALITY_OF_SOLUTE_MOLKG",  "FINAL_MOLALITY_OF_SOLUTE_MOLKG",  ])
-        self._vals = ComponentCompositionValues(self._bldr, self._values)
-
-    def type(self) -> baml_py.FieldType:
-        return self._bldr.field()
-
-    @property
-    def values(self) -> "ComponentCompositionValues":
-        return self._vals
-
-
-class ComponentCompositionViewer(ComponentCompositionAst):
-    def __init__(self, tb: type_builder.TypeBuilder):
-        super().__init__(tb)
-
-    
-    def list_values(self) -> typing.List[typing.Tuple[str, type_builder.EnumValueViewer]]:
-        return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
-    
-
-class ComponentCompositionValues:
-    def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
-        self.__bldr = enum_bldr
-        self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
-
-    
-    
-    @property
-    def MOLE_FRACTION(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MOLE_FRACTION"))
-    
-    @property
-    def MASS_FRACTION(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MASS_FRACTION"))
-    
-    @property
-    def MOLALITY_MOLKG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MOLALITY_MOLKG"))
-    
-    @property
-    def AMOUNT_CONCENTRATION_MOLARITY_MOLDM3(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_CONCENTRATION_MOLARITY_MOLDM3"))
-    
-    @property
-    def VOLUME_FRACTION(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("VOLUME_FRACTION"))
-    
-    @property
-    def RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG"))
-    
-    @property
-    def RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3"))
-    
-    @property
-    def AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT"))
-    
-    @property
-    def MASS_RATIO_OF_SOLUTE_TO_SOLVENT(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MASS_RATIO_OF_SOLUTE_TO_SOLVENT"))
-    
-    @property
-    def VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT"))
-    
-    @property
-    def INITIAL_MOLE_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("INITIAL_MOLE_FRACTION_OF_SOLUTE"))
-    
-    @property
-    def FINAL_MOLE_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("FINAL_MOLE_FRACTION_OF_SOLUTE"))
-    
-    @property
-    def INITIAL_MASS_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("INITIAL_MASS_FRACTION_OF_SOLUTE"))
-    
-    @property
-    def FINAL_MASS_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("FINAL_MASS_FRACTION_OF_SOLUTE"))
-    
-    @property
-    def INITIAL_MOLALITY_OF_SOLUTE_MOLKG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("INITIAL_MOLALITY_OF_SOLUTE_MOLKG"))
-    
-    @property
-    def FINAL_MOLALITY_OF_SOLUTE_MOLKG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("FINAL_MOLALITY_OF_SOLUTE_MOLKG"))
-    
-    
-
 
 class LitTypeAst:
     def __init__(self, tb: type_builder.TypeBuilder):
@@ -352,22 +184,22 @@ class LitTypeValues:
     
 
 
-class MiscellaneousAst:
+class MethodAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("Miscellaneous")
-        self._values: typing.Set[str] = set([  "WAVELENGTH_NM",  "FREQUENCY_MHZ",  "MOLAR_VOLUME_M3MOL",  "SPECIFIC_VOLUME_M3KG",  "MASS_DENSITY_KGM3",  "AMOUNT_DENSITY_MOLM3",  "MOLAR_ENTROPY_JKMOL",  "RELATIVE_ACTIVITY",  "ACTIVITY_COEFFICIENT",  ])
-        self._vals = MiscellaneousValues(self._bldr, self._values)
+        self._bldr = _tb.enum("Method")
+        self._values: typing.Set[str] = set([  "MEASURED",  "CALCULATED",  "SIMULATED",  "LITERATURE",  ])
+        self._vals = MethodValues(self._bldr, self._values)
 
     def type(self) -> baml_py.FieldType:
         return self._bldr.field()
 
     @property
-    def values(self) -> "MiscellaneousValues":
+    def values(self) -> "MethodValues":
         return self._vals
 
 
-class MiscellaneousViewer(MiscellaneousAst):
+class MethodViewer(MethodAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
@@ -376,7 +208,7 @@ class MiscellaneousViewer(MiscellaneousAst):
         return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
     
 
-class MiscellaneousValues:
+class MethodValues:
     def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
         self.__bldr = enum_bldr
         self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
@@ -384,60 +216,40 @@ class MiscellaneousValues:
     
     
     @property
-    def WAVELENGTH_NM(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("WAVELENGTH_NM"))
+    def MEASURED(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MEASURED"))
     
     @property
-    def FREQUENCY_MHZ(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("FREQUENCY_MHZ"))
+    def CALCULATED(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("CALCULATED"))
     
     @property
-    def MOLAR_VOLUME_M3MOL(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MOLAR_VOLUME_M3MOL"))
+    def SIMULATED(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("SIMULATED"))
     
     @property
-    def SPECIFIC_VOLUME_M3KG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("SPECIFIC_VOLUME_M3KG"))
-    
-    @property
-    def MASS_DENSITY_KGM3(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MASS_DENSITY_KGM3"))
-    
-    @property
-    def AMOUNT_DENSITY_MOLM3(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_DENSITY_MOLM3"))
-    
-    @property
-    def MOLAR_ENTROPY_JKMOL(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MOLAR_ENTROPY_JKMOL"))
-    
-    @property
-    def RELATIVE_ACTIVITY(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("RELATIVE_ACTIVITY"))
-    
-    @property
-    def ACTIVITY_COEFFICIENT(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("ACTIVITY_COEFFICIENT"))
+    def LITERATURE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("LITERATURE"))
     
     
 
 
-class ParticipantAmountAst:
+class ParametersAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("ParticipantAmount")
-        self._values: typing.Set[str] = set([  "AMOUNT_MOL",  "MASS_KG",  ])
-        self._vals = ParticipantAmountValues(self._bldr, self._values)
+        self._bldr = _tb.enum("Parameters")
+        self._values: typing.Set[str] = set([  "TEMPERATURE_K",  "UPPER_TEMPERATURE_K",  "LOWER_TEMPERATURE_K",  "PRESSURE_KPA",  "PARTIAL_PRESSURE_KPA",  "UPPER_PRESSURE_KPA",  "LOWER_PRESSURE_KPA",  "MOLE_FRACTION",  "MASS_FRACTION",  "MOLALITY_MOLKG",  "AMOUNT_CONCENTRATION_MOLARITY_MOLDM3",  "VOLUME_FRACTION",  "RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG",  "RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3",  "AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT",  "MASS_RATIO_OF_SOLUTE_TO_SOLVENT",  "VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT",  "INITIAL_MOLE_FRACTION_OF_SOLUTE",  "FINAL_MOLE_FRACTION_OF_SOLUTE",  "INITIAL_MASS_FRACTION_OF_SOLUTE",  "FINAL_MASS_FRACTION_OF_SOLUTE",  "INITIAL_MOLALITY_OF_SOLUTE_MOLKG",  "FINAL_MOLALITY_OF_SOLUTE_MOLKG",  "SOLVENT_MOLE_FRACTION",  "SOLVENT_MASS_FRACTION",  "SOLVENT_VOLUME_FRACTION",  "SOLVENT_MOLALITY_MOLKG",  "SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3",  "SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT",  "SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT",  "SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT",  "SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG",  "SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3",  "WAVELENGTH_NM",  "FREQUENCY_MHZ",  "MOLAR_VOLUME_M3MOL",  "SPECIFIC_VOLUME_M3KG",  "MASS_DENSITY_KGM3",  "AMOUNT_DENSITY_MOLM3",  "MOLAR_ENTROPY_JKMOL",  "RELATIVE_ACTIVITY",  "ACTIVITY_COEFFICIENT",  "AMOUNT_MOL",  "MASS_KG",  ])
+        self._vals = ParametersValues(self._bldr, self._values)
 
     def type(self) -> baml_py.FieldType:
         return self._bldr.field()
 
     @property
-    def values(self) -> "ParticipantAmountValues":
+    def values(self) -> "ParametersValues":
         return self._vals
 
 
-class ParticipantAmountViewer(ParticipantAmountAst):
+class ParametersViewer(ParametersAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
@@ -446,7 +258,7 @@ class ParticipantAmountViewer(ParticipantAmountAst):
         return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
     
 
-class ParticipantAmountValues:
+class ParametersValues:
     def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
         self.__bldr = enum_bldr
         self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
@@ -454,46 +266,16 @@ class ParticipantAmountValues:
     
     
     @property
-    def AMOUNT_MOL(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_MOL"))
+    def TEMPERATURE_K(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("TEMPERATURE_K"))
     
     @property
-    def MASS_KG(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("MASS_KG"))
+    def UPPER_TEMPERATURE_K(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("UPPER_TEMPERATURE_K"))
     
-    
-
-
-class PressureAst:
-    def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("Pressure")
-        self._values: typing.Set[str] = set([  "PRESSURE_KPA",  "PARTIAL_PRESSURE_KPA",  "UPPER_PRESSURE_KPA",  "LOWER_PRESSURE_KPA",  ])
-        self._vals = PressureValues(self._bldr, self._values)
-
-    def type(self) -> baml_py.FieldType:
-        return self._bldr.field()
-
     @property
-    def values(self) -> "PressureValues":
-        return self._vals
-
-
-class PressureViewer(PressureAst):
-    def __init__(self, tb: type_builder.TypeBuilder):
-        super().__init__(tb)
-
-    
-    def list_values(self) -> typing.List[typing.Tuple[str, type_builder.EnumValueViewer]]:
-        return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
-    
-
-class PressureValues:
-    def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
-        self.__bldr = enum_bldr
-        self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
-
-    
+    def LOWER_TEMPERATURE_K(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("LOWER_TEMPERATURE_K"))
     
     @property
     def PRESSURE_KPA(self) -> type_builder.EnumValueViewer:
@@ -511,39 +293,69 @@ class PressureValues:
     def LOWER_PRESSURE_KPA(self) -> type_builder.EnumValueViewer:
         return type_builder.EnumValueViewer(self.__bldr.value("LOWER_PRESSURE_KPA"))
     
-    
-
-
-class SolventCompositionAst:
-    def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("SolventComposition")
-        self._values: typing.Set[str] = set([  "SOLVENT_MOLE_FRACTION",  "SOLVENT_MASS_FRACTION",  "SOLVENT_VOLUME_FRACTION",  "SOLVENT_MOLALITY_MOLKG",  "SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3",  "SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT",  "SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT",  "SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT",  "SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG",  "SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3",  ])
-        self._vals = SolventCompositionValues(self._bldr, self._values)
-
-    def type(self) -> baml_py.FieldType:
-        return self._bldr.field()
-
     @property
-    def values(self) -> "SolventCompositionValues":
-        return self._vals
-
-
-class SolventCompositionViewer(SolventCompositionAst):
-    def __init__(self, tb: type_builder.TypeBuilder):
-        super().__init__(tb)
-
+    def MOLE_FRACTION(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MOLE_FRACTION"))
     
-    def list_values(self) -> typing.List[typing.Tuple[str, type_builder.EnumValueViewer]]:
-        return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
+    @property
+    def MASS_FRACTION(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MASS_FRACTION"))
     
-
-class SolventCompositionValues:
-    def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
-        self.__bldr = enum_bldr
-        self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
-
+    @property
+    def MOLALITY_MOLKG(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MOLALITY_MOLKG"))
     
+    @property
+    def AMOUNT_CONCENTRATION_MOLARITY_MOLDM3(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_CONCENTRATION_MOLARITY_MOLDM3"))
+    
+    @property
+    def VOLUME_FRACTION(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("VOLUME_FRACTION"))
+    
+    @property
+    def RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG"))
+    
+    @property
+    def RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3"))
+    
+    @property
+    def AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT"))
+    
+    @property
+    def MASS_RATIO_OF_SOLUTE_TO_SOLVENT(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MASS_RATIO_OF_SOLUTE_TO_SOLVENT"))
+    
+    @property
+    def VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT"))
+    
+    @property
+    def INITIAL_MOLE_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("INITIAL_MOLE_FRACTION_OF_SOLUTE"))
+    
+    @property
+    def FINAL_MOLE_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("FINAL_MOLE_FRACTION_OF_SOLUTE"))
+    
+    @property
+    def INITIAL_MASS_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("INITIAL_MASS_FRACTION_OF_SOLUTE"))
+    
+    @property
+    def FINAL_MASS_FRACTION_OF_SOLUTE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("FINAL_MASS_FRACTION_OF_SOLUTE"))
+    
+    @property
+    def INITIAL_MOLALITY_OF_SOLUTE_MOLKG(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("INITIAL_MOLALITY_OF_SOLUTE_MOLKG"))
+    
+    @property
+    def FINAL_MOLALITY_OF_SOLUTE_MOLKG(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("FINAL_MOLALITY_OF_SOLUTE_MOLKG"))
     
     @property
     def SOLVENT_MOLE_FRACTION(self) -> type_builder.EnumValueViewer:
@@ -585,25 +397,69 @@ class SolventCompositionValues:
     def SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3(self) -> type_builder.EnumValueViewer:
         return type_builder.EnumValueViewer(self.__bldr.value("SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3"))
     
+    @property
+    def WAVELENGTH_NM(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("WAVELENGTH_NM"))
+    
+    @property
+    def FREQUENCY_MHZ(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("FREQUENCY_MHZ"))
+    
+    @property
+    def MOLAR_VOLUME_M3MOL(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MOLAR_VOLUME_M3MOL"))
+    
+    @property
+    def SPECIFIC_VOLUME_M3KG(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("SPECIFIC_VOLUME_M3KG"))
+    
+    @property
+    def MASS_DENSITY_KGM3(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MASS_DENSITY_KGM3"))
+    
+    @property
+    def AMOUNT_DENSITY_MOLM3(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_DENSITY_MOLM3"))
+    
+    @property
+    def MOLAR_ENTROPY_JKMOL(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MOLAR_ENTROPY_JKMOL"))
+    
+    @property
+    def RELATIVE_ACTIVITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("RELATIVE_ACTIVITY"))
+    
+    @property
+    def ACTIVITY_COEFFICIENT(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("ACTIVITY_COEFFICIENT"))
+    
+    @property
+    def AMOUNT_MOL(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("AMOUNT_MOL"))
+    
+    @property
+    def MASS_KG(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MASS_KG"))
+    
     
 
 
-class TemperatureAst:
+class PropertiesAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("Temperature")
-        self._values: typing.Set[str] = set([  "TEMPERATURE_K",  "UPPER_TEMPERATURE_K",  "LOWER_TEMPERATURE_K",  ])
-        self._vals = TemperatureValues(self._bldr, self._values)
+        self._bldr = _tb.enum("Properties")
+        self._values: typing.Set[str] = set([  "DENSITY",  "SPECIFIC_HEAT_CAPACITY",  "THERMAL_CONDUCTIVITY",  "MELTING_POINT",  "BOILING_POINT",  "VAPOR_PRESSURE",  "COMPRESSIBILITY",  "VISCOSITY",  "PH",  "POLARITY",  ])
+        self._vals = PropertiesValues(self._bldr, self._values)
 
     def type(self) -> baml_py.FieldType:
         return self._bldr.field()
 
     @property
-    def values(self) -> "TemperatureValues":
+    def values(self) -> "PropertiesValues":
         return self._vals
 
 
-class TemperatureViewer(TemperatureAst):
+class PropertiesViewer(PropertiesAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
@@ -612,7 +468,7 @@ class TemperatureViewer(TemperatureAst):
         return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
     
 
-class TemperatureValues:
+class PropertiesValues:
     def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
         self.__bldr = enum_bldr
         self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
@@ -620,30 +476,96 @@ class TemperatureValues:
     
     
     @property
-    def TEMPERATURE_K(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("TEMPERATURE_K"))
+    def DENSITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("DENSITY"))
     
     @property
-    def UPPER_TEMPERATURE_K(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("UPPER_TEMPERATURE_K"))
+    def SPECIFIC_HEAT_CAPACITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("SPECIFIC_HEAT_CAPACITY"))
     
     @property
-    def LOWER_TEMPERATURE_K(self) -> type_builder.EnumValueViewer:
-        return type_builder.EnumValueViewer(self.__bldr.value("LOWER_TEMPERATURE_K"))
+    def THERMAL_CONDUCTIVITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("THERMAL_CONDUCTIVITY"))
+    
+    @property
+    def MELTING_POINT(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MELTING_POINT"))
+    
+    @property
+    def BOILING_POINT(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("BOILING_POINT"))
+    
+    @property
+    def VAPOR_PRESSURE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("VAPOR_PRESSURE"))
+    
+    @property
+    def COMPRESSIBILITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("COMPRESSIBILITY"))
+    
+    @property
+    def VISCOSITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("VISCOSITY"))
+    
+    @property
+    def PH(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("PH"))
+    
+    @property
+    def POLARITY(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("POLARITY"))
+    
+    
+
+
+class UnitTypeAst:
+    def __init__(self, tb: type_builder.TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self._bldr = _tb.enum("UnitType")
+        self._values: typing.Set[str] = set([  "MOLE",  ])
+        self._vals = UnitTypeValues(self._bldr, self._values)
+
+    def type(self) -> baml_py.FieldType:
+        return self._bldr.field()
+
+    @property
+    def values(self) -> "UnitTypeValues":
+        return self._vals
+
+
+class UnitTypeViewer(UnitTypeAst):
+    def __init__(self, tb: type_builder.TypeBuilder):
+        super().__init__(tb)
+
+    
+    def list_values(self) -> typing.List[typing.Tuple[str, type_builder.EnumValueViewer]]:
+        return [(name, type_builder.EnumValueViewer(self._bldr.value(name))) for name in self._values]
+    
+
+class UnitTypeValues:
+    def __init__(self, enum_bldr: baml_py.EnumBuilder, values: typing.Set[str]):
+        self.__bldr = enum_bldr
+        self.__values = values # type: ignore (we know how to use this private attribute) # noqa: F821
+
+    
+    
+    @property
+    def MOLE(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("MOLE"))
     
     
 
 
 
 # #########################################################################
-# Generated classes 14
+# Generated classes 13
 # #########################################################################
 
 class AuthorAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("Author")
-        self._properties: typing.Set[str] = set([  "given_name",  "family_name",  ])
+        self._properties: typing.Set[str] = set([  "given_name",  "family_name",  "email",  "orcid",  "affiliation",  ])
         self._props = AuthorProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -679,25 +601,37 @@ class AuthorProperties:
     def family_name(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("family_name"))
     
+    @property
+    def email(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("email"))
+    
+    @property
+    def orcid(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("orcid"))
+    
+    @property
+    def affiliation(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("affiliation"))
+    
     
 
 
-class C_idAst:
+class BaseUnitAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.class_("C_id")
-        self._properties: typing.Set[str] = set([  "c_id",  ])
-        self._props = C_idProperties(self._bldr, self._properties)
+        self._bldr = _tb.class_("BaseUnit")
+        self._properties: typing.Set[str] = set([  "kind",  "exponent",  "multiplier",  "scale",  ])
+        self._props = BaseUnitProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
         return self._bldr.field()
 
     @property
-    def props(self) -> "C_idProperties":
+    def props(self) -> "BaseUnitProperties":
         return self._props
 
 
-class C_idViewer(C_idAst):
+class BaseUnitViewer(BaseUnitAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
@@ -707,7 +641,7 @@ class C_idViewer(C_idAst):
     
 
 
-class C_idProperties:
+class BaseUnitProperties:
     def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
         self.__bldr = bldr
         self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
@@ -715,8 +649,20 @@ class C_idProperties:
     
     
     @property
-    def c_id(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("c_id"))
+    def kind(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("kind"))
+    
+    @property
+    def exponent(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("exponent"))
+    
+    @property
+    def multiplier(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("multiplier"))
+    
+    @property
+    def scale(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("scale"))
     
     
 
@@ -725,7 +671,7 @@ class CitationAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("Citation")
-        self._properties: typing.Set[str] = set([  "litType",  "author",  ])
+        self._properties: typing.Set[str] = set([  "litType",  "author",  "doi",  "page",  "pub_name",  "title",  "lit_volume_num",  "url_citation",  "publication_year",  ])
         self._props = CitationProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -760,6 +706,34 @@ class CitationProperties:
     @property
     def author(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("author"))
+    
+    @property
+    def doi(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("doi"))
+    
+    @property
+    def page(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("page"))
+    
+    @property
+    def pub_name(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("pub_name"))
+    
+    @property
+    def title(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("title"))
+    
+    @property
+    def lit_volume_num(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("lit_volume_num"))
+    
+    @property
+    def url_citation(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("url_citation"))
+    
+    @property
+    def publication_year(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("publication_year"))
     
     
 
@@ -882,7 +856,7 @@ class FluidAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("Fluid")
-        self._properties: typing.Set[str] = set([  "components",  "source_doi",  "property",  "parameter",  "num_value",  ])
+        self._properties: typing.Set[str] = set([  "compounds",  "property",  "parameter",  "measurement",  ])
         self._props = FluidProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -911,12 +885,8 @@ class FluidProperties:
     
     
     @property
-    def components(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("components"))
-    
-    @property
-    def source_doi(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("source_doi"))
+    def compounds(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("compounds"))
     
     @property
     def property(self) -> type_builder.ClassPropertyViewer:
@@ -927,28 +897,28 @@ class FluidProperties:
         return type_builder.ClassPropertyViewer(self.__bldr.property("parameter"))
     
     @property
-    def num_value(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("num_value"))
+    def measurement(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("measurement"))
     
     
 
 
-class NumValueAst:
+class MeasurementAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.class_("NumValue")
-        self._properties: typing.Set[str] = set([  "propertyValue",  "parameterValue",  ])
-        self._props = NumValueProperties(self._bldr, self._properties)
+        self._bldr = _tb.class_("Measurement")
+        self._properties: typing.Set[str] = set([  "measurement_id",  "source_doi",  "propertyValue",  "parameterValue",  "method",  "method_description",  ])
+        self._props = MeasurementProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
         return self._bldr.field()
 
     @property
-    def props(self) -> "NumValueProperties":
+    def props(self) -> "MeasurementProperties":
         return self._props
 
 
-class NumValueViewer(NumValueAst):
+class MeasurementViewer(MeasurementAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
@@ -958,12 +928,20 @@ class NumValueViewer(NumValueAst):
     
 
 
-class NumValueProperties:
+class MeasurementProperties:
     def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
         self.__bldr = bldr
         self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
 
     
+    
+    @property
+    def measurement_id(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("measurement_id"))
+    
+    @property
+    def source_doi(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("source_doi"))
     
     @property
     def propertyValue(self) -> type_builder.ClassPropertyViewer:
@@ -973,6 +951,14 @@ class NumValueProperties:
     def parameterValue(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("parameterValue"))
     
+    @property
+    def method(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("method"))
+    
+    @property
+    def method_description(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("method_description"))
+    
     
 
 
@@ -980,7 +966,7 @@ class ParameterAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("Parameter")
-        self._properties: typing.Set[str] = set([  "parameterID",  "parameterType",  "componentID",  ])
+        self._properties: typing.Set[str] = set([  "parameterID",  "parameter",  "unit",  "associated_compound",  ])
         self._props = ParameterProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -1013,75 +999,16 @@ class ParameterProperties:
         return type_builder.ClassPropertyViewer(self.__bldr.property("parameterID"))
     
     @property
-    def parameterType(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("parameterType"))
+    def parameter(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("parameter"))
     
     @property
-    def componentID(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("componentID"))
-    
-    
-
-
-class ParameterTypeAst:
-    def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.class_("ParameterType")
-        self._properties: typing.Set[str] = set([  "bio_variables",  "component_composition",  "miscellaneous",  "participant_amount",  "pressure",  "solvent_composition",  "temperature",  ])
-        self._props = ParameterTypeProperties(self._bldr, self._properties)
-
-    def type(self) -> baml_py.FieldType:
-        return self._bldr.field()
-
-    @property
-    def props(self) -> "ParameterTypeProperties":
-        return self._props
-
-
-class ParameterTypeViewer(ParameterTypeAst):
-    def __init__(self, tb: type_builder.TypeBuilder):
-        super().__init__(tb)
-
-    
-    def list_properties(self) -> typing.List[typing.Tuple[str, type_builder.ClassPropertyViewer]]:
-        return [(name, type_builder.ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
-    
-
-
-class ParameterTypeProperties:
-    def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
-        self.__bldr = bldr
-        self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
-
-    
+    def unit(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("unit"))
     
     @property
-    def bio_variables(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("bio_variables"))
-    
-    @property
-    def component_composition(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("component_composition"))
-    
-    @property
-    def miscellaneous(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("miscellaneous"))
-    
-    @property
-    def participant_amount(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("participant_amount"))
-    
-    @property
-    def pressure(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("pressure"))
-    
-    @property
-    def solvent_composition(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("solvent_composition"))
-    
-    @property
-    def temperature(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("temperature"))
+    def associated_compound(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("associated_compound"))
     
     
 
@@ -1090,7 +1017,7 @@ class ParameterValueAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("ParameterValue")
-        self._properties: typing.Set[str] = set([  "varDigits",  "varNumber",  "varValue",  ])
+        self._properties: typing.Set[str] = set([  "param_id",  "paramDigits",  "paramValue",  "uncertainty",  ])
         self._props = ParameterValueProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -1119,16 +1046,20 @@ class ParameterValueProperties:
     
     
     @property
-    def varDigits(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("varDigits"))
+    def param_id(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("param_id"))
     
     @property
-    def varNumber(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("varNumber"))
+    def paramDigits(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("paramDigits"))
     
     @property
-    def varValue(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("varValue"))
+    def paramValue(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("paramValue"))
+    
+    @property
+    def uncertainty(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("uncertainty"))
     
     
 
@@ -1137,7 +1068,7 @@ class PropertyAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("Property")
-        self._properties: typing.Set[str] = set([  "propertyID",  "property_information",  ])
+        self._properties: typing.Set[str] = set([  "propertyID",  "properties",  "unit",  ])
         self._props = PropertyProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -1170,8 +1101,12 @@ class PropertyProperties:
         return type_builder.ClassPropertyViewer(self.__bldr.property("propertyID"))
     
     @property
-    def property_information(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("property_information"))
+    def properties(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("properties"))
+    
+    @property
+    def unit(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("unit"))
     
     
 
@@ -1180,7 +1115,7 @@ class PropertyValueAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("PropertyValue")
-        self._properties: typing.Set[str] = set([  "propDigits",  "propNumber",  "propValue",  "uncertainty",  ])
+        self._properties: typing.Set[str] = set([  "prop_id",  "propDigits",  "propValue",  "uncertainty",  ])
         self._props = PropertyValueProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -1209,12 +1144,12 @@ class PropertyValueProperties:
     
     
     @property
-    def propDigits(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("propDigits"))
+    def prop_id(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("prop_id"))
     
     @property
-    def propNumber(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("propNumber"))
+    def propDigits(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("propDigits"))
     
     @property
     def propValue(self) -> type_builder.ClassPropertyViewer:
@@ -1227,22 +1162,22 @@ class PropertyValueProperties:
     
 
 
-class Property_InformationAst:
+class UnitDefinitionAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.class_("Property_Information")
-        self._properties: typing.Set[str] = set([  "group",  "method",  "property_name",  ])
-        self._props = Property_InformationProperties(self._bldr, self._properties)
+        self._bldr = _tb.class_("UnitDefinition")
+        self._properties: typing.Set[str] = set([  "id",  "name",  "base_units",  ])
+        self._props = UnitDefinitionProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
         return self._bldr.field()
 
     @property
-    def props(self) -> "Property_InformationProperties":
+    def props(self) -> "UnitDefinitionProperties":
         return self._props
 
 
-class Property_InformationViewer(Property_InformationAst):
+class UnitDefinitionViewer(UnitDefinitionAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
@@ -1252,7 +1187,7 @@ class Property_InformationViewer(Property_InformationAst):
     
 
 
-class Property_InformationProperties:
+class UnitDefinitionProperties:
     def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
         self.__bldr = bldr
         self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
@@ -1260,16 +1195,16 @@ class Property_InformationProperties:
     
     
     @property
-    def group(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("group"))
+    def id(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("id"))
     
     @property
-    def method(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("method"))
+    def name(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("name"))
     
     @property
-    def property_name(self) -> type_builder.ClassPropertyViewer:
-        return type_builder.ClassPropertyViewer(self.__bldr.property("property_name"))
+    def base_units(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("base_units"))
     
     
 

@@ -25,16 +25,6 @@ client<llm> CustomSonnet {
   }
 }
 
-
-client<llm> MyClient {
-
-  provider "openai-generic"
-  options {
-    base_url "http://localhost:11434/v1"
-    model phi4:latest
-  }
-
-}
 client<llm> CustomHaiku {
   provider anthropic
   retry_policy Constant
