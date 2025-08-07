@@ -1,7 +1,10 @@
 include README.md
 include LICENSE
 include requirements.txt
+include requirements-conda.txt
 include pyproject.toml
+include setup.py
+include environment.yml
 
 # Include data files
 recursive-include data *.csv
@@ -20,6 +23,15 @@ recursive-include test *.py
 recursive-include test *.ipynb
 recursive-include test *.json
 
+# Include package files
+recursive-include fairfluids *.py
+recursive-include fairfluids *.json
+recursive-include fairfluids *.xml
+
+# Include documentation
+include *.md
+include *.rst
+
 # Exclude development files
 global-exclude *.pyc
 global-exclude *.pyo
@@ -31,3 +43,6 @@ global-exclude .coverage
 global-exclude htmlcov/
 global-exclude .pytest_cache/
 global-exclude .mypy_cache/
+global-exclude *.egg-info/
+global-exclude build/
+global-exclude dist/

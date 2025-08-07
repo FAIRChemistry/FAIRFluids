@@ -10,7 +10,7 @@ __author__ = "FAIRChemistry Team"
 __email__ = "contact@fairchemistry.org"
 
 # Import main classes for easy access
-from core.lib import (
+from .core.lib import (
     FAIRFluidsDocument,
     Version,
     Citation,
@@ -30,8 +30,8 @@ from core.lib import (
     LitType
 )
 
-from core.fluid_io import FluidIO
-from core.functionalities import FAIRFluidsCMLParser
+from .core.fluid_io import FluidIO
+from .core.functionalities import FAIRFluidsCMLParser
 
 # Convenience imports
 __all__ = [

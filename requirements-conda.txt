@@ -14,5 +14,8 @@ sphinx>=5.0.0
 sphinx-rtd-theme>=1.0.0
 myst-parser>=0.18.0
 
+# Scientific computing (if not available in conda)
+# rdkit-pypi>=2022.9.1
+
 # Install the package in development mode
 -e .

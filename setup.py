@@ -30,7 +30,7 @@ setup(
         "Source": "https://github.com/FAIRChemistry/FAIRFluids",
         "Documentation": "https://github.com/FAIRChemistry/FAIRFluids#readme",
     },
-    packages=find_packages(),
+    packages=find_packages(include=["fairfluids", "fairfluids.*"]),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
