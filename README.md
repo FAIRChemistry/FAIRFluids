@@ -19,25 +19,33 @@ FAIRFluids is a Python-based framework designed to standardize the representatio
 
 ```
 FAIRFluids/
-├── baml_client/          # BAML (BoundaryML) client libraries
-├── baml_src/            # BAML schema definitions
-├── core/                # Core functionality
-│   ├── extended_models.py
-│   ├── fluid_io.py      # CSV data import utilities
-│   ├── functionalities.py
-│   ├── lib.py           # Main data models
-│   └── visualization.py
-├── data/                # Example data files
-│   ├── cml_xml/         # Chemical Markup Language files
-│   │   ├── gygli/       # Gygli et al. dataset
-│   │   └── xu/          # Xu et al. dataset
-│   ├── csvs/            # CSV data files
-│   ├── pdf/             # Reference documents
-│   └── thermoml_xml/    # ThermoML format files
-├── jinja/               # Template generation
-├── specifications/       # Model specifications
-├── test/                # Test files and examples
-└── schemes/             # Documentation and schemas
+├── fairfluids/          # Main package directory
+│   ├── __init__.py      # Package initialization
+│   ├── cli.py          # Command-line interface
+│   ├── core/           # Core functionality
+│   │   ├── __init__.py
+│   │   ├── extended_models.py
+│   │   ├── fluid_io.py      # CSV data import utilities
+│   │   ├── functionalities.py
+│   │   ├── lib.py           # Main data models
+│   │   └── visualization.py
+│   └── data/           # Example data files
+│       ├── cml_xml/    # Chemical Markup Language files
+│       │   ├── gygli/  # Gygli et al. dataset
+│       │   └── xu/     # Xu et al. dataset
+│       ├── csvs/       # CSV data files
+│       ├── pdf/        # Reference documents
+│       └── thermoml_xml/ # ThermoML format files
+├── baml_client/        # BAML (BoundaryML) client libraries
+├── baml_src/          # BAML schema definitions
+├── jinja/             # Template generation
+├── specifications/     # Model specifications
+├── test/              # Test files and examples
+├── schemes/           # Documentation and schemas
+├── pyproject.toml     # Modern Python packaging
+├── setup.py           # Traditional setup script
+├── environment.yml    # Conda environment
+└── requirements.txt   # Pip dependencies
 ```
 
 ## Installation
@@ -97,7 +105,7 @@ fairfluids --help
 python -c "import fairfluids; print('FAIRFluids imported successfully!')"
 
 # Run comprehensive tests
-python test_conda_env.py
+python test_installation.py
 ```
 
 ## Quick Start
@@ -105,7 +113,8 @@ python test_conda_env.py
 ### Creating a FAIRFluids Document
 
 ```python
-from FAIRFluids.core.lib import FAIRFluidsDocument, Version, Citation
+import fairfluids
+from fairfluids import FAIRFluidsDocument, Version, Citation
 
 # Create a new document
 doc = FAIRFluidsDocument(
@@ -134,7 +143,7 @@ with open('fairfluids_model.json', 'w') as f:
 ### Loading Data from CSV
 
 ```python
-from FAIRFluids.core.fluid_io import FluidIO
+from fairfluids import FluidIO
 
 # Load fluid data from CSV
 fluid = FluidIO()
@@ -147,11 +156,29 @@ doc.fluid.append(fluid)
 ### Parsing CML Files
 
 ```python
-from FAIRFluids.core.functionalities import FAIRFluidsCMLParser
+from fairfluids import FAIRFluidsCMLParser
 
 # Parse CML XML file
 parser = FAIRFluidsCMLParser("path/to/file.xml", document=doc)
 doc = parser.parse()
+```
+
+### Using the Command Line Interface
+
+FAIRFluids provides a CLI for common operations:
+
+```bash
+# Create a new document
+fairfluids create --output document.json
+
+# Load data from CSV
+fairfluids csv data.csv --output document.json
+
+# Parse CML file
+fairfluids cml data.xml --output document.json
+
+# Get help
+fairfluids --help
 ```
 
 ## Data Model
