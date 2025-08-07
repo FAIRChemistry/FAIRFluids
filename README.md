@@ -42,13 +42,62 @@ FAIRFluids/
 
 ## Installation
 
+### Using Conda (Recommended)
+
 ```bash
 # Clone the repository
 git clone https://github.com/FAIRChemistry/FAIRFluids.git
 cd FAIRFluids
 
-# Install dependencies (if requirements.txt exists)
+# Create and activate conda environment
+conda env create -f environment.yml
+conda activate fairfluids
+```
+
+### Using pip
+
+```bash
+# Clone the repository
+git clone https://github.com/FAIRChemistry/FAIRFluids.git
+cd FAIRFluids
+
+# Create virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Install the package in development mode
+pip install -e .
+```
+
+### Development Setup
+
+For development work, you can install additional development dependencies:
+
+```bash
+# Using conda
+conda env create -f environment.yml
+
+# Using pip
+pip install -r requirements.txt
+pip install -r requirements-conda.txt  # Includes dev dependencies
+```
+
+### Testing the Installation
+
+After installation, you can test that everything works:
+
+```bash
+# Test the CLI
+fairfluids --help
+
+# Test Python imports
+python -c "import fairfluids; print('FAIRFluids imported successfully!')"
+
+# Run comprehensive tests
+python test_conda_env.py
 ```
 
 ## Quick Start

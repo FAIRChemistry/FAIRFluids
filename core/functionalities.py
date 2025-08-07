@@ -1,8 +1,5 @@
 # Import the FAIRFluids models
-import sys
-sys.path.append('/home/sga/Code/FAIRFluids')
-
-from FAIRFluids.core.lib import (
+from .lib import (
     FAIRFluidsDocument, Version, Citation, Author, Compound, 
     Fluid, Property, PropertyValue, Parameter, ParameterValue, Measurement,
     UnitDefinition, BaseUnit, Method, Properties, Parameters

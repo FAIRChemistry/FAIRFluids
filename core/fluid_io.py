@@ -19,7 +19,7 @@ Usage:
 """
 import csv
 from typing import Optional
-from FAIRFluids.core.lib import Fluid, Property, Parameter, Measurement, PropertyValue, ParameterValue, Method
+from .lib import Fluid, Property, Parameter, Measurement, PropertyValue, ParameterValue, Method
 
 class FluidIO(Fluid):
     """
