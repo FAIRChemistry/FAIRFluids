@@ -1,2095 +1,2072 @@
 ---
-id-field: false
-xmlns:
-  "": http://www.iupac.org/namespaces/ThermoML
-  xsi: http://www.w3.org/2001/XMLSchema
+repo: "https://github.com/FAIRChemistry/FAIRFluids"
+prefix: "thermoml"
 ---
 
-# Thermoml
+# ThermoML
+Description
 
-## Objects
+## Root Objects
 
 ### DataReport
+Description: Contains metadata and experimental context for a dataset related to a fluid system.
 
 - citation
   - Type: Citation
-  - XML: Citation
+  - Description: Citation information about the data report
 - version
   - Type: Version
-  - XML: Version
+  - Description: Version information for the data report
 - compound
   - Type: Compound[]
-  - XML: Compound
+  - Description: List of compounds present in the fluid system
 - pure_or_mixture_data
   - Type: PureOrMixtureData[]
-  - XML: PureOrMixtureData
+  - Description: Data for pure substances or mixtures
 - reaction_data
   - Type: ReactionData[]
-  - XML: ReactionData
+  - Description: Data for chemical reactions
 
 ### Version
+Description: Version information for the data report.
 
 - n_version_major
   - Type: integer
-  - XML: nVersionMajor
+  - Description: Major version number
 - n_version_minor
   - Type: integer
-  - XML: nVersionMinor
+  - Description: Minor version number
 
 ### Citation
+Description: Contains bibliographic information about the source publication.
 
 - book
   - Type: Book
-  - XML: book
+  - Description: Book publication details
 - journal
   - Type: Journal
-  - XML: journal
+  - Description: Journal publication details
 - thesis
   - Type: Thesis
-  - XML: thesis
+  - Description: Thesis publication details
 - date_cit
   - Type: string
-  - XML: dateCit
   - Description: Date of the citation
 - e_language
   - Type: eLanguage, string
-  - XML: eLanguage
   - Description: Language of publication
 - e_source_type
   - Type: eSourceType, string
-  - XML: eSourceType
   - Description: The source status type for a citation
 - e_type
   - Type: eType, string
-  - XML: eType
   - Description: The type of publication
 - s_abstract
   - Type: string
-  - XML: sAbstract
   - Description: An abstract of the publication
 - s_author
   - Type: string[]
-  - XML: sAuthor
   - Description: Author of publication
 - s_cas_cit
   - Type: string
-  - XML: sCASCit
   - Description: The Chemical Abstracts Service citation
 - s_document_origin
   - Type: string
-  - XML: sDocumentOrigin
   - Description: Company, institution, or conference name
 - s_doi
   - Type: string
-  - XML: sDOI
   - Description: DOI
 - s_id_num
   - Type: string
-  - XML: sIDNum
   - Description: Identification number, e.g., a patent number or a document number
 - s_keyword
   - Type: string[]
-  - XML: sKeyword
+  - Description: Keywords associated with the publication
 - s_location
   - Type: string
-  - XML: sLocation
   - Description: Reference to a location
 - s_page
   - Type: string
-  - XML: sPage
   - Description: Page range where the publication can be found
 - s_pub_name
   - Type: string
-  - XML: sPubName
-  - Description: Name of the publication.
+  - Description: Name of the publication
 - s_title
   - Type: string
-  - XML: sTitle
   - Description: Title of the publication
 - s_vol
   - Type: string
-  - XML: sVol
   - Description: Volume number
 - trc_ref_id
   - Type: TRCRefID
-  - XML: TRCRefID
+  - Description: TRC reference identifier
 - url_cit
   - Type: string
-  - XML: urlCit
   - Description: URL to the publication
 - yr_pub_yr
   - Type: string
-  - XML: yrPubYr
   - Description: Publication year
 
 ### TRCRefID
+Description: TRC reference identifier for distinguishing conflicts.
 
 - n_authorn
   - Type: integer
-  - XML: nAuthorn
   - Description: Integer identifier to distinguish conflicts
 - s_author1
   - Type: string
-  - XML: sAuthor1
   - Description: First 3 characters of Author 1 last name
 - s_author2
   - Type: string
-  - XML: sAuthor2
   - Description: First 3 characters of Author 2 last name
 - yr_yr_pub
   - Type: integer
-  - XML: yrYrPub
   - Description: Integer year of publication
 
 ### Book
+Description: Book publication details.
 
 - s_chapter
   - Type: string
-  - XML: sChapter
   - Description: Chapter number
 - s_edition
   - Type: string
-  - XML: sEdition
   - Description: Edition number of the book
 - s_editor
   - Type: string[]
-  - XML: sEditor
   - Description: Editor of the book
 - s_isbn
   - Type: string
-  - XML: sISBN
   - Description: The International Standard Book Number
 - s_publisher
   - Type: string
-  - XML: sPublisher
   - Description: Publisher name and city
 
 ### Journal
+Description: Journal publication details.
 
 - s_coden
   - Type: string
-  - XML: sCODEN
   - Description: The CODEN identification of the journal
 - s_issn
   - Type: string
-  - XML: sISSN
   - Description: The International Standard Subscription Number
 - s_issue
   - Type: string
-  - XML: sIssue
   - Description: Issue number, usually indicates month
 
 ### Thesis
+Description: Thesis publication details.
 
 - s_deg
   - Type: string
-  - XML: sDeg
   - Description: Academic degree designation, e.g., MS or PhD
 - s_deg_inst
   - Type: string
-  - XML: sDegInst
   - Description: Academic degree granting institution
 - s_umi_pub_num
   - Type: string
-  - XML: sUMIPubNum
   - Description: University Microfilms International Publication Number
 
 ### Compound
-Compound (characterization of the chemical system). The compound description is linked to a description of the sample that includes its initial 
-source and purity, purification methods used, and final purity, with specification of the method(s) of purity determination.
+Description: Contains metadata for a chemical compound, including identifiers, names, and structural representations.
 
 - biomaterial
   - Type: Biomaterial
-  - XML: biomaterial
+  - Description: Biomaterial compound information
 - ion
   - Type: Ion
-  - XML: ion
+  - Description: Ion compound information
 - multicomponent_substance
   - Type: MulticomponentSubstance
-  - XML: MulticomponentSubstance
+  - Description: Multicomponent substance information
 - polymer
   - Type: Polymer
-  - XML: polymer
+  - Description: Polymer compound information
 - e_speciation_state
   - Type: eSpeciationState, string
-  - XML: eSpeciationState
+  - Description: Speciation state of the compound
 - n_comp_index
   - Type: integer
-  - XML: nCompIndex
   - Description: Index to link compounds to data
 - n_pub_chem_id
   - Type: integer
-  - XML: nPubChemID
+  - Description: PubChem compound identifier
 - reg_num
   - Type: RegNum
-  - XML: RegNum
+  - Description: Registration number information
 - s_cas_name
   - Type: string
-  - XML: sCASName
+  - Description: CAS name of the compound
 - s_common_name
   - Type: string[]
-  - XML: sCommonName
-  - Description: Common name, string Common name
+  - Description: Common names of the compound
 - s_formula_molec
   - Type: string
-  - XML: sFormulaMolec
-  - Description: Molecular formula, string Chemical molecular formula
+  - Description: Molecular formula
 - s_iupac_name
   - Type: string
-  - XML: sIUPACName
-  - Description: IUPAC name, string International Union of Physics and Applied Chemistry name
+  - Description: IUPAC name of the compound
 - s_org_id
   - Type: SOrgID[]
-  - XML: sOrgID
+  - Description: Organization identifiers
 - s_smiles
   - Type: string[]
-  - XML: sSmiles
-  - Description: SMILES notation, string SMILES notation
+  - Description: SMILES notation
 - s_standard_in_ch_i
   - Type: string
-  - XML: sStandardInChI
-  - Description: Standard InChI string IUPAC International Chemical Identifier
+  - Description: Standard InChI string
 - s_standard_in_ch_i_key
   - Type: string
-  - XML: sStandardInChIKey
   - Description: Standard InChI key
 - sample
   - Type: Sample[]
-  - XML: Sample
+  - Description: Sample information
 
 ### RegNum
+Description: Registration number information for compounds.
 
 - n_org_num
   - Type: integer
-  - XML: nOrgNum
+  - Description: Organization number
 - n_casr_num
   - Type: integer
-  - XML: nCASRNum
+  - Description: CAS registry number
 - s_organization
   - Type: string
-  - XML: sOrganization
+  - Description: Organization name
 
 ### SOrgID
+Description: Organization identifier information.
 
 - s_org_identifier
   - Type: string
-  - XML: sOrgIdentifier
+  - Description: Organization identifier
 - s_organization
   - Type: string
-  - XML: sOrganization
+  - Description: Organization name
 
+### Polymer
+Description: Polymer compound information.
 
+- n_deg_of_polymerization_dispersity
+  - Type: float
+  - Description: Degree of polymerization dispersity
+- n_mass_avg_mol_mass
+  - Type: float
+  - Description: Weight average molecular mass, kg/kmol
+- n_molar_mass_dispersity
+  - Type: float
+  - Description: Molar mass dispersity
+- n_number_avg_mol_mass
+  - Type: float
+  - Description: Number average molecular mass, kg/kmol
+- n_peak_avg_mol_mass
+  - Type: float
+  - Description: Peak average molecular mass, kg/kmol
+- n_viscosity_avg_mol_mass
+  - Type: float
+  - Description: Viscosity average molecular mass, kg/kmol
+- n_z_avg_mol_mass
+  - Type: float
+  - Description: Z average molecular mass, kg/kmol
 
 ### Ion
+Description: Ion compound information.
 
 - n_charge
   - Type: integer
-  - XML: nCharge
+  - Description: Charge of the ion
 
 ### Biomaterial
+Description: Biomaterial compound information.
 
 - s_ec_number
   - Type: string
-  - XML: sECNumber
+  - Description: EC number
 - s_pdb_identifier
   - Type: string
-  - XML: sPDBIdentifier
+  - Description: PDB identifier
 
 ### MulticomponentSubstance
+Description: Multicomponent substance information.
 
 - component
   - Type: Component[]
-  - XML: Component
+  - Description: List of components
 - composition_basis
   - Type: string
-  - XML: @compositionBasis
+  - Description: Composition basis
 - type
   - Type: string
-  - XML: @type
+  - Description: Type of substance
 
 ### Component
+Description: Component information for multicomponent substances.
 
 - n_amount
   - Type: float
-  - XML: nAmount
+  - Description: Amount of component
 - n_comp_index
   - Type: integer
-  - XML: nCompIndex
+  - Description: Component index
 - reg_num
   - Type: RegNum
-  - XML: RegNum
+  - Description: Registration number
 - n_sample_nm
   - Type: integer
-  - XML: nSampleNm
+  - Description: Sample number
 
 ### Sample
+Description: Sample information for compounds.
 
 - n_sample_nm
   - Type: integer
-  - XML: nSampleNm
+  - Description: Sample number
 - component_sample
   - Type: ComponentSample[]
-  - XML: ComponentSample
+  - Description: Component sample information
 - e_source
   - Type: eSource, string
-  - XML: eSource
+  - Description: Source of the sample
 - e_status
   - Type: eStatus, string
-  - XML: eStatus
+  - Description: Status of the sample
 - purity
   - Type: Purity[]
-  - XML: purity
   - Description: Purity of the sample
 
+### ComponentSample
+Description: Component sample information.
+
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- n_sample_nm
+  - Type: integer
+  - Description: Sample number
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+
 ### Purity
+Description: Purity information for samples.
 
 - n_halide_mass_per_cent
   - Type: float
-  - XML: nHalideMassPerCent
-  - Description: mass per cent of halide impurity
+  - Description: Mass per cent of halide impurity
 - n_halide_mass_per_cent_digits
   - Type: integer
-  - XML: nHalideMassPerCentDigits
+  - Description: Digits for halide mass per cent
 - n_halide_mol_per_cent
   - Type: float
-  - XML: nHalideMolPerCent
-  - Description: mass per cent of halide impurity
+  - Description: Mole per cent of halide impurity
 - n_halide_mol_per_cent_digits
   - Type: integer
-  - XML: nHalideMolPerCentDigits
+  - Description: Digits for halide mole per cent
 - n_purity_mass
   - Type: float
-  - XML: nPurityMass
-  - Description: purity value in mass percent
+  - Description: Purity value in mass percent
 - n_purity_mass_digits
   - Type: integer
-  - XML: nPurityMassDigits
+  - Description: Digits for purity mass
 - n_purity_mol
   - Type: float
-  - XML: nPurityMol
-  - Description: purity value in mole percent
+  - Description: Purity value in mole percent
 - n_purity_mol_digits
   - Type: integer
-  - XML: nPurityMolDigits
+  - Description: Digits for purity mole
 - n_purity_vol
   - Type: float
-  - XML: nPurityVol
-  - Description: purity value in volume percent
+  - Description: Purity value in volume percent
 - n_purity_vol_digits
   - Type: integer
-  - XML: nPurityVolDigits
+  - Description: Digits for purity volume
 - n_step
   - Type: integer
-  - XML: nStep
+  - Description: Step number
 - n_unknown_per_cent
   - Type: float
-  - XML: nUnknownPerCent
-  - Description: purity value in not specified percent
+  - Description: Purity value in not specified percent
 - n_unknown_per_cent_digits
   - Type: integer
-  - XML: nUnknownPerCentDigits
+  - Description: Digits for unknown per cent
 - n_water_mass_per_cent
   - Type: float
-  - XML: nWaterMassPerCent
-  - Description: mass per cent of water
+  - Description: Mass per cent of water
 - n_water_mass_per_cent_digits
   - Type: integer
-  - XML: nWaterMassPerCentDigits
+  - Description: Digits for water mass per cent
 - n_water_mol_per_cent
   - Type: float
-  - XML: nWaterMolPerCent
-  - Description: mole per cent of water
+  - Description: Mole per cent of water
 - n_water_mol_per_cent_digits
   - Type: integer
-  - XML: nWaterMolPerCentDigits
+  - Description: Digits for water mole per cent
 - e_anal_meth
-  - Type: eAnalMeth, string[]
-  - XML: eAnalMeth
+  - Type: eAnalMeth[]
   - Description: Analytical method used to determine purity
 - e_purif_method
-  - Type: ePurifMethod, string[]
-  - XML: ePurifMethod
+  - Type: ePurifMethod[]
+  - Description: Purification method
 - s_anal_meth
   - Type: string[]
-  - XML: sAnalMeth
+  - Description: Analytical method description
 - s_purif_method
   - Type: string[]
-  - XML: sPurifMethod
-
-### ComponentSample
-
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- n_sample_nm
-  - Type: integer
-  - XML: nSampleNm
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
+  - Description: Purification method description
 
 ### PureOrMixtureData
-This block contains nonbibliographic information about the source of the ThermoML file contents, identifies the experimental purpose, specifies meta- and numerical data, and specifies the compound (or mixture) and particular samples to which the data are related. The subelement Equation [complex] is used for representation of fitted equations and is described later in this document.
+Description: Data for pure substances or mixtures.
 
 - component
   - Type: Component[]
-  - XML: Component
+  - Description: List of components
 - phase_id
   - Type: PhaseID[]
-  - XML: PhaseID
-  - Description:  CASRN is necessary for mixtures only
+  - Description: Phase identification information
 - property
   - Type: Property[]
-  - XML: Property
+  - Description: List of properties
 - auxiliary_substance
   - Type: AuxiliarySubstance[]
-  - XML: AuxiliarySubstance
+  - Description: Auxiliary substance information
 - constraint
   - Type: Constraint[]
-  - XML: Constraint
+  - Description: Constraint information
 - date_date_added
   - Type: string
-  - XML: dateDateAdded
+  - Description: Date when data was added
 - e_exp_purpose
   - Type: eExpPurpose, string
-  - XML: eExpPurpose
   - Description: Purpose of measurement
 - equation
   - Type: Equation[]
-  - XML: Equation
+  - Description: Equation information
 - n_pure_or_mixture_data_number
   - Type: integer
-  - XML: nPureOrMixtureDataNumber
+  - Description: Data number
 - num_values
   - Type: NumValues[]
-  - XML: NumValues
+  - Description: Numerical values
 - s_compiler
   - Type: string
-  - XML: sCompiler
+  - Description: Compiler information
 - s_contributor
   - Type: string
-  - XML: sContributor
+  - Description: Contributor information
 - variable
   - Type: Variable[]
-  - XML: Variable
+  - Description: Variable information
 
 ### AuxiliarySubstance
+Description: Auxiliary substance information.
 
 - e_function
   - Type: eFunction, string
-  - XML: eFunction
+  - Description: Function of the substance
 - n_comp_index
   - Type: integer
-  - XML: nCompIndex
+  - Description: Component index
 - reg_num
   - Type: RegNum
-  - XML: RegNum
+  - Description: Registration number
 - s_function
   - Type: string
-  - XML: sFunction
+  - Description: Function description
 - e_phase
   - Type: ePhase, string
-  - XML: ePhase
+  - Description: Phase information
 - n_sample_nm
   - Type: integer
-  - XML: nSampleNm
+  - Description: Sample number
 
 ### Property
+Description: Property information for measurements.
 
 - e_presentation
   - Type: ePresentation, string
-  - XML: ePresentation
+  - Description: Presentation method
 - n_pressure_digits
   - Type: integer
-  - XML: nPressureDigits
+  - Description: Pressure digits
 - n_pressure_pa
   - Type: float
-  - XML: nPressure-kPa
+  - Description: Pressure in kPa
 - n_prop_number
   - Type: integer
-  - XML: nPropNumber
+  - Description: Property number
 - n_ref_pressure
   - Type: float
-  - XML: nRefPressure
+  - Description: Reference pressure
 - n_ref_pressure_digits
   - Type: integer
-  - XML: nRefPressureDigits
+  - Description: Reference pressure digits
 - n_ref_temp
   - Type: float
-  - XML: nRefTemp
+  - Description: Reference temperature
 - n_ref_temp_digits
   - Type: integer
-  - XML: nRefTempDigits
+  - Description: Reference temperature digits
 - n_temperature_digits
   - Type: integer
-  - XML: nTemperatureDigits
+  - Description: Temperature digits
 - n_temperature_k
   - Type: float
-  - XML: nTemperature-K
+  - Description: Temperature in K
 - property_method_id
   - Type: PropertyMethodID
-  - XML: Property-MethodID
-  - Description:  CASRN is necessary for mixtures only
+  - Description: Property method identification
 - catalyst
   - Type: Catalyst[]
-  - XML: Catalyst
+  - Description: Catalyst information
 - combined_uncertainty
   - Type: CombinedUncertainty[]
-  - XML: CombinedUncertainty
+  - Description: Combined uncertainty information
 - curve_dev
   - Type: CurveDev[]
-  - XML: CurveDev
+  - Description: Curve deviation information
 - e_ref_state_type
   - Type: eRefStateType, string
-  - XML: eRefStateType
+  - Description: Reference state type
 - e_standard_state
   - Type: eStandardState, string
-  - XML: eStandardState
+  - Description: Standard state
 - prop_device_spec
   - Type: PropDeviceSpec
-  - XML: PropDeviceSpec
+  - Description: Property device specification
 - prop_phase_id
   - Type: PropPhaseID[]
-  - XML: PropPhaseID
-  - Description:  CASRN is necessary for mixtures only
+  - Description: Property phase identification
 - prop_repeatability
   - Type: PropRepeatability
-  - XML: PropRepeatability
+  - Description: Property repeatability
 - prop_uncertainty
   - Type: PropUncertainty[]
-  - XML: PropUncertainty
+  - Description: Property uncertainty
 - ref_phase_id
   - Type: RefPhaseID
-  - XML: RefPhaseID
-  - Description:  CASRN is necessary for mixtures only
+  - Description: Reference phase identification
 - solvent
   - Type: Solvent
-  - XML: Solvent
-
-### PropertyMethodID
-
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- property_group
-  - Type: PropertyGroup
-  - XML: PropertyGroup
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-
-### PropertyGroup
-
-- activity_fugacity_osmotic_prop
-  - Type: ActivityFugacityOsmoticProp
-  - XML: ActivityFugacityOsmoticProp
-- bio_properties
-  - Type: BioProperties
-  - XML: BioProperties
-- composition_at_phase_equilibrium
-  - Type: CompositionAtPhaseEquilibrium
-  - XML: CompositionAtPhaseEquilibrium
-- criticals
-  - Type: Criticals
-  - XML: Criticals
-- excess_partial_apparent_energy_prop
-  - Type: ExcessPartialApparentEnergyProp
-  - XML: ExcessPartialApparentEnergyProp
-- heat_capacity_and_derived_prop
-  - Type: HeatCapacityAndDerivedProp
-  - XML: HeatCapacityAndDerivedProp
-- phase_transition
-  - Type: PhaseTransition
-  - XML: PhaseTransition
-- reaction_equilibrium_prop
-  - Type: ReactionEquilibriumProp
-  - XML: ReactionEquilibriumProp
-- reaction_state_change_prop
-  - Type: ReactionStateChangeProp
-  - XML: ReactionStateChangeProp
-- refraction_surface_tension_sound_speed
-  - Type: RefractionSurfaceTensionSoundSpeed
-  - XML: RefractionSurfaceTensionSoundSpeed
-- transport_prop
-  - Type: TransportProp
-  - XML: TransportProp
-- vapor_p_boiling_t_azeotrop_tand_p
-  - Type: VaporPBoilingTAzeotropTandP
-  - XML: VaporPBoilingTAzeotropTandP
-- volumetric_prop
-  - Type: VolumetricProp
-  - XML: VolumetricProp
-
-### Criticals
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### CriticalEvaluation
-
-- equation_of_state
-  - Type: EquationOfState
-  - XML: EquationOfState
-- multi_prop
-  - Type: MultiProp
-  - XML: MultiProp
-- single_prop
-  - Type: SingleProp
-  - XML: SingleProp
-
-### SingleProp
-
-- eval_single_prop_ref
-  - Type: EvalSinglePropRef[]
-  - XML: EvalSinglePropRef
-- s_eval_single_prop_description
-  - Type: string
-  - XML: sEvalSinglePropDescription
-
-### EvalSinglePropRef
-
-- book
-  - Type: Book
-  - XML: book
-- journal
-  - Type: Journal
-  - XML: journal
-- thesis
-  - Type: Thesis
-  - XML: thesis
-- date_cit
-  - Type: string
-  - XML: dateCit
-  - Description: Date of the citation
-- e_language
-  - Type: eLanguage, string
-  - XML: eLanguage
-  - Description: Language of publication
-- e_source_type
-  - Type: eSourceType, string
-  - XML: eSourceType
-  - Description: The source status type for a citation
-- e_type
-  - Type: eType, string
-  - XML: eType
-  - Description: The type of publication
-- s_abstract
-  - Type: string
-  - XML: sAbstract
-  - Description: An abstract of the publication
-- s_author
-  - Type: string[]
-  - XML: sAuthor
-  - Description: Author of publication
-- s_cas_cit
-  - Type: string
-  - XML: sCASCit
-  - Description: The Chemical Abstracts Service citation
-- s_document_origin
-  - Type: string
-  - XML: sDocumentOrigin
-  - Description: Company, institution, or conference name
-- s_doi
-  - Type: string
-  - XML: sDOI
-  - Description: DOI
-- s_id_num
-  - Type: string
-  - XML: sIDNum
-  - Description: Identification number, e.g., a patent number or a document number
-- s_keyword
-  - Type: string[]
-  - XML: sKeyword
-- s_location
-  - Type: string
-  - XML: sLocation
-  - Description: Reference to a location
-- s_page
-  - Type: string
-  - XML: sPage
-  - Description: Page range where the publication can be found
-- s_pub_name
-  - Type: string
-  - XML: sPubName
-  - Description: Name of the publication.
-- s_title
-  - Type: string
-  - XML: sTitle
-  - Description: Title of the publication
-- s_vol
-  - Type: string
-  - XML: sVol
-  - Description: Volume number
-- trc_ref_id
-  - Type: TRCRefID
-  - XML: TRCRefID
-- url_cit
-  - Type: string
-  - XML: urlCit
-  - Description: URL to the publication
-- yr_pub_yr
-  - Type: string
-  - XML: yrPubYr
-  - Description: Publication year
-
-### MultiProp
-
-- eval_multi_prop_ref
-  - Type: EvalMultiPropRef[]
-  - XML: EvalMultiPropRef
-- s_eval_multi_prop_description
-  - Type: string
-  - XML: sEvalMultiPropDescription
-- s_eval_multi_prop_list
-  - Type: string
-  - XML: sEvalMultiPropList
-
-### EvalMultiPropRef
-
-- book
-  - Type: Book
-  - XML: book
-- journal
-  - Type: Journal
-  - XML: journal
-- thesis
-  - Type: Thesis
-  - XML: thesis
-- date_cit
-  - Type: string
-  - XML: dateCit
-  - Description: Date of the citation
-- e_language
-  - Type: eLanguage, string
-  - XML: eLanguage
-  - Description: Language of publication
-- e_source_type
-  - Type: eSourceType, string
-  - XML: eSourceType
-  - Description: The source status type for a citation
-- e_type
-  - Type: eType, string
-  - XML: eType
-  - Description: The type of publication
-- s_abstract
-  - Type: string
-  - XML: sAbstract
-  - Description: An abstract of the publication
-- s_author
-  - Type: string[]
-  - XML: sAuthor
-  - Description: Author of publication
-- s_cas_cit
-  - Type: string
-  - XML: sCASCit
-  - Description: The Chemical Abstracts Service citation
-- s_document_origin
-  - Type: string
-  - XML: sDocumentOrigin
-  - Description: Company, institution, or conference name
-- s_doi
-  - Type: string
-  - XML: sDOI
-  - Description: DOI
-- s_id_num
-  - Type: string
-  - XML: sIDNum
-  - Description: Identification number, e.g., a patent number or a document number
-- s_keyword
-  - Type: string[]
-  - XML: sKeyword
-- s_location
-  - Type: string
-  - XML: sLocation
-  - Description: Reference to a location
-- s_page
-  - Type: string
-  - XML: sPage
-  - Description: Page range where the publication can be found
-- s_pub_name
-  - Type: string
-  - XML: sPubName
-  - Description: Name of the publication.
-- s_title
-  - Type: string
-  - XML: sTitle
-  - Description: Title of the publication
-- s_vol
-  - Type: string
-  - XML: sVol
-  - Description: Volume number
-- trc_ref_id
-  - Type: TRCRefID
-  - XML: TRCRefID
-- url_cit
-  - Type: string
-  - XML: urlCit
-  - Description: URL to the publication
-- yr_pub_yr
-  - Type: string
-  - XML: yrPubYr
-  - Description: Publication year
-
-### EquationOfState
-
-- eval_eos_ref
-  - Type: EvalEOSRef[]
-  - XML: EvalEOSRef
-- s_eval_eos_description
-  - Type: string
-  - XML: sEvalEOSDescription
-- s_eval_eos_name
-  - Type: string
-  - XML: sEvalEOSName
-
-### EvalEOSRef
-
-- book
-  - Type: Book
-  - XML: book
-- journal
-  - Type: Journal
-  - XML: journal
-- thesis
-  - Type: Thesis
-  - XML: thesis
-- date_cit
-  - Type: string
-  - XML: dateCit
-  - Description: Date of the citation
-- e_language
-  - Type: eLanguage, string
-  - XML: eLanguage
-  - Description: Language of publication
-- e_source_type
-  - Type: eSourceType, string
-  - XML: eSourceType
-  - Description: The source status type for a citation
-- e_type
-  - Type: eType, string
-  - XML: eType
-  - Description: The type of publication
-- s_abstract
-  - Type: string
-  - XML: sAbstract
-  - Description: An abstract of the publication
-- s_author
-  - Type: string[]
-  - XML: sAuthor
-  - Description: Author of publication
-- s_cas_cit
-  - Type: string
-  - XML: sCASCit
-  - Description: The Chemical Abstracts Service citation
-- s_document_origin
-  - Type: string
-  - XML: sDocumentOrigin
-  - Description: Company, institution, or conference name
-- s_doi
-  - Type: string
-  - XML: sDOI
-  - Description: DOI
-- s_id_num
-  - Type: string
-  - XML: sIDNum
-  - Description: Identification number, e.g., a patent number or a document number
-- s_keyword
-  - Type: string[]
-  - XML: sKeyword
-- s_location
-  - Type: string
-  - XML: sLocation
-  - Description: Reference to a location
-- s_page
-  - Type: string
-  - XML: sPage
-  - Description: Page range where the publication can be found
-- s_pub_name
-  - Type: string
-  - XML: sPubName
-  - Description: Name of the publication.
-- s_title
-  - Type: string
-  - XML: sTitle
-  - Description: Title of the publication
-- s_vol
-  - Type: string
-  - XML: sVol
-  - Description: Volume number
-- trc_ref_id
-  - Type: TRCRefID
-  - XML: TRCRefID
-- url_cit
-  - Type: string
-  - XML: urlCit
-  - Description: URL to the publication
-- yr_pub_yr
-  - Type: string
-  - XML: yrPubYr
-  - Description: Publication year
-
-### Prediction
-
-- e_prediction_type
-  - Type: ePredictionType, string
-  - XML: ePredictionType
-- prediction_method_ref
-  - Type: PredictionMethodRef[]
-  - XML: PredictionMethodRef
-- s_prediction_method_description
-  - Type: string
-  - XML: sPredictionMethodDescription
-- s_prediction_method_name
-  - Type: string
-  - XML: sPredictionMethodName
-
-### PredictionMethodRef
-
-- book
-  - Type: Book
-  - XML: book
-- journal
-  - Type: Journal
-  - XML: journal
-- thesis
-  - Type: Thesis
-  - XML: thesis
-- date_cit
-  - Type: string
-  - XML: dateCit
-  - Description: Date of the citation
-- e_language
-  - Type: eLanguage, string
-  - XML: eLanguage
-  - Description: Language of publication
-- e_source_type
-  - Type: eSourceType, string
-  - XML: eSourceType
-  - Description: The source status type for a citation
-- e_type
-  - Type: eType, string
-  - XML: eType
-  - Description: The type of publication
-- s_abstract
-  - Type: string
-  - XML: sAbstract
-  - Description: An abstract of the publication
-- s_author
-  - Type: string[]
-  - XML: sAuthor
-  - Description: Author of publication
-- s_cas_cit
-  - Type: string
-  - XML: sCASCit
-  - Description: The Chemical Abstracts Service citation
-- s_document_origin
-  - Type: string
-  - XML: sDocumentOrigin
-  - Description: Company, institution, or conference name
-- s_doi
-  - Type: string
-  - XML: sDOI
-  - Description: DOI
-- s_id_num
-  - Type: string
-  - XML: sIDNum
-  - Description: Identification number, e.g., a patent number or a document number
-- s_keyword
-  - Type: string[]
-  - XML: sKeyword
-- s_location
-  - Type: string
-  - XML: sLocation
-  - Description: Reference to a location
-- s_page
-  - Type: string
-  - XML: sPage
-  - Description: Page range where the publication can be found
-- s_pub_name
-  - Type: string
-  - XML: sPubName
-  - Description: Name of the publication.
-- s_title
-  - Type: string
-  - XML: sTitle
-  - Description: Title of the publication
-- s_vol
-  - Type: string
-  - XML: sVol
-  - Description: Volume number
-- trc_ref_id
-  - Type: TRCRefID
-  - XML: TRCRefID
-- url_cit
-  - Type: string
-  - XML: urlCit
-  - Description: URL to the publication
-- yr_pub_yr
-  - Type: string
-  - XML: yrPubYr
-  - Description: Publication year
-
-### VaporPBoilingTAzeotropTandP
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### PhaseTransition
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### CompositionAtPhaseEquilibrium
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### ActivityFugacityOsmoticProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### VolumetricProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### HeatCapacityAndDerivedProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### ExcessPartialApparentEnergyProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### TransportProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### RefractionSurfaceTensionSoundSpeed
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### BioProperties
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string
-  - XML: sMethodName
-
-### PropPhaseID
-
-- e_bio_state
-  - Type: eBioState, string
-  - XML: eBioState
-- e_crystal_lattice_type
-  - Type: eCrystalLatticeType, string
-  - XML: eCrystalLatticeType
-- e_prop_phase
-  - Type: ePropPhase, string
-  - XML: ePropPhase
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-- s_bio_state
-  - Type: string
-  - XML: sBioState
-- s_phase_description
-  - Type: string
-  - XML: sPhaseDescription
-
-### RefPhaseID
-
-- e_crystal_lattice_type
-  - Type: eCrystalLatticeType, string
-  - XML: eCrystalLatticeType
-- e_ref_phase
-  - Type: eRefPhase, string
-  - XML: eRefPhase
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-- s_phase_description
-  - Type: string
-  - XML: sPhaseDescription
-
-### Solvent
-
-- e_phase
-  - Type: ePhase, string
-  - XML: ePhase
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-
-### CombinedUncertainty
-
-- e_comb_uncert_eval_method
-  - Type: eCombUncertEvalMethod, string
-  - XML: eCombUncertEvalMethod
-- n_comb_uncert_assess_num
-  - Type: integer
-  - XML: nCombUncertAssessNum
-- asym_comb_expand_uncert
-  - Type: AsymCombExpandUncert
-  - XML: AsymCombExpandUncert
-- asym_comb_std_uncert
-  - Type: AsymCombStdUncert
-  - XML: AsymCombStdUncert
-- n_comb_coverage_factor
-  - Type: float
-  - XML: nCombCoverageFactor
-- n_comb_expand_uncert_value
-  - Type: float
-  - XML: nCombExpandUncertValue
-- n_comb_std_uncert_value
-  - Type: float
-  - XML: nCombStdUncertValue
-- n_comb_uncert_lev_of_confid
-  - Type: float
-  - XML: nCombUncertLevOfConfid
-- s_comb_uncert_eval_method
-  - Type: string
-  - XML: sCombUncertEvalMethod
-- s_comb_uncert_evaluator
-  - Type: string
-  - XML: sCombUncertEvaluator
-
-### PropUncertainty
-
-- n_uncert_assess_num
-  - Type: integer
-  - XML: nUncertAssessNum
-- asym_expand_uncert
-  - Type: AsymExpandUncert
-  - XML: AsymExpandUncert
-- asym_std_uncert
-  - Type: AsymStdUncert
-  - XML: AsymStdUncert
-- n_coverage_factor
-  - Type: float
-  - XML: nCoverageFactor
-- n_expand_uncert_value
-  - Type: float
-  - XML: nExpandUncertValue
-- n_std_uncert_value
-  - Type: float
-  - XML: nStdUncertValue
-- n_uncert_lev_of_confid
-  - Type: float
-  - XML: nUncertLevOfConfid
-- s_uncert_eval_method
-  - Type: string
-  - XML: sUncertEvalMethod
-- s_uncert_evaluator
-  - Type: string
-  - XML: sUncertEvaluator
-
-### PropRepeatability
-
-- e_repeat_method
-  - Type: eRepeatMethod, string
-  - XML: eRepeatMethod
-- n_prop_repeat_value
-  - Type: float
-  - XML: nPropRepeatValue
-- n_repetitions
-  - Type: integer
-  - XML: nRepetitions
-- s_repeat_evaluator
-  - Type: string
-  - XML: sRepeatEvaluator
-- s_repeat_method
-  - Type: string
-  - XML: sRepeatMethod
-
-### PropDeviceSpec
-
-- e_device_spec_method
-  - Type: eDeviceSpecMethod, string
-  - XML: eDeviceSpecMethod
-- n_device_spec_lev_of_confid
-  - Type: float
-  - XML: nDeviceSpecLevOfConfid
-- s_device_spec_evaluator
-  - Type: string
-  - XML: sDeviceSpecEvaluator
-- s_device_spec_method
-  - Type: string
-  - XML: sDeviceSpecMethod
-
-### CurveDev
-
-- n_curve_dev_assess_num
-  - Type: integer
-  - XML: nCurveDevAssessNum
-- n_curve_dev_value
-  - Type: float
-  - XML: nCurveDevValue
-- s_curve_spec
-  - Type: string
-  - XML: sCurveSpec
-- n_curve_rms_dev_value
-  - Type: float
-  - XML: nCurveRmsDevValue
-- n_curve_rms_relative_dev_value
-  - Type: float
-  - XML: nCurveRmsRelativeDevValue
-- s_curve_dev_evaluator
-  - Type: string
-  - XML: sCurveDevEvaluator
-
-### PhaseID
-
-- e_crystal_lattice_type
-  - Type: eCrystalLatticeType, string
-  - XML: eCrystalLatticeType
-- e_phase
-  - Type: ePhase, string
-  - XML: ePhase
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-- s_phase_description
-  - Type: string
-  - XML: sPhaseDescription
-
-### Constraint
-
-- constraint_id
-  - Type: ConstraintID
-  - XML: ConstraintID
-  - Description:  CASRN is necessary for mixtures only
-- n_constr_digits
-  - Type: integer
-  - XML: nConstrDigits
-- n_constraint_value
-  - Type: float
-  - XML: nConstraintValue
-- constr_device_spec
-  - Type: ConstrDeviceSpec
-  - XML: ConstrDeviceSpec
-- constr_repeatability
-  - Type: ConstrRepeatability
-  - XML: ConstrRepeatability
-- constr_uncertainty
-  - Type: ConstrUncertainty[]
-  - XML: ConstrUncertainty
-- constraint_phase_id
-  - Type: ConstraintPhaseID
-  - XML: ConstraintPhaseID
-  - Description:  CASRN is necessary for mixtures only
-- n_constraint_number
-  - Type: integer
-  - XML: nConstraintNumber
-- solvent
-  - Type: Solvent
-  - XML: Solvent
-
-### ConstraintID
-
-- constraint_type
-  - Type: ConstraintType
-  - XML: ConstraintType
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-
-### ConstraintType
-
-- e_bio_variables
-  - Type: eBioVariables, string
-  - XML: eBioVariables
-- e_component_composition
-  - Type: eComponentComposition, string
-  - XML: eComponentComposition
-- e_miscellaneous
-  - Type: eMiscellaneous, string
-  - XML: eMiscellaneous
-- e_participant_amount
-  - Type: eParticipantAmount, string
-  - XML: eParticipantAmount
-- e_pressure
-  - Type: ePressure, string
-  - XML: ePressure
-- e_solvent_composition
-  - Type: eSolventComposition, string
-  - XML: eSolventComposition
-- e_temperature
-  - Type: eTemperature, string
-  - XML: eTemperature
-
-### ConstraintPhaseID
-
-- e_constraint_phase
-  - Type: eConstraintPhase, string
-  - XML: eConstraintPhase
-- e_crystal_lattice_type
-  - Type: eCrystalLatticeType, string
-  - XML: eCrystalLatticeType
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-- s_phase_description
-  - Type: string
-  - XML: sPhaseDescription
-
-### ConstrUncertainty
-
-- n_coverage_factor
-  - Type: float
-  - XML: nCoverageFactor
-- n_expand_uncert_value
-  - Type: float
-  - XML: nExpandUncertValue
-- n_std_uncert_value
-  - Type: float
-  - XML: nStdUncertValue
-- n_uncert_lev_of_confid
-  - Type: float
-  - XML: nUncertLevOfConfid
-- s_uncert_eval_method
-  - Type: string
-  - XML: sUncertEvalMethod
-- s_uncert_evaluator
-  - Type: string
-  - XML: sUncertEvaluator
-
-### ConstrRepeatability
-
-- e_repeat_method
-  - Type: eRepeatMethod, string
-  - XML: eRepeatMethod
-- n_repeat_value
-  - Type: float
-  - XML: nRepeatValue
-- n_repetitions
-  - Type: integer
-  - XML: nRepetitions
-- s_repeat_evaluator
-  - Type: string
-  - XML: sRepeatEvaluator
-- s_repeat_method
-  - Type: string
-  - XML: sRepeatMethod
-
-### ConstrDeviceSpec
-
-- e_device_spec_method
-  - Type: eDeviceSpecMethod, string
-  - XML: eDeviceSpecMethod
-- n_device_spec_lev_of_confid
-  - Type: float
-  - XML: nDeviceSpecLevOfConfid
-- n_device_spec_value
-  - Type: float
-  - XML: nDeviceSpecValue
-- s_device_spec_evaluator
-  - Type: string
-  - XML: sDeviceSpecEvaluator
-- s_device_spec_method
-  - Type: string
-  - XML: sDeviceSpecMethod
-
-### Variable
-
-- n_var_number
-  - Type: integer
-  - XML: nVarNumber
-- variable_id
-  - Type: VariableID
-  - XML: VariableID
-  - Description:  CASRN is necessary for mixtures only
-- solvent
-  - Type: Solvent
-  - XML: Solvent
-- var_device_spec
-  - Type: VarDeviceSpec
-  - XML: VarDeviceSpec
-- var_phase_id
-  - Type: VarPhaseID
-  - XML: VarPhaseID
-  - Description:  CASRN is necessary for mixtures only
-- var_repeatability
-  - Type: VarRepeatability
-  - XML: VarRepeatability
-- var_uncertainty
-  - Type: VarUncertainty[]
-  - XML: VarUncertainty
-
-### VariableID
-
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-- variable_type
-  - Type: VariableType
-  - XML: VariableType
-
-### VariableType
-
-- e_bio_variables
-  - Type: eBioVariables, string
-  - XML: eBioVariables
-- e_component_composition
-  - Type: eComponentComposition, string
-  - XML: eComponentComposition
-- e_miscellaneous
-  - Type: eMiscellaneous, string
-  - XML: eMiscellaneous
-- e_participant_amount
-  - Type: eParticipantAmount, string
-  - XML: eParticipantAmount
-- e_pressure
-  - Type: ePressure, string
-  - XML: ePressure
-- e_solvent_composition
-  - Type: eSolventComposition, string
-  - XML: eSolventComposition
-- e_temperature
-  - Type: eTemperature, string
-  - XML: eTemperature
-
-### VarPhaseID
-
-- e_crystal_lattice_type
-  - Type: eCrystalLatticeType, string
-  - XML: eCrystalLatticeType
-- e_var_phase
-  - Type: eVarPhase, string
-  - XML: eVarPhase
-- n_comp_index
-  - Type: integer
-  - XML: nCompIndex
-- reg_num
-  - Type: RegNum
-  - XML: RegNum
-- s_phase_description
-  - Type: string
-  - XML: sPhaseDescription
-
-### VarUncertainty
-
-- n_uncert_assess_num
-  - Type: integer
-  - XML: nUncertAssessNum
-- n_coverage_factor
-  - Type: float
-  - XML: nCoverageFactor
-- n_expand_uncert_value
-  - Type: float
-  - XML: nExpandUncertValue
-- n_std_uncert_value
-  - Type: float
-  - XML: nStdUncertValue
-- n_uncert_lev_of_confid
-  - Type: float
-  - XML: nUncertLevOfConfid
-- s_uncert_eval_method
-  - Type: string
-  - XML: sUncertEvalMethod
-- s_uncert_evaluator
-  - Type: string
-  - XML: sUncertEvaluator
-
-### VarRepeatability
-
-- e_repeat_method
-  - Type: eRepeatMethod, string
-  - XML: eRepeatMethod
-- n_repetitions
-  - Type: integer
-  - XML: nRepetitions
-- n_var_repeat_value
-  - Type: float
-  - XML: nVarRepeatValue
-- s_repeat_evaluator
-  - Type: string
-  - XML: sRepeatEvaluator
-- s_repeat_method
-  - Type: string
-  - XML: sRepeatMethod
-
-### VarDeviceSpec
-
-- e_device_spec_method
-  - Type: eDeviceSpecMethod, string
-  - XML: eDeviceSpecMethod
-- n_device_spec_lev_of_confid
-  - Type: float
-  - XML: nDeviceSpecLevOfConfid
-- s_device_spec_evaluator
-  - Type: string
-  - XML: sDeviceSpecEvaluator
-- s_device_spec_method
-  - Type: string
-  - XML: sDeviceSpecMethod
-
-### NumValues
-
-- property_value
-  - Type: PropertyValue[]
-  - XML: PropertyValue
-- variable_value
-  - Type: VariableValue[]
-  - XML: VariableValue
-
-### VariableValue
-
-- n_var_digits
-  - Type: integer
-  - XML: nVarDigits
-- n_var_number
-  - Type: integer
-  - XML: nVarNumber
-- n_var_value
-  - Type: float
-  - XML: nVarValue
-- n_var_device_spec_value
-  - Type: float
-  - XML: nVarDeviceSpecValue
-- var_repeatability
-  - Type: VarRepeatability
-  - XML: VarRepeatability
-- var_uncertainty
-  - Type: VarUncertainty[]
-  - XML: VarUncertainty
-
-### PropertyValue
-
-- n_prop_digits
-  - Type: integer
-  - XML: nPropDigits
-- n_prop_number
-  - Type: integer
-  - XML: nPropNumber
-- n_prop_value
-  - Type: float
-  - XML: nPropValue
-- prop_limit
-  - Type: PropLimit
-  - XML: PropLimit
-- combined_uncertainty
-  - Type: CombinedUncertainty[]
-  - XML: CombinedUncertainty
-- curve_dev
-  - Type: CurveDev[]
-  - XML: CurveDev
-- n_prop_device_spec_value
-  - Type: float
-  - XML: nPropDeviceSpecValue
-- prop_repeatability
-  - Type: PropRepeatability
-  - XML: PropRepeatability
-- prop_uncertainty
-  - Type: PropUncertainty[]
-  - XML: PropUncertainty
-
-### PropLimit
-
-- n_prop_limit_digits
-  - Type: integer
-  - XML: nPropLimitDigits
-- n_prop_lower_limit_value
-  - Type: float
-  - XML: nPropLowerLimitValue
-- n_prop_upper_limit_value
-  - Type: float
-  - XML: nPropUpperLimitValue
-
-### AsymCombStdUncert
-
-- n_negative_value
-  - Type: float
-  - XML: nNegativeValue
-- n_positive_value
-  - Type: float
-  - XML: nPositiveValue
-
-### AsymCombExpandUncert
-
-- n_negative_value
-  - Type: float
-  - XML: nNegativeValue
-- n_positive_value
-  - Type: float
-  - XML: nPositiveValue
-
-### AsymStdUncert
-
-- n_negative_value
-  - Type: float
-  - XML: nNegativeValue
-- n_positive_value
-  - Type: float
-  - XML: nPositiveValue
-
-### AsymExpandUncert
-
-- n_negative_value
-  - Type: float
-  - XML: nNegativeValue
-- n_positive_value
-  - Type: float
-  - XML: nPositiveValue
-
-### Equation
-
-- e_eq_name
-  - Type: eEqName, string
-  - XML: eEqName
-- s_eq_name
-  - Type: string
-  - XML: sEqName
-- url_math_source
-  - Type: string
-  - XML: urlMathSource
-- covariance
-  - Type: Covariance[]
-  - XML: Covariance
-- eq_constant
-  - Type: EqConstant[]
-  - XML: EqConstant
-- eq_constraint
-  - Type: EqConstraint[]
-  - XML: EqConstraint
-- eq_parameter
-  - Type: EqParameter[]
-  - XML: EqParameter
-- eq_property
-  - Type: EqProperty[]
-  - XML: EqProperty
-- eq_variable
-  - Type: EqVariable[]
-  - XML: EqVariable
-- n_covariance_lev_of_confid
-  - Type: float
-  - XML: nCovarianceLevOfConfid
-
-### EqProperty
-
-- n_prop_number
-  - Type: integer
-  - XML: nPropNumber
-- n_pure_or_mixture_data_number
-  - Type: integer
-  - XML: nPureOrMixtureDataNumber
-- n_reaction_data_number
-  - Type: integer
-  - XML: nReactionDataNumber
-- s_eq_symbol
-  - Type: string
-  - XML: sEqSymbol
-- n_eq_prop_index
-  - Type: integer[]
-  - XML: nEqPropIndex
-- n_eq_prop_range_max
-  - Type: float
-  - XML: nEqPropRangeMax
-- n_eq_prop_range_min
-  - Type: float
-  - XML: nEqPropRangeMin
-- s_other_prop_unit
-  - Type: string
-  - XML: sOtherPropUnit
-
-### EqConstraint
-
-- n_constraint_number
-  - Type: integer
-  - XML: nConstraintNumber
-- n_pure_or_mixture_data_number
-  - Type: integer
-  - XML: nPureOrMixtureDataNumber
-- n_reaction_data_number
-  - Type: integer
-  - XML: nReactionDataNumber
-- s_eq_symbol
-  - Type: string
-  - XML: sEqSymbol
-- n_eq_constraint_index
-  - Type: integer[]
-  - XML: nEqConstraintIndex
-- n_eq_constraint_range_max
-  - Type: float
-  - XML: nEqConstraintRangeMax
-- n_eq_constraint_range_min
-  - Type: float
-  - XML: nEqConstraintRangeMin
-- s_other_constraint_unit
-  - Type: string
-  - XML: sOtherConstraintUnit
-
-### EqVariable
-
-- n_pure_or_mixture_data_number
-  - Type: integer
-  - XML: nPureOrMixtureDataNumber
-- n_reaction_data_number
-  - Type: integer
-  - XML: nReactionDataNumber
-- n_var_number
-  - Type: integer
-  - XML: nVarNumber
-- s_eq_symbol
-  - Type: string
-  - XML: sEqSymbol
-- n_eq_var_index
-  - Type: integer[]
-  - XML: nEqVarIndex
-- n_eq_var_range_max
-  - Type: float
-  - XML: nEqVarRangeMax
-- n_eq_var_range_min
-  - Type: float
-  - XML: nEqVarRangeMin
-- s_other_var_unit
-  - Type: string
-  - XML: sOtherVarUnit
-
-### EqParameter
-
-- n_eq_par_digits
-  - Type: integer
-  - XML: nEqParDigits
-- n_eq_par_value
-  - Type: float
-  - XML: nEqParValue
-- s_eq_par_symbol
-  - Type: string
-  - XML: sEqParSymbol
-- n_eq_par_index
-  - Type: integer[]
-  - XML: nEqParIndex
-- n_eq_par_number
-  - Type: integer
-  - XML: nEqParNumber
-
-### EqConstant
-
-- n_eq_constant_digits
-  - Type: integer
-  - XML: nEqConstantDigits
-- n_eq_constant_value
-  - Type: float
-  - XML: nEqConstantValue
-- s_eq_constant_symbol
-  - Type: string
-  - XML: sEqConstantSymbol
-- n_eq_constant_index
-  - Type: integer[]
-  - XML: nEqConstantIndex
-
-### Covariance
-
-- n_covariance_value
-  - Type: float
-  - XML: nCovarianceValue
-- n_eq_par_number1
-  - Type: integer
-  - XML: nEqParNumber1
-- n_eq_par_number2
-  - Type: integer
-  - XML: nEqParNumber2
+  - Description: Solvent information
 
 ### ReactionData
+Description: Data for chemical reactions.
 
 - e_reaction_type
   - Type: eReactionType, string
-  - XML: eReactionType
+  - Description: Type of reaction
 - participant
   - Type: Participant[]
-  - XML: Participant
+  - Description: Reaction participants
 - property
   - Type: Property[]
-  - XML: Property
+  - Description: Reaction properties
 - auxiliary_substance
   - Type: AuxiliarySubstance[]
-  - XML: AuxiliarySubstance
+  - Description: Auxiliary substances
 - constraint
   - Type: Constraint[]
-  - XML: Constraint
+  - Description: Reaction constraints
 - date_date_added
   - Type: string
-  - XML: dateDateAdded
+  - Description: Date when data was added
 - e_exp_purpose
   - Type: eExpPurpose, string
-  - XML: eExpPurpose
   - Description: Purpose of measurement
 - e_reaction_formalism
   - Type: eReactionFormalism, string
-  - XML: eReactionFormalism
+  - Description: Reaction formalism
 - equation
   - Type: Equation[]
-  - XML: Equation
+  - Description: Reaction equations
 - n_electron_number
   - Type: integer
-  - XML: nElectronNumber
+  - Description: Number of electrons
 - n_reaction_data_number
   - Type: integer
-  - XML: nReactionDataNumber
+  - Description: Reaction data number
 - num_values
   - Type: NumValues[]
-  - XML: NumValues
+  - Description: Numerical values
 - s_compiler
   - Type: string
-  - XML: sCompiler
+  - Description: Compiler information
 - s_contributor
   - Type: string
-  - XML: sContributor
+  - Description: Contributor information
 - solvent
   - Type: Solvent[]
-  - XML: Solvent
+  - Description: Solvent information
 - variable
   - Type: Variable[]
-  - XML: Variable
+  - Description: Variable information
 
 ### Participant
+Description: Reaction participant information.
 
 - e_crystal_lattice_type
   - Type: eCrystalLatticeType, string
-  - XML: eCrystalLatticeType
+  - Description: Crystal lattice type
 - e_phase
   - Type: ePhase, string
-  - XML: ePhase
+  - Description: Phase information
 - n_comp_index
   - Type: integer
-  - XML: nCompIndex
+  - Description: Component index
 - reg_num
   - Type: RegNum
-  - XML: RegNum
+  - Description: Registration number
 - s_phase_description
   - Type: string
-  - XML: sPhaseDescription
+  - Description: Phase description
 - e_composition_representation
   - Type: eCompositionRepresentation, string
-  - XML: eCompositionRepresentation
+  - Description: Composition representation
 - e_standard_state
   - Type: eStandardState, string
-  - XML: eStandardState
+  - Description: Standard state
 - n_numerical_composition
   - Type: float
-  - XML: nNumericalComposition
+  - Description: Numerical composition
 - n_sample_nm
   - Type: integer
-  - XML: nSampleNm
+  - Description: Sample number
 - n_stoichiometric_coef
   - Type: float
-  - XML: nStoichiometricCoef
-
-### ReactionStateChangeProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string[]
-  - XML: sMethodName
-
-### ReactionEquilibriumProp
-
-- critical_evaluation
-  - Type: CriticalEvaluation
-  - XML: CriticalEvaluation
-- e_method_name
-  - Type: eMethodName, string
-  - XML: eMethodName
-- e_prop_name
-  - Type: ePropName, string
-  - XML: ePropName
-- prediction
-  - Type: Prediction
-  - XML: Prediction
-- s_method_name
-  - Type: string[]
-  - XML: sMethodName
+  - Description: Stoichiometric coefficient
 
 ### Catalyst
+Description: Catalyst information.
 
 - n_comp_index
   - Type: integer
-  - XML: nCompIndex
+  - Description: Component index
 - reg_num
   - Type: RegNum
-  - XML: RegNum
+  - Description: Registration number
 - e_phase
   - Type: ePhase, string
-  - XML: ePhase
+  - Description: Phase information
+
+### PhaseID
+Description: Phase identification information.
+
+- e_crystal_lattice_type
+  - Type: eCrystalLatticeType, string
+  - Description: Crystal lattice type
+- e_phase
+  - Type: ePhase, string
+  - Description: Phase information
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+- s_phase_description
+  - Type: string
+  - Description: Phase description
+
+### Constraint
+Description: Constraint information.
+
+- constraint_id
+  - Type: ConstraintID
+  - Description: Constraint identification
+- n_constr_digits
+  - Type: integer
+  - Description: Constraint digits
+- n_constraint_value
+  - Type: float
+  - Description: Constraint value
+- constr_device_spec
+  - Type: ConstrDeviceSpec
+  - Description: Constraint device specification
+- constr_repeatability
+  - Type: ConstrRepeatability
+  - Description: Constraint repeatability
+- constr_uncertainty
+  - Type: ConstrUncertainty[]
+  - Description: Constraint uncertainty
+- constraint_phase_id
+  - Type: ConstraintPhaseID
+  - Description: Constraint phase identification
+- n_constraint_number
+  - Type: integer
+  - Description: Constraint number
+- solvent
+  - Type: Solvent
+  - Description: Solvent information
+
+### Variable
+Description: Variable information.
+
+- n_var_number
+  - Type: integer
+  - Description: Variable number
+- variable_id
+  - Type: VariableID
+  - Description: Variable identification
+- solvent
+  - Type: Solvent
+  - Description: Solvent information
+- var_device_spec
+  - Type: VarDeviceSpec
+  - Description: Variable device specification
+- var_phase_id
+  - Type: VarPhaseID
+  - Description: Variable phase identification
+- var_repeatability
+  - Type: VarRepeatability
+  - Description: Variable repeatability
+- var_uncertainty
+  - Type: VarUncertainty[]
+  - Description: Variable uncertainty
+
+### Solvent
+Description: Solvent information.
+
+- e_phase
+  - Type: ePhase, string
+  - Description: Phase information
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+
+### PropertyMethodID
+Description: Property method identification information.
+
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- property_group
+  - Type: PropertyGroup
+  - Description: Property group information
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+
+### PropertyGroup
+Description: Property group information.
+
+- activity_fugacity_osmotic_prop
+  - Type: ActivityFugacityOsmoticProp
+  - Description: Activity, fugacity, and osmotic properties
+- bio_properties
+  - Type: BioProperties
+  - Description: Biological properties
+- composition_at_phase_equilibrium
+  - Type: CompositionAtPhaseEquilibrium
+  - Description: Composition at phase equilibrium
+- criticals
+  - Type: Criticals
+  - Description: Critical properties
+- excess_partial_apparent_energy_prop
+  - Type: ExcessPartialApparentEnergyProp
+  - Description: Excess partial apparent energy properties
+- heat_capacity_and_derived_prop
+  - Type: HeatCapacityAndDerivedProp
+  - Description: Heat capacity and derived properties
+- phase_transition
+  - Type: PhaseTransition
+  - Description: Phase transition properties
+- reaction_equilibrium_prop
+  - Type: ReactionEquilibriumProp
+  - Description: Reaction equilibrium properties
+- reaction_state_change_prop
+  - Type: ReactionStateChangeProp
+  - Description: Reaction state change properties
+- refraction_surface_tension_sound_speed
+  - Type: RefractionSurfaceTensionSoundSpeed
+  - Description: Refraction, surface tension, and sound speed
+- transport_prop
+  - Type: TransportProp
+  - Description: Transport properties
+- vapor_p_boiling_t_azeotrop_tand_p
+  - Type: VaporPBoilingTAzeotropTandP
+  - Description: Vapor pressure, boiling temperature, azeotrope temperature and pressure
+- volumetric_prop
+  - Type: VolumetricProp
+  - Description: Volumetric properties
+
+### PropPhaseID
+Description: Property phase identification information.
+
+- e_bio_state
+  - Type: eBioState, string
+  - Description: Biological state
+- e_crystal_lattice_type
+  - Type: eCrystalLatticeType, string
+  - Description: Crystal lattice type
+- e_prop_phase
+  - Type: ePropPhase, string
+  - Description: Property phase
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+- s_bio_state
+  - Type: string
+  - Description: Biological state description
+- s_phase_description
+  - Type: string
+  - Description: Phase description
+
+### RefPhaseID
+Description: Reference phase identification information.
+
+- e_crystal_lattice_type
+  - Type: eCrystalLatticeType, string
+  - Description: Crystal lattice type
+- e_ref_phase
+  - Type: eRefPhase, string
+  - Description: Reference phase
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+- s_phase_description
+  - Type: string
+  - Description: Phase description
+
+### ConstraintID
+Description: Constraint identification information.
+
+- constraint_type
+  - Type: ConstraintType
+  - Description: Constraint type
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+
+### ConstraintType
+Description: Constraint type information.
+
+- e_bio_variables
+  - Type: eBioVariables, string
+  - Description: Biological variables
+- e_component_composition
+  - Type: eComponentComposition, string
+  - Description: Component composition
+- e_miscellaneous
+  - Type: eMiscellaneous, string
+  - Description: Miscellaneous constraints
+- e_participant_amount
+  - Type: eParticipantAmount, string
+  - Description: Participant amount
+- e_pressure
+  - Type: ePressure, string
+  - Description: Pressure constraints
+- e_solvent_composition
+  - Type: eSolventComposition, string
+  - Description: Solvent composition
+- e_temperature
+  - Type: eTemperature, string
+  - Description: Temperature constraints
+
+### ConstraintPhaseID
+Description: Constraint phase identification information.
+
+- e_constraint_phase
+  - Type: eConstraintPhase, string
+  - Description: Constraint phase
+- e_crystal_lattice_type
+  - Type: eCrystalLatticeType, string
+  - Description: Crystal lattice type
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+- s_phase_description
+  - Type: string
+  - Description: Phase description
+
+### VariableID
+Description: Variable identification information.
+
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+- variable_type
+  - Type: VariableType
+  - Description: Variable type
+
+### VariableType
+Description: Variable type information.
+
+- e_bio_variables
+  - Type: eBioVariables, string
+  - Description: Biological variables
+- e_component_composition
+  - Type: eComponentComposition, string
+  - Description: Component composition
+- e_miscellaneous
+  - Type: eMiscellaneous, string
+  - Description: Miscellaneous variables
+- e_participant_amount
+  - Type: eParticipantAmount, string
+  - Description: Participant amount
+- e_pressure
+  - Type: ePressure, string
+  - Description: Pressure variables
+- e_solvent_composition
+  - Type: eSolventComposition, string
+  - Description: Solvent composition
+- e_temperature
+  - Type: eTemperature, string
+  - Description: Temperature variables
+
+### VarPhaseID
+Description: Variable phase identification information.
+
+- e_crystal_lattice_type
+  - Type: eCrystalLatticeType, string
+  - Description: Crystal lattice type
+- e_var_phase
+  - Type: eVarPhase, string
+  - Description: Variable phase
+- n_comp_index
+  - Type: integer
+  - Description: Component index
+- reg_num
+  - Type: RegNum
+  - Description: Registration number
+- s_phase_description
+  - Type: string
+  - Description: Phase description
+
+### NumValues
+Description: Numerical values information.
+
+- property_value
+  - Type: PropertyValue[]
+  - Description: Property values
+- variable_value
+  - Type: VariableValue[]
+  - Description: Variable values
+
+### PropertyValue
+Description: Property value information.
+
+- n_prop_digits
+  - Type: integer
+  - Description: Property digits
+- n_prop_number
+  - Type: integer
+  - Description: Property number
+- n_prop_value
+  - Type: float
+  - Description: Property value
+- prop_limit
+  - Type: PropLimit
+  - Description: Property limit
+- combined_uncertainty
+  - Type: CombinedUncertainty[]
+  - Description: Combined uncertainty
+- curve_dev
+  - Type: CurveDev[]
+  - Description: Curve deviation
+- n_prop_device_spec_value
+  - Type: float
+  - Description: Property device specification value
+- prop_repeatability
+  - Type: PropRepeatability
+  - Description: Property repeatability
+- prop_uncertainty
+  - Type: PropUncertainty[]
+  - Description: Property uncertainty
+
+### VariableValue
+Description: Variable value information.
+
+- n_var_digits
+  - Type: integer
+  - Description: Variable digits
+- n_var_number
+  - Type: integer
+  - Description: Variable number
+- n_var_value
+  - Type: float
+  - Description: Variable value
+- n_var_device_spec_value
+  - Type: float
+  - Description: Variable device specification value
+- var_repeatability
+  - Type: VarRepeatability
+  - Description: Variable repeatability
+- var_uncertainty
+  - Type: VarUncertainty[]
+  - Description: Variable uncertainty
+
+### PropLimit
+Description: Property limit information.
+
+- n_prop_limit_digits
+  - Type: integer
+  - Description: Property limit digits
+- n_prop_lower_limit_value
+  - Type: float
+  - Description: Property lower limit value
+- n_prop_upper_limit_value
+  - Type: float
+  - Description: Property upper limit value
+
+### CombinedUncertainty
+Description: Combined uncertainty information.
+
+- e_comb_uncert_eval_method
+  - Type: eCombUncertEvalMethod, string
+  - Description: Combined uncertainty evaluation method
+- n_comb_uncert_assess_num
+  - Type: integer
+  - Description: Combined uncertainty assessment number
+- asym_comb_expand_uncert
+  - Type: AsymCombExpandUncert
+  - Description: Asymmetric combined expanded uncertainty
+- asym_comb_std_uncert
+  - Type: AsymCombStdUncert
+  - Description: Asymmetric combined standard uncertainty
+- n_comb_coverage_factor
+  - Type: float
+  - Description: Combined coverage factor
+- n_comb_expand_uncert_value
+  - Type: float
+  - Description: Combined expanded uncertainty value
+- n_comb_std_uncert_value
+  - Type: float
+  - Description: Combined standard uncertainty value
+- n_comb_uncert_lev_of_confid
+  - Type: float
+  - Description: Combined uncertainty level of confidence
+- s_comb_uncert_eval_method
+  - Type: string
+  - Description: Combined uncertainty evaluation method description
+- s_comb_uncert_evaluator
+  - Type: string
+  - Description: Combined uncertainty evaluator
+
+### PropUncertainty
+Description: Property uncertainty information.
+
+- n_uncert_assess_num
+  - Type: integer
+  - Description: Uncertainty assessment number
+- asym_expand_uncert
+  - Type: AsymExpandUncert
+  - Description: Asymmetric expanded uncertainty
+- asym_std_uncert
+  - Type: AsymStdUncert
+  - Description: Asymmetric standard uncertainty
+- n_coverage_factor
+  - Type: float
+  - Description: Coverage factor
+- n_expand_uncert_value
+  - Type: float
+  - Description: Expanded uncertainty value
+- n_std_uncert_value
+  - Type: float
+  - Description: Standard uncertainty value
+- n_uncert_lev_of_confid
+  - Type: float
+  - Description: Uncertainty level of confidence
+- s_uncert_eval_method
+  - Type: string
+  - Description: Uncertainty evaluation method
+- s_uncert_evaluator
+  - Type: string
+  - Description: Uncertainty evaluator
+
+### PropRepeatability
+Description: Property repeatability information.
+
+- e_repeat_method
+  - Type: eRepeatMethod, string
+  - Description: Repeat method
+- n_prop_repeat_value
+  - Type: float
+  - Description: Property repeat value
+- n_repetitions
+  - Type: integer
+  - Description: Number of repetitions
+- s_repeat_evaluator
+  - Type: string
+  - Description: Repeat evaluator
+- s_repeat_method
+  - Type: string
+  - Description: Repeat method description
+
+### PropDeviceSpec
+Description: Property device specification information.
+
+- e_device_spec_method
+  - Type: eDeviceSpecMethod, string
+  - Description: Device specification method
+- n_device_spec_lev_of_confid
+  - Type: float
+  - Description: Device specification level of confidence
+- s_device_spec_evaluator
+  - Type: string
+  - Description: Device specification evaluator
+- s_device_spec_method
+  - Type: string
+  - Description: Device specification method description
+
+### CurveDev
+Description: Curve deviation information.
+
+- n_curve_dev_assess_num
+  - Type: integer
+  - Description: Curve deviation assessment number
+- n_curve_dev_value
+  - Type: float
+  - Description: Curve deviation value
+- s_curve_spec
+  - Type: string
+  - Description: Curve specification
+- n_curve_rms_dev_value
+  - Type: float
+  - Description: Curve RMS deviation value
+- n_curve_rms_relative_dev_value
+  - Type: float
+  - Description: Curve RMS relative deviation value
+- s_curve_dev_evaluator
+  - Type: string
+  - Description: Curve deviation evaluator
+
+### ConstrUncertainty
+Description: Constraint uncertainty information.
+
+- n_coverage_factor
+  - Type: float
+  - Description: Coverage factor
+- n_expand_uncert_value
+  - Type: float
+  - Description: Expanded uncertainty value
+- n_std_uncert_value
+  - Type: float
+  - Description: Standard uncertainty value
+- n_uncert_lev_of_confid
+  - Type: float
+  - Description: Uncertainty level of confidence
+- s_uncert_eval_method
+  - Type: string
+  - Description: Uncertainty evaluation method
+- s_uncert_evaluator
+  - Type: string
+  - Description: Uncertainty evaluator
+
+### ConstrRepeatability
+Description: Constraint repeatability information.
+
+- e_repeat_method
+  - Type: eRepeatMethod, string
+  - Description: Repeat method
+- n_repeat_value
+  - Type: float
+  - Description: Repeat value
+- n_repetitions
+  - Type: integer
+  - Description: Number of repetitions
+- s_repeat_evaluator
+  - Type: string
+  - Description: Repeat evaluator
+- s_repeat_method
+  - Type: string
+  - Description: Repeat method description
+
+### ConstrDeviceSpec
+Description: Constraint device specification information.
+
+- e_device_spec_method
+  - Type: eDeviceSpecMethod, string
+  - Description: Device specification method
+- n_device_spec_lev_of_confid
+  - Type: float
+  - Description: Device specification level of confidence
+- n_device_spec_value
+  - Type: float
+  - Description: Device specification value
+- s_device_spec_evaluator
+  - Type: string
+  - Description: Device specification evaluator
+- s_device_spec_method
+  - Type: string
+  - Description: Device specification method description
+
+### VarUncertainty
+Description: Variable uncertainty information.
+
+- n_uncert_assess_num
+  - Type: integer
+  - Description: Uncertainty assessment number
+- n_coverage_factor
+  - Type: float
+  - Description: Coverage factor
+- n_expand_uncert_value
+  - Type: float
+  - Description: Expanded uncertainty value
+- n_std_uncert_value
+  - Type: float
+  - Description: Standard uncertainty value
+- n_uncert_lev_of_confid
+  - Type: float
+  - Description: Uncertainty level of confidence
+- s_uncert_eval_method
+  - Type: string
+  - Description: Uncertainty evaluation method
+- s_uncert_evaluator
+  - Type: string
+  - Description: Uncertainty evaluator
+
+### VarRepeatability
+Description: Variable repeatability information.
+
+- e_repeat_method
+  - Type: eRepeatMethod, string
+  - Description: Repeat method
+- n_repetitions
+  - Type: integer
+  - Description: Number of repetitions
+- n_var_repeat_value
+  - Type: float
+  - Description: Variable repeat value
+- s_repeat_evaluator
+  - Type: string
+  - Description: Repeat evaluator
+- s_repeat_method
+  - Type: string
+  - Description: Repeat method description
+
+### VarDeviceSpec
+Description: Variable device specification information.
+
+- e_device_spec_method
+  - Type: eDeviceSpecMethod, string
+  - Description: Device specification method
+- n_device_spec_lev_of_confid
+  - Type: float
+  - Description: Device specification level of confidence
+- s_device_spec_evaluator
+  - Type: string
+  - Description: Device specification evaluator
+- s_device_spec_method
+  - Type: string
+  - Description: Device specification method description
+
+### AsymCombStdUncert
+Description: Asymmetric combined standard uncertainty information.
+
+- n_negative_value
+  - Type: float
+  - Description: Negative value
+- n_positive_value
+  - Type: float
+  - Description: Positive value
+
+### AsymCombExpandUncert
+Description: Asymmetric combined expanded uncertainty information.
+
+- n_negative_value
+  - Type: float
+  - Description: Negative value
+- n_positive_value
+  - Type: float
+  - Description: Positive value
+
+### AsymStdUncert
+Description: Asymmetric standard uncertainty information.
+
+- n_negative_value
+  - Type: float
+  - Description: Negative value
+- n_positive_value
+  - Type: float
+  - Description: Positive value
+
+### AsymExpandUncert
+Description: Asymmetric expanded uncertainty information.
+
+- n_negative_value
+  - Type: float
+  - Description: Negative value
+- n_positive_value
+  - Type: float
+  - Description: Positive value
+
+### Equation
+Description: Equation information.
+
+- e_eq_name
+  - Type: eEqName, string
+  - Description: Equation name
+- s_eq_name
+  - Type: string
+  - Description: Equation name description
+- url_math_source
+  - Type: string
+  - Description: URL to mathematical source
+- covariance
+  - Type: Covariance[]
+  - Description: Covariance information
+- eq_constant
+  - Type: EqConstant[]
+  - Description: Equation constants
+- eq_constraint
+  - Type: EqConstraint[]
+  - Description: Equation constraints
+- eq_parameter
+  - Type: EqParameter[]
+  - Description: Equation parameters
+- eq_property
+  - Type: EqProperty[]
+  - Description: Equation properties
+- eq_variable
+  - Type: EqVariable[]
+  - Description: Equation variables
+- n_covariance_lev_of_confid
+  - Type: float
+  - Description: Covariance level of confidence
+
+### ActivityFugacityOsmoticProp
+Description: Activity, fugacity, and osmotic properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### BioProperties
+Description: Biological properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### CompositionAtPhaseEquilibrium
+Description: Composition at phase equilibrium.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### Criticals
+Description: Critical properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### ExcessPartialApparentEnergyProp
+Description: Excess partial apparent energy properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### HeatCapacityAndDerivedProp
+Description: Heat capacity and derived properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### PhaseTransition
+Description: Phase transition properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### ReactionEquilibriumProp
+Description: Reaction equilibrium properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string[]
+  - Description: Method name descriptions
+
+### ReactionStateChangeProp
+Description: Reaction state change properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string[]
+  - Description: Method name descriptions
+
+### RefractionSurfaceTensionSoundSpeed
+Description: Refraction, surface tension, and sound speed properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### TransportProp
+Description: Transport properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### VaporPBoilingTAzeotropTandP
+Description: Vapor pressure, boiling temperature, azeotrope temperature and pressure properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### VolumetricProp
+Description: Volumetric properties.
+
+- critical_evaluation
+  - Type: CriticalEvaluation
+  - Description: Critical evaluation information
+- e_method_name
+  - Type: eMethodName, string
+  - Description: Method name
+- e_prop_name
+  - Type: ePropName, string
+  - Description: Property name
+- prediction
+  - Type: Prediction
+  - Description: Prediction information
+- s_method_name
+  - Type: string
+  - Description: Method name description
+
+### CriticalEvaluation
+Description: Critical evaluation information.
+
+- equation_of_state
+  - Type: EquationOfState
+  - Description: Equation of state information
+- multi_prop
+  - Type: MultiProp
+  - Description: Multiple property information
+- single_prop
+  - Type: SingleProp
+  - Description: Single property information
+
+### Prediction
+Description: Prediction information.
+
+- e_prediction_type
+  - Type: ePredictionType, string
+  - Description: Prediction type
+- prediction_method_ref
+  - Type: PredictionMethodRef[]
+  - Description: Prediction method references
+- s_prediction_method_description
+  - Type: string
+  - Description: Prediction method description
+- s_prediction_method_name
+  - Type: string
+  - Description: Prediction method name
+
+### PredictionMethodRef
+Description: Prediction method reference information.
+
+- book
+  - Type: Book
+  - Description: Book reference
+- journal
+  - Type: Journal
+  - Description: Journal reference
+- thesis
+  - Type: Thesis
+  - Description: Thesis reference
+- date_cit
+  - Type: string
+  - Description: Citation date
+- e_language
+  - Type: eLanguage, string
+  - Description: Language
+- e_source_type
+  - Type: eSourceType, string
+  - Description: Source type
+- e_type
+  - Type: eType, string
+  - Description: Publication type
+- s_abstract
+  - Type: string
+  - Description: Abstract
+- s_author
+  - Type: string[]
+  - Description: Authors
+- s_cas_cit
+  - Type: string
+  - Description: CAS citation
+- s_document_origin
+  - Type: string
+  - Description: Document origin
+- s_doi
+  - Type: string
+  - Description: DOI
+- s_id_num
+  - Type: string
+  - Description: ID number
+- s_keyword
+  - Type: string[]
+  - Description: Keywords
+- s_location
+  - Type: string
+  - Description: Location
+- s_page
+  - Type: string
+  - Description: Page range
+- s_pub_name
+  - Type: string
+  - Description: Publication name
+- s_title
+  - Type: string
+  - Description: Title
+- s_vol
+  - Type: string
+  - Description: Volume
+- trc_ref_id
+  - Type: TRCRefID
+  - Description: TRC reference ID
+- url_cit
+  - Type: string
+  - Description: URL citation
+- yr_pub_yr
+  - Type: string
+  - Description: Publication year
+
+### SingleProp
+Description: Single property information.
+
+- eval_single_prop_ref
+  - Type: EvalSinglePropRef[]
+  - Description: Single property evaluation references
+- s_eval_single_prop_description
+  - Type: string
+  - Description: Single property evaluation description
+
+### MultiProp
+Description: Multiple property information.
+
+- eval_multi_prop_ref
+  - Type: EvalMultiPropRef[]
+  - Description: Multiple property evaluation references
+- s_eval_multi_prop_description
+  - Type: string
+  - Description: Multiple property evaluation description
+- s_eval_multi_prop_list
+  - Type: string
+  - Description: Multiple property evaluation list
+
+### EvalSinglePropRef
+Description: Single property evaluation reference information.
+
+- book
+  - Type: Book
+  - Description: Book reference
+- journal
+  - Type: Journal
+  - Description: Journal reference
+- thesis
+  - Type: Thesis
+  - Description: Thesis reference
+- date_cit
+  - Type: string
+  - Description: Citation date
+- e_language
+  - Type: eLanguage, string
+  - Description: Language
+- e_source_type
+  - Type: eSourceType, string
+  - Description: Source type
+- e_type
+  - Type: eType, string
+  - Description: Publication type
+- s_abstract
+  - Type: string
+  - Description: Abstract
+- s_author
+  - Type: string[]
+  - Description: Authors
+- s_cas_cit
+  - Type: string
+  - Description: CAS citation
+- s_document_origin
+  - Type: string
+  - Description: Document origin
+- s_doi
+  - Type: string
+  - Description: DOI
+- s_id_num
+  - Type: string
+  - Description: ID number
+- s_keyword
+  - Type: string[]
+  - Description: Keywords
+- s_location
+  - Type: string
+  - Description: Location
+- s_page
+  - Type: string
+  - Description: Page range
+- s_pub_name
+  - Type: string
+  - Description: Publication name
+- s_title
+  - Type: string
+  - Description: Title
+- s_vol
+  - Type: string
+  - Description: Volume
+- trc_ref_id
+  - Type: TRCRefID
+  - Description: TRC reference ID
+- url_cit
+  - Type: string
+  - Description: URL citation
+- yr_pub_yr
+  - Type: string
+  - Description: Publication year
+
+### EvalMultiPropRef
+Description: Multiple property evaluation reference information.
+
+- book
+  - Type: Book
+  - Description: Book reference
+- journal
+  - Type: Journal
+  - Description: Journal reference
+- thesis
+  - Type: Thesis
+  - Description: Thesis reference
+- date_cit
+  - Type: string
+  - Description: Citation date
+- e_language
+  - Type: eLanguage, string
+  - Description: Language
+- e_source_type
+  - Type: eSourceType, string
+  - Description: Source type
+- e_type
+  - Type: eType, string
+  - Description: Publication type
+- s_abstract
+  - Type: string
+  - Description: Abstract
+- s_author
+  - Type: string[]
+  - Description: Authors
+- s_cas_cit
+  - Type: string
+  - Description: CAS citation
+- s_document_origin
+  - Type: string
+  - Description: Document origin
+- s_doi
+  - Type: string
+  - Description: DOI
+- s_id_num
+  - Type: string
+  - Description: ID number
+- s_keyword
+  - Type: string[]
+  - Description: Keywords
+- s_location
+  - Type: string
+  - Description: Location
+- s_page
+  - Type: string
+  - Description: Page range
+- s_pub_name
+  - Type: string
+  - Description: Publication name
+- s_title
+  - Type: string
+  - Description: Title
+- s_vol
+  - Type: string
+  - Description: Volume
+- trc_ref_id
+  - Type: TRCRefID
+  - Description: TRC reference ID
+- url_cit
+  - Type: string
+  - Description: URL citation
+- yr_pub_yr
+  - Type: string
+  - Description: Publication year
+
+### EquationOfState
+Description: Equation of state information.
+
+- eval_eos_ref
+  - Type: EvalEOSRef[]
+  - Description: EOS evaluation references
+- s_eval_eos_description
+  - Type: string
+  - Description: EOS evaluation description
+- s_eval_eos_name
+  - Type: string
+  - Description: EOS evaluation name
+
+### EvalEOSRef
+Description: EOS evaluation reference information.
+
+- book
+  - Type: Book
+  - Description: Book reference
+- journal
+  - Type: Journal
+  - Description: Journal reference
+- thesis
+  - Type: Thesis
+  - Description: Thesis reference
+- date_cit
+  - Type: string
+  - Description: Citation date
+- e_language
+  - Type: eLanguage, string
+  - Description: Language
+- e_source_type
+  - Type: eSourceType, string
+  - Description: Source type
+- e_type
+  - Type: eType, string
+  - Description: Publication type
+- s_abstract
+  - Type: string
+  - Description: Abstract
+- s_author
+  - Type: string[]
+  - Description: Authors
+- s_cas_cit
+  - Type: string
+  - Description: CAS citation
+- s_document_origin
+  - Type: string
+  - Description: Document origin
+- s_doi
+  - Type: string
+  - Description: DOI
+- s_id_num
+  - Type: string
+  - Description: ID number
+- s_keyword
+  - Type: string[]
+  - Description: Keywords
+- s_location
+  - Type: string
+  - Description: Location
+- s_page
+  - Type: string
+  - Description: Page range
+- s_pub_name
+  - Type: string
+  - Description: Publication name
+- s_title
+  - Type: string
+  - Description: Title
+- s_vol
+  - Type: string
+  - Description: Volume
+- trc_ref_id
+  - Type: TRCRefID
+  - Description: TRC reference ID
+- url_cit
+  - Type: string
+  - Description: URL citation
+- yr_pub_yr
+  - Type: string
+  - Description: Publication year
+
+### EqProperty
+Description: Equation property information.
+
+- n_prop_number
+  - Type: integer
+  - Description: Property number
+- n_pure_or_mixture_data_number
+  - Type: integer
+  - Description: Pure or mixture data number
+- n_reaction_data_number
+  - Type: integer
+  - Description: Reaction data number
+- s_eq_symbol
+  - Type: string
+  - Description: Equation symbol
+- n_eq_prop_index
+  - Type: integer[]
+  - Description: Equation property index
+- n_eq_prop_range_max
+  - Type: float
+  - Description: Equation property range maximum
+- n_eq_prop_range_min
+  - Type: float
+  - Description: Equation property range minimum
+- s_other_prop_unit
+  - Type: string
+  - Description: Other property unit
+
+### EqConstraint
+Description: Equation constraint information.
+
+- n_constraint_number
+  - Type: integer
+  - Description: Constraint number
+- n_pure_or_mixture_data_number
+  - Type: integer
+  - Description: Pure or mixture data number
+- n_reaction_data_number
+  - Type: integer
+  - Description: Reaction data number
+- s_eq_symbol
+  - Type: string
+  - Description: Equation symbol
+- n_eq_constraint_index
+  - Type: integer[]
+  - Description: Equation constraint index
+- n_eq_constraint_range_max
+  - Type: float
+  - Description: Equation constraint range maximum
+- n_eq_constraint_range_min
+  - Type: float
+  - Description: Equation constraint range minimum
+- s_other_constraint_unit
+  - Type: string
+  - Description: Other constraint unit
+
+### EqVariable
+Description: Equation variable information.
+
+- n_pure_or_mixture_data_number
+  - Type: integer
+  - Description: Pure or mixture data number
+- n_reaction_data_number
+  - Type: integer
+  - Description: Reaction data number
+- n_var_number
+  - Type: integer
+  - Description: Variable number
+- s_eq_symbol
+  - Type: string
+  - Description: Equation symbol
+- n_eq_var_index
+  - Type: integer[]
+  - Description: Equation variable index
+- n_eq_var_range_max
+  - Type: float
+  - Description: Equation variable range maximum
+- n_eq_var_range_min
+  - Type: float
+  - Description: Equation variable range minimum
+- s_other_var_unit
+  - Type: string
+  - Description: Other variable unit
+
+### EqParameter
+Description: Equation parameter information.
+
+- n_eq_par_digits
+  - Type: integer
+  - Description: Equation parameter digits
+- n_eq_par_value
+  - Type: float
+  - Description: Equation parameter value
+- s_eq_par_symbol
+  - Type: string
+  - Description: Equation parameter symbol
+- n_eq_par_index
+  - Type: integer[]
+  - Description: Equation parameter index
+- n_eq_par_number
+  - Type: integer
+  - Description: Equation parameter number
+
+### EqConstant
+Description: Equation constant information.
+
+- n_eq_constant_digits
+  - Type: integer
+  - Description: Equation constant digits
+- n_eq_constant_value
+  - Type: float
+  - Description: Equation constant value
+- s_eq_constant_symbol
+  - Type: string
+  - Description: Equation constant symbol
+- n_eq_constant_index
+  - Type: integer[]
+  - Description: Equation constant index
+
+### Covariance
+Description: Covariance information.
+
+- n_covariance_value
+  - Type: float
+  - Description: Covariance value
+- n_eq_par_number1
+  - Type: integer
+  - Description: First equation parameter number
+- n_eq_par_number2
+  - Type: integer
+  - Description: Second equation parameter number
 
 ## Enumerations
 
