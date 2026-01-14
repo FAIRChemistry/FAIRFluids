@@ -4,12 +4,26 @@ pydantic-xml>=2.0.0
 lxml>=4.6.0
 numpy>=1.21.0
 pandas>=1.3.0
+requests>=2.25.0
+
+# Visualization and scientific computing
+matplotlib>=3.5.0
+scipy>=1.8.0
+
+# Template engine
+jinja2>=3.0.0
 
 # Optional dependencies (uncomment if needed)
-# matplotlib>=3.5.0
 # seaborn>=0.11.0
-# scipy>=1.8.0
 # rdkit-pypi>=2022.9.1
+
+# Neo4j and graph database (for neo4j/ and test_website/)
+# neo4j>=5.0.0
+
+# Web framework and visualization (for test_website/)
+# flask>=2.0.0
+# plotly>=5.0.0
+# scikit-learn>=1.0.0
 
 # Development dependencies (uncomment for development)
 # pytest>=7.0.0

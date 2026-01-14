@@ -42,7 +42,7 @@ if curl -s http://localhost:7474 > /dev/null; then
     echo "   Password: password"
     echo ""
     echo "💡 You can now run:"
-    echo "   python create_neo4j_graph.py --clear --queries"
+    echo "   python neo4j/create_neo4j_graph.py --clear --queries"
 else
     echo "❌ Neo4j failed to start. Please check Docker logs:"
     echo "   docker logs fairfluids-neo4j"

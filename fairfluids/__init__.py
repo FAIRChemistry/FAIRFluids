@@ -27,17 +27,25 @@ from .core.lib import (
     Method,
     Properties,
     Parameters,
-    LitType
+    LitType,
 )
 
 from .core.fluid_io import FluidIO
-from .core.functionalities import FAIRFluidsCMLParser
+from .core.functionalities import (
+    FAIRFluidsCMLParser,
+    filter_fluid_compounds_by_mole_fractions,
+    combine_compounds,
+    calculate_ratio_of_solvent,
+    cleanup_orphaned_parameters,
+    calculate_activationEnergy,
+)
+from .core.visualization import filter_fluid_measurements
 
 # Convenience imports
 __all__ = [
     "FAIRFluidsDocument",
     "Version",
-    "Citation", 
+    "Citation",
     "Author",
     "Compound",
     "Fluid",
@@ -53,5 +61,11 @@ __all__ = [
     "Parameters",
     "LitType",
     "FluidIO",
-    "FAIRFluidsCMLParser"
+    "FAIRFluidsCMLParser",
+    "filter_fluid_measurements",
+    "filter_fluid_compounds_by_mole_fractions",
+    "combine_compounds",
+    "calculate_ratio_of_solvent",
+    "cleanup_orphaned_parameters",
+    "calculate_activationEnergy",
 ]

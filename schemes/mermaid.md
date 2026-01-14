@@ -41,6 +41,8 @@ classDiagram
         +name_IUPAC?: string
         +standard_InChI?: string
         +standard_InChI_key?: string
+        +molar_weigth?: integer
+        +smiles_code?: string
     }
 
     class Fluid {
@@ -122,14 +124,44 @@ classDiagram
 
     class Properties {
         <<enumeration>>
+        ACTIVITY
+        ACTIVITY_COEFFICIENT
         BOILING_POINT
         COMPRESSIBILITY
+        CRITICAL_DENSITY
+        CRITICAL_POINT_PRESSURE
+        CRITICAL_POINT_TEMPERATURE
+        CRITICAL_PRESSURE
+        CRITICAL_TEMPERATURE
+        CRITICAL_VOLUME
         DENSITY
+        DIFFUSION_COEFFICIENT
+        EXCESS_MOLAR_ENTHALPY
+        EXCESS_MOLAR_ENTROPY
+        EXCESS_MOLAR_GIBBS_FREE_ENERGY
+        EXCESS_MOLAR_VOLUME
+        FUGACITY_COEFFICIENT
+        GIBBS_FREE_ENERGY
+        HELMHOLTZ_FREE_ENERGY
+        HENRYS_LAW_CONSTANT
+        IONIC_STRENGTH
+        ISOBARIC_EXPANSION_COEFFICIENT
+        ISOTHERMAL_COMPRESSIBILITY
         MELTING_POINT
+        MOLAR_ENTHALPY
+        MOLAR_ENTROPY
+        MOLAR_VOLUME
+        OSMOTIC_COEFFICIENT
         PH
         POLARITY
+        REFRACTIVE_INDEX
         SPECIFIC_HEAT_CAPACITY
+        SPECIFIC_VOLUME
+        SPEED_OF_SOUND
+        SURFACE_TENSION
         THERMAL_CONDUCTIVITY
+        TRIPLE_POINT_PRESSURE
+        TRIPLE_POINT_TEMPERATURE
         VAPOR_PRESSURE
         VISCOSITY
     }

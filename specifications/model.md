@@ -110,9 +110,19 @@ Description: Contains metadata for a chemical compound, including identifiers, n
 - standard_InChI_key
   - Type: string
   - Description: The hashed version of the InChI string, known as the InChIKey. It is a fixed-length, easier-to-search identifier for databases and indexing.
+- molar_weigth
+  - Type: float
+  - Description: The Molar weight in g/mol
+- smiles_code
+  - Type: string
+- sigma_profile
+  - Type: integer
+  - Description: The sigma profil
 
 ### Fluid
-Description: Contains metadata and experimental context for a dataset related to a fluid system. This includes the chemical composition (pure substance or mixture), source of the data, properties measured, varying experimental parameters, and the corresponding numerical results. There can exist multible fluids in one document.
+Description: Contains metadata and experimental context for a dataset related to a fluid system. This includes the chemical composition (pure substance or mixture), source of the data, properties measured varying experimental parameters, and the corresponding numerical results. There can exist multible fluids in one document.
+- fluidID
+  - Type: Identifier[]
 - compounds
   - Type: Identifier[]
   - Description: A list of unique identifiers referencing the compounds present in the fluid system. Multiple identifiers indicate a mixture; single entries indicate a pure substance.v
@@ -131,7 +141,7 @@ Description: Contains metadata and experimental context for a dataset related to
 
 ### Property
 
-Description: Defines the primary quantity being measured, calculated, or otherwise reported for a fluid system. Each property includes its identifier, grouping, and methodological context.
+Description: Defines the primary quantity being measured calculated, or otherwise reported for a fluid system. Each property includes its identifier, grouping, and methodological context.
 - propertyID
   - Type: Identifier
   - Description: A unique identifier for the specific property being reported (e.g., viscosity, density, heat capacity).
@@ -156,7 +166,7 @@ Categorizes the type of experimental or system variable that is being controlled
   - Description: The type or name of the parameter being varied, such as temperature, pressure, or mole fraction. Indicates what was controlled or changed during the experiment.
 - unit
   - Type: UnitDefinition
-- associated_compound
+- associated_compounds[]
   - Type: string
   - Description: Identifies the specific compound (by its index or ID) to which this parameter applies. Useful in multicomponent systems where a parameter (e.g., mole fraction) pertains to a specific compound.
 
@@ -256,9 +266,9 @@ UNSPECIFIED = unspecified
 
 ### Method
 ```python
-MEASURED = measured, 
-CALCULATED =calculated, 
-SIMULATED = simulated, 
+MEASURED = measured 
+CALCULATED =calculated 
+SIMULATED = simulated 
 LITERATURE = literature
 ```
 
@@ -266,33 +276,133 @@ LITERATURE = literature
 
 ```python
 DENSITY = density
-SPECIFIC_HEAT_CAPACITY= specificHeatCapacity
+  # kg/m^3
+SPECIFIC_HEAT_CAPACITY = specificHeatCapacity
+  # J/(kg*K)
 THERMAL_CONDUCTIVITY = thermalConductivity
-MELTING_POINT=meltingPoint
-BOILING_POINT=boilingPoint
-VAPOR_PRESSURE=vaporPressure
-COMPRESSIBILITY=Compressibility
-VISCOSITY=viscosity
-PH=pH
-POLARITY=polarity
+  # W/(m*K)
+MELTING_POINT = meltingPoint
+  # K
+BOILING_POINT = boilingPoint
+  # K
+VAPOR_PRESSURE = vaporPressure
+  # kPa
+COMPRESSIBILITY = compressibility
+  # 1/Pa
+VISCOSITY = viscosity
+  # Pa*s
+KINEMATIC_VISCOSITY = kinematicViscosity
+ # m^2/s
+PH = pH
+  # dimensionless
+POLARITY = polarity
+  # dimensionless
+
+#missingStuff
+# Transport Properties
+SURFACE_TENSION = surfaceTension
+  # N/m
+SPEED_OF_SOUND = speedOfSound
+  # m/s
+REFRACTIVE_INDEX = refractiveIndex
+  # dimensionless
+DIFFUSION_COEFFICIENT = diffusionCoefficient
+  # m^2/s
+
+# Volumetric Properties
+MOLAR_VOLUME = molarVolume
+  # m^3/mol
+SPECIFIC_VOLUME = specificVolume
+  # m^3/kg
+EXCESS_MOLAR_VOLUME = excessMolarVolume
+  # m^3/mol
+ISOBARIC_EXPANSION_COEFFICIENT = isobaricExpansionCoefficient
+  # 1/K
+ISOTHERMAL_COMPRESSIBILITY = isothermalCompressibility
+  # 1/Pa
+
+# Thermodynamic Properties
+MOLAR_ENTHALPY = molarEnthalpy
+  # J/mol
+MOLAR_ENTROPY = molarEntropy
+  # J/(mol*K)
+GIBBS_FREE_ENERGY = gibbsFreeEnergy
+  # J/mol
+HELMHOLTZ_FREE_ENERGY = helmholtzFreeEnergy
+  # J/mol
+EXCESS_MOLAR_ENTHALPY = excessMolarEnthalpy
+  # J/mol
+EXCESS_MOLAR_ENTROPY = excessMolarEntropy
+  # J/(mol*K)
+EXCESS_MOLAR_GIBBS_FREE_ENERGY = excessMolarGibbsFreeEnergy
+  # J/mol
+ACTIVATION_ENERGY = activationEnergy
+  # J/mol
+
+# Phase Equilibrium Properties
+HENRYS_LAW_CONSTANT = henrysLawConstant
+  # Pa*m^3/mol
+ACTIVITY_COEFFICIENT = activityCoefficient
+  # dimensionless
+FUGACITY_COEFFICIENT = fugacityCoefficient
+  # dimensionless
+OSMOTIC_COEFFICIENT = osmoticCoefficient
+  # dimensionless
+ACTIVITY = activity
+  # dimensionless
+
+# Critical Properties
+CRITICAL_TEMPERATURE = criticalTemperature
+  # K
+CRITICAL_PRESSURE = criticalPressure
+  # kPa
+CRITICAL_DENSITY = criticalDensity
+  # kg/m^3
+CRITICAL_VOLUME = criticalVolume
+  # m^3/mol
+
+# Phase Transition Properties
+TRIPLE_POINT_TEMPERATURE = triplePointTemperature
+  # K
+TRIPLE_POINT_PRESSURE = triplePointPressure
+  # kPa
+CRITICAL_POINT_TEMPERATURE = criticalPointTemperature
+  # K
+CRITICAL_POINT_PRESSURE = criticalPointPressure
+  # kPa
+
+# Biological Properties
+IONIC_STRENGTH = ionicStrength
+  # mol/kg
 ```
 
 ### Parameters
 ```python
-TEMPERATURE_K = Temperature, K
-UPPER_TEMPERATURE_K = Upper temperature, K
-LOWER_TEMPERATURE_K = Lower temperature, K
-PRESSURE_KPA = Pressure, kPa
-PARTIAL_PRESSURE_KPA = Partial pressure, kPa
-UPPER_PRESSURE_KPA = Upper pressure, kPa
-LOWER_PRESSURE_KPA = Lower pressure, kPa
+TEMPERATURE = Temperature
+# K
+UPPER_TEMPERATURE = Upper temperature
+ # K
+LOWER_TEMPERATURE = Lower temperature
+  # K
+PRESSURE = Pressure
+  # kPa
+PARTIAL_PRESSURE = Partial pressure
+  # kPa
+UPPER_PRESSURE = Upper pressure
+  # kPa
+LOWER_PRESSURE = Lower pressure
+  # kPa
 MOLE_FRACTION = Mole fraction
 MASS_FRACTION = Mass fraction
-MOLALITY_MOLKG = Molality, mol/kg
-AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = Amount concentration (molarity), mol/dm3
+MOLALITY = Molality
+  # mol/kg
+AMOUNT_CONCENTRATION_MOLARITY = Amount concentration (molarity)
+  # mol/dm^3
 VOLUME_FRACTION = Volume fraction
-RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG = Ratio of amount of solute to mass of solution, mol/kg
-RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3 = Ratio of mass of solute to volume of solution, kg/m3
+RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION = Ratio of amount of solute to mass of solution
+  # mol/kg
+RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION = Ratio of mass of solute to volume of solution
+  # kg/m^3
 AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT = Amount ratio of solute to solvent
 MASS_RATIO_OF_SOLUTE_TO_SOLVENT = Mass ratio of solute to solvent
 VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT = Volume ratio of solute to solvent
@@ -300,27 +410,45 @@ INITIAL_MOLE_FRACTION_OF_SOLUTE = Initial mole fraction of solute
 FINAL_MOLE_FRACTION_OF_SOLUTE = Final mole fraction of solute
 INITIAL_MASS_FRACTION_OF_SOLUTE = Initial mass fraction of solute
 FINAL_MASS_FRACTION_OF_SOLUTE = Final mass fraction of solute
-INITIAL_MOLALITY_OF_SOLUTE_MOLKG = Initial molality of solute, mol/kg
-FINAL_MOLALITY_OF_SOLUTE_MOLKG = Final molality of solute, mol/kg
+INITIAL_MOLALITY_OF_SOLUTE = Initial molality of solute
+  # mol/kg
+FINAL_MOLALITY_OF_SOLUTE = Final molality of solute
+  # mol/kg
 SOLVENT_MOLE_FRACTION = Solvent: Mole fraction
 SOLVENT_MASS_FRACTION = Solvent: Mass fraction
 SOLVENT_VOLUME_FRACTION = Solvent: Volume fraction
-SOLVENT_MOLALITY_MOLKG = Solvent: Molality, mol/kg
-SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = Solvent: Amount concentration (molarity), mol/dm3
+SOLVENT_MOLALITY = Solvent: Molality
+  # mol/kg
+SOLVENT_AMOUNT_CONCENTRATION_MOLARITY = Solvent: Amount concentration (molarity)
+  # mol/dm^3
 SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = Solvent: Amount ratio of component to other component of binary solvent
 SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = Solvent: Mass ratio of component to other component of binary solvent
+  # dimensionless
 SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = Solvent: Volume ratio of component to other component of binary solvent
-SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG = Solvent: Ratio of amount of component to mass of solvent, mol/kg
-SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3 = Solvent: Ratio of component mass to volume of solvent, kg/m3
-WAVELENGTH_NM = Wavelength, nm
-FREQUENCY_MHZ = Frequency, MHz
-MOLAR_VOLUME_M3MOL = Molar volume, m3/mol
-SPECIFIC_VOLUME_M3KG = Specific volume, m3/kg
-MASS_DENSITY_KGM3 = Mass density, kg/m3
-AMOUNT_DENSITY_MOLM3 = Amount density, mol/m3
-MOLAR_ENTROPY_JKMOL = Molar entropy, J/K/mol
-RELATIVE_ACTIVITY = (Relative) activity
+  # dimensionless
+SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT = Solvent: Ratio of amount of component to mass of solvent
+  # mol/kg
+SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT = Solvent: Ratio of component mass to volume of solvent
+  # kg/m^3
+WAVELENGTH = Wavelength
+  # nm
+FREQUENCY = Frequency
+  # MHz
+MOLAR_VOLUME = Molar volume
+  # m^3/mol
+SPECIFIC_VOLUME  = Specific volume
+  # m^3/kg
+MASS_DENSITY = Mass density
+  # kg/m^3
+AMOUNT_DENSITY = Amount density
+  # mol/m^3
+MOLAR_ENTROPY = Molar entropy
+  # J/K/mol
+RELATIVE_ACTIVITY = (Relative)
+ activity
 ACTIVITY_COEFFICIENT = Activity coefficient
-AMOUNT_MOL = Amount, mol
-MASS_KG = Mass, kg
+AMOUNT_MOL = Amount
+  # mol
+MASS = Mass
+  # kg
 ```

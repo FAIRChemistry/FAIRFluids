@@ -5,7 +5,7 @@ This module contains the main data models and utilities for working with
 FAIR fluid data documents.
 """
 
-from .lib import (
+from .fairfluids import (
     FAIRFluidsDocument,
     Version,
     Citation,
@@ -19,20 +19,32 @@ from .lib import (
     Measurement,
     UnitDefinition,
     BaseUnit,
+)
+
+# Import enums and other utilities from lib since they don't need extension
+from .lib import (
     Method,
     Properties,
     Parameters,
-    LitType
+    LitType,
 )
 
 from .fluid_io import FluidIO
-from .functionalities import FAIRFluidsCMLParser
+from .functionalities import (
+    FAIRFluidsCMLParser,
+    filter_fluid_compounds_by_mole_fractions,
+    combine_compounds,
+    calculate_ratio_of_solvent,
+    cleanup_orphaned_parameters,
+    calculate_activationEnergy,
+)
+from .visualization import filter_fluid_measurements
 
 __all__ = [
     "FAIRFluidsDocument",
     "Version",
     "Citation",
-    "Author", 
+    "Author",
     "Compound",
     "Fluid",
     "Property",
@@ -47,5 +59,11 @@ __all__ = [
     "Parameters",
     "LitType",
     "FluidIO",
-    "FAIRFluidsCMLParser"
+    "FAIRFluidsCMLParser",
+    "filter_fluid_measurements",
+    "filter_fluid_compounds_by_mole_fractions",
+    "combine_compounds",
+    "calculate_ratio_of_solvent",
+    "cleanup_orphaned_parameters",
+    "calculate_activationEnergy",
 ]

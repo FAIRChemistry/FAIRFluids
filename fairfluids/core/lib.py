@@ -86,6 +86,9 @@ class FAIRFluidsDocument(
         name_IUPAC: Optional[str]= None,
         standard_InChI: Optional[str]= None,
         standard_InChI_key: Optional[str]= None,
+        molar_weigth: Optional[float]= None,
+        smiles_code: Optional[str]= None,
+        sigma_profile: Optional[int]= None,
         **kwargs,
     ):
         """Helper method to add a new Compound to the compound list."""
@@ -96,7 +99,10 @@ class FAIRFluidsDocument(
             "SELFIE": SELFIE,
             "name_IUPAC": name_IUPAC,
             "standard_InChI": standard_InChI,
-            "standard_InChI_key": standard_InChI_key
+            "standard_InChI_key": standard_InChI_key,
+            "molar_weigth": molar_weigth,
+            "smiles_code": smiles_code,
+            "sigma_profile": sigma_profile
         }
 
         self.compound.append(
@@ -107,6 +113,7 @@ class FAIRFluidsDocument(
 
     def add_to_fluid(
         self,
+        fluidID: list[str]= [],
         compounds: list[str]= [],
         property: list[Property]= [],
         parameter: list[Parameter]= [],
@@ -115,6 +122,7 @@ class FAIRFluidsDocument(
     ):
         """Helper method to add a new Fluid to the fluid list."""
         params = {
+            "fluidID": fluidID,
             "compounds": compounds,
             "property": property,
             "parameter": parameter,
@@ -411,6 +419,23 @@ class Compound(
             length, easier-to-search identifier for databases and indexing.""",
         json_schema_extra=dict(),
     )
+    molar_weigth: Optional[float] = element(
+        default= None,
+        tag="molar_weigth",
+        description="""The Molar weight in g/mol""",
+        json_schema_extra=dict(),
+    )
+    smiles_code: Optional[str] = element(
+        default= None,
+        tag="smiles_code",
+        json_schema_extra=dict(),
+    )
+    sigma_profile: Optional[int] = element(
+        default= None,
+        tag="sigma_profile",
+        description="""The sigma profil""",
+        json_schema_extra=dict(),
+    )
 
 
     def xml(self, encoding: str = "unicode") -> str | bytes:
@@ -438,10 +463,15 @@ class Fluid(
     """
     Description: Contains metadata and experimental context for a dataset related
     to a fluid system. This includes the chemical composition (pure substance
-    or mixture), source of the data, properties measured, varying experimental
+    or mixture), source of the data, properties measured varying experimental
     parameters, and the corresponding numerical results. There can exist
     multible fluids in one document.
     """
+    fluidID: list[str] = element(
+        default_factory=list,
+        tag="fluidID",
+        json_schema_extra=dict(),
+    )
     compounds: list[str] = element(
         default_factory=list,
         tag="compounds",
@@ -456,7 +486,7 @@ class Fluid(
         description="""A list of physical or thermodynamic properties that were measured or calculated
             for the fluid. Each property is associated with a method identifier
             (propertyID) that defines both the property type (e.g., viscosity,
-            density, heat capacity) and the experimental or computational method
+            thermal conductivity) and the experimental or computational method
             used.""",
         json_schema_extra=dict(),
     )
@@ -504,7 +534,7 @@ class Fluid(
         parameterID: Optional[str]= None,
         parameter: Optional[Parameters]= None,
         unit: Optional[UnitDefinition]= None,
-        associated_compound: Optional[str]= None,
+        associated_compounds: list[str]= [],
         **kwargs,
     ):
         """Helper method to add a new Parameter to the parameter list."""
@@ -512,7 +542,7 @@ class Fluid(
             "parameterID": parameterID,
             "parameter": parameter,
             "unit": unit,
-            "associated_compound": associated_compound
+            "associated_compounds": associated_compounds
         }
 
         self.parameter.append(
@@ -569,8 +599,8 @@ class Property(
     search_mode="unordered",
 ):
     """
-    Description: Defines the primary quantity being measured, calculated,
-    or otherwise reported for a fluid system. Each property includes its
+    Description: Defines the primary quantity being measured calculated, or
+    otherwise reported for a fluid system. Each property includes its
     identifier, grouping, and methodological context.
     """
     propertyID: Optional[str] = element(
@@ -646,9 +676,9 @@ class Parameter(
         tag="unit",
         json_schema_extra=dict(),
     )
-    associated_compound: Optional[str] = element(
-        default= None,
-        tag="associated_compound",
+    associated_compounds: list[str] = element(
+        default_factory=list,
+        tag="associated_compounds",
         description="""Identifies the specific compound (by its index or ID) to which this parameter
             applies. Useful in multicomponent systems where a parameter (e.g.,
             mole fraction) pertains to a specific compound.""",
@@ -1011,67 +1041,99 @@ class LitType(Enum):
 
 class Method(Enum):
     """Enumeration for Method values"""
-    CALCULATED = "calculated,"
+    CALCULATED = "calculated"
     LITERATURE = "literature"
-    MEASURED = "measured,"
-    SIMULATED = "simulated,"
+    MEASURED = "measured"
+    SIMULATED = "simulated"
 
 class Properties(Enum):
     """Enumeration for Properties values"""
+    ACTIVATION_ENERGY = "activationEnergy"
+    ACTIVITY = "activity"
+    ACTIVITY_COEFFICIENT = "activityCoefficient"
     BOILING_POINT = "boilingPoint"
-    COMPRESSIBILITY = "Compressibility"
+    COMPRESSIBILITY = "compressibility"
+    CRITICAL_DENSITY = "criticalDensity"
+    CRITICAL_POINT_PRESSURE = "criticalPointPressure"
+    CRITICAL_POINT_TEMPERATURE = "criticalPointTemperature"
+    CRITICAL_PRESSURE = "criticalPressure"
+    CRITICAL_TEMPERATURE = "criticalTemperature"
+    CRITICAL_VOLUME = "criticalVolume"
     DENSITY = "density"
+    DIFFUSION_COEFFICIENT = "diffusionCoefficient"
+    EXCESS_MOLAR_ENTHALPY = "excessMolarEnthalpy"
+    EXCESS_MOLAR_ENTROPY = "excessMolarEntropy"
+    EXCESS_MOLAR_GIBBS_FREE_ENERGY = "excessMolarGibbsFreeEnergy"
+    EXCESS_MOLAR_VOLUME = "excessMolarVolume"
+    FUGACITY_COEFFICIENT = "fugacityCoefficient"
+    GIBBS_FREE_ENERGY = "gibbsFreeEnergy"
+    HELMHOLTZ_FREE_ENERGY = "helmholtzFreeEnergy"
+    HENRYS_LAW_CONSTANT = "henrysLawConstant"
+    IONIC_STRENGTH = "ionicStrength"
+    ISOBARIC_EXPANSION_COEFFICIENT = "isobaricExpansionCoefficient"
+    ISOTHERMAL_COMPRESSIBILITY = "isothermalCompressibility"
+    KINEMATIC_VISCOSITY = "kinematicViscosity"
     MELTING_POINT = "meltingPoint"
+    MOLAR_ENTHALPY = "molarEnthalpy"
+    MOLAR_ENTROPY = "molarEntropy"
+    MOLAR_VOLUME = "molarVolume"
+    OSMOTIC_COEFFICIENT = "osmoticCoefficient"
     PH = "pH"
     POLARITY = "polarity"
+    REFRACTIVE_INDEX = "refractiveIndex"
     SPECIFIC_HEAT_CAPACITY = "specificHeatCapacity"
+    SPECIFIC_VOLUME = "specificVolume"
+    SPEED_OF_SOUND = "speedOfSound"
+    SURFACE_TENSION = "surfaceTension"
     THERMAL_CONDUCTIVITY = "thermalConductivity"
+    TRIPLE_POINT_PRESSURE = "triplePointPressure"
+    TRIPLE_POINT_TEMPERATURE = "triplePointTemperature"
     VAPOR_PRESSURE = "vaporPressure"
     VISCOSITY = "viscosity"
 
 class Parameters(Enum):
     """Enumeration for Parameters values"""
     ACTIVITY_COEFFICIENT = "Activity coefficient"
-    AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = "Amount concentration (molarity), mol/dm3"
-    AMOUNT_DENSITY_MOLM3 = "Amount density, mol/m3"
-    AMOUNT_MOL = "Amount, mol"
+    AMOUNT_CONCENTRATION_MOLARITY = "Amount concentration (molarity)"
+    AMOUNT_DENSITY = "Amount density"
+    AMOUNT_MOL = "Amount"
     AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT = "Amount ratio of solute to solvent"
     FINAL_MASS_FRACTION_OF_SOLUTE = "Final mass fraction of solute"
-    FINAL_MOLALITY_OF_SOLUTE_MOLKG = "Final molality of solute, mol/kg"
+    FINAL_MOLALITY_OF_SOLUTE = "Final molality of solute"
     FINAL_MOLE_FRACTION_OF_SOLUTE = "Final mole fraction of solute"
-    FREQUENCY_MHZ = "Frequency, MHz"
+    FREQUENCY = "Frequency"
     INITIAL_MASS_FRACTION_OF_SOLUTE = "Initial mass fraction of solute"
-    INITIAL_MOLALITY_OF_SOLUTE_MOLKG = "Initial molality of solute, mol/kg"
+    INITIAL_MOLALITY_OF_SOLUTE = "Initial molality of solute"
     INITIAL_MOLE_FRACTION_OF_SOLUTE = "Initial mole fraction of solute"
-    LOWER_PRESSURE_KPA = "Lower pressure, kPa"
-    LOWER_TEMPERATURE_K = "Lower temperature, K"
-    MASS_DENSITY_KGM3 = "Mass density, kg/m3"
+    LOWER_PRESSURE = "Lower pressure"
+    LOWER_TEMPERATURE = "Lower temperature"
+    MASS = "Mass"
+    MASS_DENSITY = "Mass density"
     MASS_FRACTION = "Mass fraction"
-    MASS_KG = "Mass, kg"
     MASS_RATIO_OF_SOLUTE_TO_SOLVENT = "Mass ratio of solute to solvent"
-    MOLALITY_MOLKG = "Molality, mol/kg"
-    MOLAR_ENTROPY_JKMOL = "Molar entropy, J/K/mol"
-    MOLAR_VOLUME_M3MOL = "Molar volume, m3/mol"
+    MOLALITY = "Molality"
+    MOLAR_ENTROPY = "Molar entropy"
+    MOLAR_VOLUME = "Molar volume"
     MOLE_FRACTION = "Mole fraction"
-    PARTIAL_PRESSURE_KPA = "Partial pressure, kPa"
-    PRESSURE_KPA = "Pressure, kPa"
-    RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG = "Ratio of amount of solute to mass of solution, mol/kg"
-    RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3 = "Ratio of mass of solute to volume of solution, kg/m3"
-    RELATIVE_ACTIVITY = "(Relative) activity"
-    SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3 = "Solvent: Amount concentration (molarity), mol/dm3"
+    PARTIAL_PRESSURE = "Partial pressure"
+    PRESSURE = "Pressure"
+    RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION = "Ratio of amount of solute to mass of solution"
+    RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION = "Ratio of mass of solute to volume of solution"
+    RELATIVE_ACTIVITY = "(Relative)"
+    SOLVENT_AMOUNT_CONCENTRATION_MOLARITY = "Solvent: Amount concentration (molarity)"
     SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Amount ratio of component to other component of binary solvent"
     SOLVENT_MASS_FRACTION = "Solvent: Mass fraction"
     SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Mass ratio of component to other component of binary solvent"
-    SOLVENT_MOLALITY_MOLKG = "Solvent: Molality, mol/kg"
+    SOLVENT_MOLALITY = "Solvent: Molality"
     SOLVENT_MOLE_FRACTION = "Solvent: Mole fraction"
-    SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG = "Solvent: Ratio of amount of component to mass of solvent, mol/kg"
-    SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3 = "Solvent: Ratio of component mass to volume of solvent, kg/m3"
+    SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT = "Solvent: Ratio of amount of component to mass of solvent"
+    SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT = "Solvent: Ratio of component mass to volume of solvent"
     SOLVENT_VOLUME_FRACTION = "Solvent: Volume fraction"
     SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Volume ratio of component to other component of binary solvent"
-    SPECIFIC_VOLUME_M3KG = "Specific volume, m3/kg"
-    TEMPERATURE_K = "Temperature, K"
-    UPPER_PRESSURE_KPA = "Upper pressure, kPa"
-    UPPER_TEMPERATURE_K = "Upper temperature, K"
+    SPECIFIC_VOLUME = "Specific volume"
+    TEMPERATURE = "Temperature"
+    UPPER_PRESSURE = "Upper pressure"
+    UPPER_TEMPERATURE = "Upper temperature"
     VOLUME_FRACTION = "Volume fraction"
     VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT = "Volume ratio of solute to solvent"
-    WAVELENGTH_NM = "Wavelength, nm"
+    WAVELENGTH = "Wavelength"

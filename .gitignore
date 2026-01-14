@@ -173,3 +173,26 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project-specific debug logs
+conversion_debug*.log
+
+# Accidentally created files (Python module names)
+argparse
+go
+json
+os
+pd
+time
+
+# IDE / Editor
+.vscode/
+.cursor/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Neo4j outputs
+neo4j/*.png
+neo4j/*.csv
