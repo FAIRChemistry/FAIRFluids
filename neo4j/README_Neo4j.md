@@ -189,3 +189,57 @@ docker restart fairfluids-neo4j
 python create_neo4j_graph.py --clear --queries
 ```
 
+## 💾 Database Backup & Restore
+
+### Export (Dump) der Datenbank
+
+Um eine Sicherungskopie der Neo4j-Datenbank zu erstellen:
+
+```bash
+cd neo4j
+./dump_neo4j.sh
+```
+
+Dies erstellt eine `.dump` Datei im `neo4j/` Verzeichnis mit einem Zeitstempel im Namen (z.B. `neo4j_dump_20240101_120000.dump`).
+
+**Was passiert:**
+- Neo4j wird kurz gestoppt (erforderlich für `neo4j-admin dump`)
+- Ein Dump wird erstellt
+- Neo4j wird wieder gestartet
+- Die Dump-Datei wird auf den Host kopiert
+
+### Wiederherstellen (Restore) der Datenbank
+
+Um eine Dump-Datei wiederherzustellen:```bash
+cd neo4j
+./restore_neo4j.sh neo4j_dump_20240101_120000.dump
+```
+
+**⚠️ WICHTIG:** Dies löscht alle vorhandenen Daten in der Datenbank!**Alternative Methoden:**1. **Manueller Export mit neo4j-admin:**
+```bash
+# Neo4j stoppen
+sudo docker exec fairfluids-neo4j neo4j stop
+
+# Dump erstellen
+sudo docker exec fairfluids-neo4j neo4j-admin database dump neo4j --to-path=/data/dumps/
+
+# Neo4j starten
+sudo docker exec fairfluids-neo4j neo4j start
+
+# Dump-Datei kopieren
+sudo docker cp fairfluids-neo4j:/data/dumps/neo4j.dump ./neo4j_dump.dump
+```
+
+2. **Export mit APOC (Cypher):**
+```cypher
+// Alle Daten als JSON exportieren
+CALL apoc.export.json.all("export.json", {})
+```
+
+3. **Export mit Cypher Query:**
+```cypher
+// Alle Experimente exportieren
+MATCH (e:Experiment)
+RETURN e
+LIMIT 1000
+```

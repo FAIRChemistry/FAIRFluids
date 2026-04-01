@@ -41,15 +41,17 @@ classDiagram
         +name_IUPAC?: string
         +standard_InChI?: string
         +standard_InChI_key?: string
-        +molar_weigth?: integer
+        +molar_weigth?: float
         +smiles_code?: string
+        +sigma_profile?: integer
     }
 
     class Fluid {
+        +fluidID[0..*]: string
         +compounds[0..*]: string
         +property[0..*]: Property
         +parameter[0..*]: Parameter
-        +measurement[0..*]: Measurement
+        +sample?: Sample
     }
 
     class Property {
@@ -62,7 +64,7 @@ classDiagram
         +parameterID?: string
         +parameter?: Parameters
         +unit?: UnitDefinition
-        +associated_compound?: string
+        +associated_compounds[0..*]: string
     }
 
     class Measurement {
@@ -72,6 +74,19 @@ classDiagram
         +parameterValue[0..*]: ParameterValue
         +method?: Method
         +method_description?: string
+    }
+
+    class Sample {
+        +sample_id?: string
+        +associated_compounds[0..*]: string
+        +measurement[0..*]: Measurement
+        +storage?: Storage
+        +preparation?: Preparation
+        +vendor_chemical?: Vendor_Chemical
+    }
+
+    class Preparation {
+        +prepMethod?: string
     }
 
     class PropertyValue {
@@ -99,6 +114,23 @@ classDiagram
         +scale?: float
     }
 
+    class Storage {
+        +storage_type?: StorageType
+        +Temperature?: float
+        +vessel?: string
+        +Pressure?: float
+        +prepared?: string
+        +used?: string
+    }
+
+    class Vendor_Chemical {
+        +assciciated_compound?: string
+        +CAS?: string
+        +purity?: string
+        +Vendor?: string
+        +LOT?: string
+    }
+
     %% Enum definitions
     class LitType {
         <<enumeration>>
@@ -124,6 +156,7 @@ classDiagram
 
     class Properties {
         <<enumeration>>
+        ACTIVATION_ENERGY
         ACTIVITY
         ACTIVITY_COEFFICIENT
         BOILING_POINT
@@ -147,6 +180,7 @@ classDiagram
         IONIC_STRENGTH
         ISOBARIC_EXPANSION_COEFFICIENT
         ISOTHERMAL_COMPRESSIBILITY
+        KINEMATIC_VISCOSITY
         MELTING_POINT
         MOLAR_ENTHALPY
         MOLAR_ENTROPY
@@ -169,49 +203,58 @@ classDiagram
     class Parameters {
         <<enumeration>>
         ACTIVITY_COEFFICIENT
-        AMOUNT_CONCENTRATION_MOLARITY_MOLDM3
-        AMOUNT_DENSITY_MOLM3
+        AMOUNT_CONCENTRATION_MOLARITY
+        AMOUNT_DENSITY
         AMOUNT_MOL
         AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT
         FINAL_MASS_FRACTION_OF_SOLUTE
-        FINAL_MOLALITY_OF_SOLUTE_MOLKG
+        FINAL_MOLALITY_OF_SOLUTE
         FINAL_MOLE_FRACTION_OF_SOLUTE
-        FREQUENCY_MHZ
+        FREQUENCY
         INITIAL_MASS_FRACTION_OF_SOLUTE
-        INITIAL_MOLALITY_OF_SOLUTE_MOLKG
+        INITIAL_MOLALITY_OF_SOLUTE
         INITIAL_MOLE_FRACTION_OF_SOLUTE
-        LOWER_PRESSURE_KPA
-        LOWER_TEMPERATURE_K
-        MASS_DENSITY_KGM3
+        LOWER_PRESSURE
+        LOWER_TEMPERATURE
+        MASS
+        MASS_DENSITY
         MASS_FRACTION
-        MASS_KG
         MASS_RATIO_OF_SOLUTE_TO_SOLVENT
-        MOLALITY_MOLKG
-        MOLAR_ENTROPY_JKMOL
-        MOLAR_VOLUME_M3MOL
+        MOLALITY
+        MOLAR_ENTROPY
+        MOLAR_VOLUME
         MOLE_FRACTION
-        PARTIAL_PRESSURE_KPA
-        PRESSURE_KPA
-        RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION_MOLKG
-        RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION_KGM3
+        PARTIAL_PRESSURE
+        PRESSURE
+        RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION
+        RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION
         RELATIVE_ACTIVITY
-        SOLVENT_AMOUNT_CONCENTRATION_MOLARITY_MOLDM3
+        SOLVENT_AMOUNT_CONCENTRATION_MOLARITY
         SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT
         SOLVENT_MASS_FRACTION
         SOLVENT_MASS_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT
-        SOLVENT_MOLALITY_MOLKG
+        SOLVENT_MOLALITY
         SOLVENT_MOLE_FRACTION
-        SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT_MOLKG
-        SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT_KGM3
+        SOLVENT_RATIO_OF_AMOUNT_OF_COMPONENT_TO_MASS_OF_SOLVENT
+        SOLVENT_RATIO_OF_COMPONENT_MASS_TO_VOLUME_OF_SOLVENT
         SOLVENT_VOLUME_FRACTION
         SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT
-        SPECIFIC_VOLUME_M3KG
-        TEMPERATURE_K
-        UPPER_PRESSURE_KPA
-        UPPER_TEMPERATURE_K
+        SPECIFIC_VOLUME
+        TEMPERATURE
+        TIME
+        UPPER_PRESSURE
+        UPPER_TEMPERATURE
         VOLUME_FRACTION
         VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT
-        WAVELENGTH_NM
+        WAVELENGTH
+    }
+
+    class StorageType {
+        <<enumeration>>
+        CLOSED
+        FRESH
+        FRIDGE
+        OPEN
     }
 
     %% Relationships
@@ -223,7 +266,7 @@ classDiagram
     Citation "1" <|-- "*" Author
     Fluid "1" <|-- "*" Property
     Fluid "1" <|-- "*" Parameter
-    Fluid "1" <|-- "*" Measurement
+    Fluid "1" <|-- "1" Sample
     Property "1" <|-- "1" Properties
     Property "1" <|-- "1" UnitDefinition
     Parameter "1" <|-- "1" Parameters
@@ -231,5 +274,10 @@ classDiagram
     Measurement "1" <|-- "*" PropertyValue
     Measurement "1" <|-- "*" ParameterValue
     Measurement "1" <|-- "1" Method
+    Sample "1" <|-- "*" Measurement
+    Sample "1" <|-- "1" Storage
+    Sample "1" <|-- "1" Preparation
+    Sample "1" <|-- "1" Vendor_Chemical
     UnitDefinition "1" <|-- "*" BaseUnit
+    Storage "1" <|-- "1" StorageType
 ```

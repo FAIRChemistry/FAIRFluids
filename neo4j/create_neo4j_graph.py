@@ -1457,6 +1457,27 @@ def run_example_queries(driver):
     print("=" * 50)
 
     with driver.session() as session:
+        # Query 0: Database statistics
+        print("\n0️⃣ Database Statistics:")
+        result = session.run(
+            """
+            MATCH (e:Experiment)
+            WITH count(e) as total_experiments
+            MATCH (c:Compound)
+            WITH total_experiments, count(c) as total_compounds
+            MATCH (p:Property)
+            WITH total_experiments, total_compounds, count(p) as total_properties
+            MATCH (cit:Citation)
+            RETURN total_experiments, total_compounds, total_properties, count(cit) as total_citations
+            """
+        )
+        record = result.single()
+        if record:
+            print(f"   Total Experiments: {record['total_experiments']}")
+            print(f"   Total Compounds: {record['total_compounds']}")
+            print(f"   Total Properties: {record['total_properties']}")
+            print(f"   Total Citations: {record['total_citations']}")
+
         # Query 1: Find experiments with specific compound (including mole fractions)
         print("\n1️⃣ Experiments with 'Choline Chloride' (including mole fractions):")
         result = session.run(
@@ -1464,19 +1485,26 @@ def run_example_queries(driver):
             MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
             WHERE c.commonName CONTAINS 'Choline' OR c.compoundID CONTAINS 'choline'
             RETURN e.experiment_id as experiment_id, c.commonName as compound, 
-                   e.source_file as source_file, r.mole_fraction as mole_fraction
+                   e.source_file as source_file, r.mole_fraction as mole_fraction,
+                   e.method as method
+            ORDER BY CASE WHEN r.mole_fraction IS NULL THEN 1 ELSE 0 END, r.mole_fraction DESC
             LIMIT 10
             """
         )
+        count = 0
         for record in result:
+            count += 1
             mole_frac_str = (
-                f", mole_fraction={record['mole_fraction']}"
+                f", mole_fraction={record['mole_fraction']:.3f}"
                 if record["mole_fraction"] is not None
                 else ""
             )
+            method_str = f" [{record['method']}]" if record.get('method') else ""
             print(
-                f"   {record['experiment_id']}: {record['compound']} ({record['source_file']}){mole_frac_str}"
+                f"   {record['experiment_id']}: {record['compound']}{method_str} ({record['source_file']}){mole_frac_str}"
             )
+        if count == 0:
+            print("   No experiments found with Choline Chloride")
 
         # Query 2: Temperature vs Viscosity experiments
         print("\n2️⃣ Temperature vs Viscosity experiments:")
@@ -1486,41 +1514,64 @@ def run_example_queries(driver):
             WHERE e.param_temperature IS NOT NULL AND e.prop_viscosity IS NOT NULL
             RETURN e.experiment_id as experiment_id, 
                    e.param_temperature as temperature, 
-                   e.prop_viscosity as viscosity
+                   e.prop_viscosity as viscosity,
+                   e.source_file as source_file
             ORDER BY temperature
             LIMIT 10
             """
         )
+        count = 0
         for record in result:
+            count += 1
             print(
-                f"   {record['experiment_id']}: T={record['temperature']}K, η={record['viscosity']}"
+                f"   {record['experiment_id']}: T={record['temperature']:.2f}K, η={record['viscosity']:.4e} ({record['source_file']})"
             )
+        if count == 0:
+            print("   No temperature-viscosity experiments found")
 
         # Query 3: Experiments by citation
-        print("\n3️⃣ Experiments by citation:")
+        print("\n3️⃣ Top citations by experiment count:")
         result = session.run(
             """
             MATCH (e:Experiment)-[:CITED_IN]->(cit:Citation)
-            RETURN cit.doi as doi, cit.title as title, count(e) as experiment_count
+            RETURN cit.doi as doi, 
+                   cit.title as title, 
+                   cit.publication_year as year,
+                   count(e) as experiment_count
             ORDER BY experiment_count DESC
             LIMIT 5
             """
         )
+        count = 0
         for record in result:
-            print(f"   {record['doi']}: {record['experiment_count']} experiments")
+            count += 1
+            year_str = f" ({record['year']})" if record.get('year') else ""
+            title_short = (record['title'][:60] + "...") if record.get('title') and len(record['title']) > 60 else (record.get('title') or "No title")
+            print(f"   [{record['experiment_count']} exps] {record['doi']}{year_str}")
+            if record.get('title'):
+                print(f"      {title_short}")
+        if count == 0:
+            print("   No citations found")
 
         # Query 4: Compound distribution across experiments
-        print("\n4️⃣ Compound distribution across experiments:")
+        print("\n4️⃣ Most common compounds (by experiment count):")
         result = session.run(
             """
             MATCH (e:Experiment)-[:HAS_COMPOUND]->(c:Compound)
-            RETURN c.commonName as compound, count(e) as experiment_count
+            RETURN c.commonName as compound, 
+                   c.compoundID as compoundID,
+                   count(e) as experiment_count
             ORDER BY experiment_count DESC
             LIMIT 10
             """
         )
+        count = 0
         for record in result:
-            print(f"   {record['compound']}: {record['experiment_count']} experiments")
+            count += 1
+            compound_id_str = f" ({record['compoundID']})" if record.get('compoundID') else ""
+            print(f"   {record['compound']}{compound_id_str}: {record['experiment_count']} experiments")
+        if count == 0:
+            print("   No compounds found")
 
         # Query 5: Property types and their frequencies
         print("\n5️⃣ Property types and their frequencies:")
@@ -1609,22 +1660,88 @@ def run_example_queries(driver):
             MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
             WITH e, collect({compound: c.commonName, mole_fraction: r.mole_fraction}) as compounds
             WHERE size(compounds) > 1
-            RETURN e.experiment_id as experiment_id, compounds, size(compounds) as num_compounds
+            RETURN e.experiment_id as experiment_id, 
+                   compounds, 
+                   size(compounds) as num_compounds,
+                   e.source_file as source_file
             LIMIT 10
             """
         )
+        count = 0
         for record in result:
+            count += 1
             compounds_str = ", ".join(
                 [
                     (
-                        f"{c['compound']}({c['mole_fraction']})"
+                        f"{c['compound']}(x={c['mole_fraction']:.3f})"
                         if c["mole_fraction"] is not None
                         else f"{c['compound']}"
                     )
                     for c in record["compounds"]
                 ]
             )
-            print(f"   {record['experiment_id']}: {compounds_str}")
+            print(f"   {record['experiment_id']} [{record['num_compounds']} compounds]: {compounds_str}")
+            print(f"      Source: {record['source_file']}")
+        if count == 0:
+            print("   No multi-compound experiments found")
+
+        # Query 8: Property and Parameter combinations
+        print("\n8️⃣ Common property-parameter combinations:")
+        result = session.run(
+            """
+            MATCH (e:Experiment)-[:HAS_PROPERTY]->(p:Property)
+            MATCH (e)-[:HAS_PARAMETER]->(param:Parameter)
+            RETURN p.propertyType as property_type,
+                   param.parameter as parameter_type,
+                   count(e) as experiment_count
+            ORDER BY experiment_count DESC
+            LIMIT 10
+            """
+        )
+        count = 0
+        for record in result:
+            count += 1
+            print(f"   {record['property_type']} × {record['parameter_type']}: {record['experiment_count']} experiments")
+        if count == 0:
+            print("   No property-parameter combinations found")
+
+        # Query 9: Experiments with uncertainty data
+        print("\n9️⃣ Experiments with uncertainty information:")
+        result = session.run(
+            """
+            MATCH (e:Experiment)-[r:HAS_PROPERTY]->(p:Property)
+            WHERE r.uncertainty IS NOT NULL
+            WITH e, count(r) as properties_with_uncertainty
+            RETURN count(e) as experiments_with_uncertainty,
+                   avg(properties_with_uncertainty) as avg_properties_per_experiment
+            """
+        )
+        record = result.single()
+        if record and record['experiments_with_uncertainty'] > 0:
+            print(f"   {record['experiments_with_uncertainty']} experiments have uncertainty data")
+            print(f"   Average {record['avg_properties_per_experiment']:.1f} properties with uncertainty per experiment")
+        else:
+            print("   No uncertainty data found")
+
+        # Query 10: Temperature range analysis
+        print("\n🔟 Temperature range analysis:")
+        result = session.run(
+            """
+            MATCH (e:Experiment)
+            WHERE e.param_temperature IS NOT NULL
+            RETURN min(e.param_temperature) as min_temp,
+                   max(e.param_temperature) as max_temp,
+                   avg(e.param_temperature) as avg_temp,
+                   count(e) as temp_experiments
+            """
+        )
+        record = result.single()
+        if record and record['temp_experiments'] > 0:
+            print(f"   Temperature range: {record['min_temp']:.2f}K - {record['max_temp']:.2f}K")
+            print(f"   Average temperature: {record['avg_temp']:.2f}K")
+            print(f"   Total experiments with temperature: {record['temp_experiments']}")
+        else:
+            print("   No temperature data found")
 
 
 def main():
@@ -1659,73 +1776,125 @@ def main():
         importer.close()
 
     print("\n✅ Neo4j import completed!")
-    print("\n💡 Example Cypher queries you can now run:")
+    print("\n💡 Example Cypher queries you can now run in Neo4j Browser:")
     print(
         """
-    // Find experiments with specific compound (including mole fractions)
-    MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
-    WHERE c.commonName CONTAINS 'Water'
-    RETURN e.experiment_id, c.commonName, e.method, r.mole_fraction as mole_fraction
+    // 1. Database Statistics
+    MATCH (e:Experiment)
+    WITH count(e) as total_experiments
+    MATCH (c:Compound)
+    WITH total_experiments, count(c) as total_compounds
+    MATCH (p:Property)
+    RETURN total_experiments, total_compounds, count(p) as total_properties
     
-    // Temperature vs Viscosity experiments
+    // 2. Find experiments with specific compound (including mole fractions)
+    MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
+    WHERE c.commonName CONTAINS 'Water' OR c.commonName CONTAINS 'Glycerol'
+    RETURN e.experiment_id, c.commonName, e.method, r.mole_fraction
+    ORDER BY CASE WHEN r.mole_fraction IS NULL THEN 1 ELSE 0 END, r.mole_fraction DESC
+    LIMIT 20
+    
+    // 3. Temperature vs Viscosity experiments
     MATCH (e:Experiment)
     WHERE e.param_temperature IS NOT NULL AND e.prop_viscosity IS NOT NULL
-    RETURN e.experiment_id, e.param_temperature, e.prop_viscosity
-    ORDER BY e.param_temperature
+    RETURN e.experiment_id, e.param_temperature as temperature, e.prop_viscosity as viscosity
+    ORDER BY temperature
+    LIMIT 50
     
-    // Experiments with multiple compounds
+    // 4. Experiments with multiple compounds
     MATCH (e:Experiment)-[:HAS_COMPOUND]->(c:Compound)
     WITH e, collect(c.commonName) as compounds
     WHERE size(compounds) > 1
-    RETURN e.experiment_id, compounds
+    RETURN e.experiment_id, compounds, size(compounds) as num_compounds
+    ORDER BY num_compounds DESC
     
-    // Find experiments by citation
+    // 5. Find experiments by citation
     MATCH (e:Experiment)-[:CITED_IN]->(cit:Citation)
-    WHERE cit.doi = '10.1016/j.aca.2012.12.019'
-    RETURN e.experiment_id, e.method, cit.title
+    WHERE cit.doi CONTAINS '10.1016'
+    RETURN cit.doi, cit.title, cit.publication_year, count(e) as experiment_count
+    ORDER BY experiment_count DESC
     
-    // Property analysis
+    // 6. Property analysis with uncertainty
     MATCH (e:Experiment)-[r:HAS_PROPERTY]->(p:Property)
-    WHERE p.propertyType = 'viscosity'
-    RETURN e.experiment_id, r.value as viscosity, r.uncertainty, p.propertyType
+    WHERE p.propertyType = 'viscosity' AND r.uncertainty IS NOT NULL
+    RETURN e.experiment_id, r.value as viscosity, r.uncertainty, 
+           (r.uncertainty / r.value * 100) as relative_uncertainty_percent
+    ORDER BY relative_uncertainty_percent
     
-    // Parameter analysis
+    // 7. Parameter analysis
     MATCH (e:Experiment)-[r:HAS_PARAMETER]->(param:Parameter)
-    WHERE param.parameter CONTAINS 'temperature' OR param.parameter CONTAINS 'Temperature'
-    RETURN e.experiment_id, param.parameterID, param.parameter, r.value as temperature, r.uncertainty
+    WHERE param.parameter CONTAINS 'temperature'
+    RETURN e.experiment_id, param.parameter, r.value as temperature, r.uncertainty
+    ORDER BY temperature
     
-    // Experiments with specific parameter and property
+    // 8. Experiments with specific parameter and property combination
     MATCH (e:Experiment)-[rp:HAS_PROPERTY]->(p:Property)
     MATCH (e)-[rparam:HAS_PARAMETER]->(param:Parameter)
     WHERE p.propertyType = 'viscosity' AND param.parameter CONTAINS 'temperature'
-    RETURN e.experiment_id, rparam.value as temperature, rp.value as viscosity
+    RETURN e.experiment_id, rparam.value as temperature, rp.value as viscosity,
+           e.source_file
+    ORDER BY temperature
     
-    // Parameter with associated compounds
+    // 9. Parameter with associated compounds
     MATCH (param:Parameter)-[:ASSOCIATED_WITH]->(c:Compound)
-    RETURN param.parameter, collect(c.commonName) as associated_compounds
+    RETURN param.parameter, collect(DISTINCT c.commonName) as associated_compounds
+    ORDER BY size(associated_compounds) DESC
     
-    // Compound combination analysis
+    // 10. Compound combination analysis
     MATCH (e:Experiment)-[:HAS_COMPOUND]->(c:Compound)
     WITH e, collect(c.commonName) as compounds
     RETURN compounds, count(e) as experiment_count
     ORDER BY experiment_count DESC
+    LIMIT 20
     
-    // Experiments with mole fractions
+    // 11. Experiments with mole fractions
     MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
     WHERE r.mole_fraction IS NOT NULL
     RETURN e.experiment_id, c.commonName, r.mole_fraction
     ORDER BY r.mole_fraction DESC
+    LIMIT 50
     
-    // Experiments with multiple compounds and their mole fractions
+    // 12. Experiments with multiple compounds and their mole fractions
     MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
     WITH e, collect({compound: c.commonName, mole_fraction: r.mole_fraction}) as compounds
     WHERE size(compounds) > 1
-    RETURN e.experiment_id, compounds
+    RETURN e.experiment_id, compounds, e.source_file
+    LIMIT 20
     
-    // Find experiments with specific mole fraction range
+    // 13. Find experiments with specific mole fraction range
     MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
-    WHERE r.mole_fraction > 0.5
+    WHERE r.mole_fraction > 0.5 AND r.mole_fraction < 0.8
     RETURN e.experiment_id, c.commonName, r.mole_fraction
+    ORDER BY r.mole_fraction DESC
+    
+    // 14. Property and Parameter combinations
+    MATCH (e:Experiment)-[:HAS_PROPERTY]->(p:Property)
+    MATCH (e)-[:HAS_PARAMETER]->(param:Parameter)
+    RETURN p.propertyType, param.parameter, count(e) as count
+    ORDER BY count DESC
+    
+    // 15. Temperature range analysis
+    MATCH (e:Experiment)
+    WHERE e.param_temperature IS NOT NULL
+    RETURN min(e.param_temperature) as min_temp,
+           max(e.param_temperature) as max_temp,
+           avg(e.param_temperature) as avg_temp,
+           count(e) as experiments
+    
+    // 16. Experiments with uncertainty data
+    MATCH (e:Experiment)-[r:HAS_PROPERTY]->(p:Property)
+    WHERE r.uncertainty IS NOT NULL
+    WITH e, count(r) as properties_with_uncertainty
+    RETURN count(e) as experiments_with_uncertainty,
+           avg(properties_with_uncertainty) as avg_properties_per_experiment
+    
+    // 17. Most common compound pairs
+    MATCH (e:Experiment)-[:HAS_COMPOUND]->(c1:Compound)
+    MATCH (e)-[:HAS_COMPOUND]->(c2:Compound)
+    WHERE c1.commonName < c2.commonName
+    RETURN c1.commonName as compound1, c2.commonName as compound2, count(e) as count
+    ORDER BY count DESC
+    LIMIT 20
     """
     )
 

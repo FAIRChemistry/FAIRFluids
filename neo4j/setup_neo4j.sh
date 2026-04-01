@@ -18,10 +18,13 @@ sudo docker rm fairfluids-neo4j 2>/dev/null || true
 echo "🚀 Starting Neo4j container..."
 sudo docker run -d \
     --name fairfluids-neo4j \
+    --restart unless-stopped \
     -p 7474:7474 -p 7687:7687 \
     -e NEO4J_AUTH=neo4j/password \
     -e NEO4J_PLUGINS='["apoc"]' \
     -e NEO4J_dbms_security_procedures_unrestricted=apoc.* \
+    -v neo4j_data:/data \
+    -v neo4j_logs:/logs \
     neo4j:5.15
 
 echo "⏳ Waiting for Neo4j to start..."

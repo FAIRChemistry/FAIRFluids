@@ -40,6 +40,7 @@ from .core.functionalities import (
     calculate_activationEnergy,
 )
 from .core.visualization import filter_fluid_measurements
+from .core.plot_utils import save_plot_as_svg, reset_plot_counter
 
 # Convenience imports
 __all__ = [
@@ -68,4 +69,6 @@ __all__ = [
     "calculate_ratio_of_solvent",
     "cleanup_orphaned_parameters",
     "calculate_activationEnergy",
+    "save_plot_as_svg",
+    "reset_plot_counter",
 ]

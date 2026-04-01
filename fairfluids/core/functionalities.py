@@ -824,7 +824,7 @@ def fetch_compound_from_pubchem(pubchem_id: int) -> Optional[Dict[str, Any]]:
                     "standard_InChI": info_data.get("InChI"),
                     "standard_InChI_key": info_data.get("InChIKey"),
                     "SELFIE": None,
-                    "sigman_profile": None,
+                    "sigma_profile": None,
                 }
     except Exception as e:
         print(f"Error fetching compound from PubChem: {e}")
@@ -1670,39 +1670,3 @@ def calculate_activationEnergy(
         return df
 
     return results
-
-
-# Example usage:
-# parser = FAIRFluidsCMLParser("/path/to/file.xml", compounds=[{"commonName": "Water", ...}, ...])
-# doc = parser.parse()
-#
-# Example of combine_compounds:
-# from fairfluids import FAIRFluidsDocument, FluidIO, combine_compounds
-#
-# # Load document from JSON
-# io = FluidIO()
-# doc = io.load_json("path/to/document.json")
-#
-# # Combine choline (pubChemID: 305) and chloride (pubChemID: 312) into choline chloride (pubChemID: 6209)
-# doc = combine_compounds(doc, old_molecules=[305, 312], new_molecule=6209)
-#
-# # Save the modified document
-# io.save_json(doc, "path/to/modified_document.json")
-#
-# Example of calculate_ratio_of_solvent:
-# from fairfluids import FAIRFluidsDocument, calculate_ratio_of_solvent
-#
-# # Calculate glycerol/choline chloride ratio (glyceline) for the whole document
-# # Use precision=2 to round ratios to 2 decimal places (e.g., ensures 2.0 instead of 2.0075...)
-# doc = calculate_ratio_of_solvent(
-#     doc=fairfluids_document,
-#     parameter_id_1="parameter_mole_fraction_glycerol",
-#     parameter_id_2="parameter_mole_fraction_cholinechloride",
-#     name="glyceline",
-#     compound_id_1="compound_glycerol",
-#     compound_id_2="compound_cholinechloride",
-#     precision=2  # Round to 2 decimal places
-# )
-#
-# # Clean up any orphaned parameters (remove parameters where associated compounds aren't in the fluid)
-# doc = cleanup_orphaned_parameters(doc)

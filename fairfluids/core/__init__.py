@@ -39,6 +39,7 @@ from .functionalities import (
     calculate_activationEnergy,
 )
 from .visualization import filter_fluid_measurements
+from .plot_utils import save_plot_as_svg, reset_plot_counter
 
 __all__ = [
     "FAIRFluidsDocument",
@@ -66,4 +67,6 @@ __all__ = [
     "calculate_ratio_of_solvent",
     "cleanup_orphaned_parameters",
     "calculate_activationEnergy",
+    "save_plot_as_svg",
+    "reset_plot_counter",
 ]

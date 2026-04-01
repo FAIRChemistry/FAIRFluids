@@ -85,6 +85,8 @@ class ThermoMLMapper:
         self.variable_id_map: Dict[int, str] = {}
 
         # Global DOI to stamp onto all measurements
+        # If explicitly provided, use it for all files; otherwise extract per file
+        self.explicit_source_doi: Optional[str] = source_doi
         self.source_doi: Optional[str] = source_doi
 
     def convert_file(self, xml_file_path: Union[str, Path]) -> FAIRFluidsDocument:
@@ -130,8 +132,10 @@ class ThermoMLMapper:
         if citation_elem is not None:
             document.citation = self._convert_citation(citation_elem)
 
-        # If no explicit source_doi was provided, try to take it from the citation
-        if self.source_doi is None and getattr(document, "citation", None) is not None:
+        # If no explicit source_doi was provided at initialization, 
+        # extract it from the citation for THIS file
+        # This ensures each file gets its own DOI, not the DOI from the first file
+        if self.explicit_source_doi is None and getattr(document, "citation", None) is not None:
             self.source_doi = getattr(document.citation, "doi", None)
 
         # Convert compounds

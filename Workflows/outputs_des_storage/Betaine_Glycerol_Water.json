@@ -1,0 +1,3491 @@
+{
+  "version": {
+    "versionMajor": 1,
+    "versionMinor": 0
+  },
+  "citation": null,
+  "compound": [
+    {
+      "compoundID": "Betaine",
+      "pubChemID": 247,
+      "commonName": "Betaine",
+      "SELFIE": null,
+      "name_IUPAC": "2-(trimethylazaniumyl)acetate",
+      "standard_InChI": "InChI=1S/C5H11NO2/c1-6(2,3)4-5(7)8/h4H2,1-3H3",
+      "standard_InChI_key": "KWIUHFFTVRNATP-UHFFFAOYSA-N",
+      "molar_weigth": 117.15,
+      "smiles_code": "C[N+](C)(C)CC(=O)[O-]",
+      "sigma_profile": null
+    },
+    {
+      "compoundID": "Glycerol",
+      "pubChemID": 753,
+      "commonName": "Glycerol",
+      "SELFIE": null,
+      "name_IUPAC": "propane-1,2,3-triol",
+      "standard_InChI": "InChI=1S/C3H8O3/c4-1-3(6)2-5/h3-6H,1-2H2",
+      "standard_InChI_key": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+      "molar_weigth": 92.09,
+      "smiles_code": "C(C(CO)O)O",
+      "sigma_profile": null
+    },
+    {
+      "compoundID": "Water",
+      "pubChemID": 962,
+      "commonName": "Water",
+      "SELFIE": null,
+      "name_IUPAC": "oxidane",
+      "standard_InChI": "InChI=1S/H2O/h1H2",
+      "standard_InChI_key": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+      "molar_weigth": 18.015,
+      "smiles_code": "O",
+      "sigma_profile": null
+    }
+  ],
+  "fluid": [
+    {
+      "fluidID": [
+        "0f01e355-739c-44bb-aa18-9548d47b7cda"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_1ef18ce4-9713-4cd1-8046-5d316e58b8ff",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2175.53,
+              "uncertainty": 263.1182
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_5de97c1b-5dc1-49b1-8112-790e8c81c8f8",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.20373,
+              "uncertainty": 0.062334
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "1a9e5a79-09aa-45fd-a70d-0db745d3fa24"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_9f776ed6-7179-444a-92aa-33af49ab1cdf",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2186.05,
+              "uncertainty": 286.1922
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_6a55e7f2-9a61-4d20-8fb3-6f5d627a9622",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2289.21,
+              "uncertainty": 230.3679
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_c927520b-c793-4db8-a3e6-f6db67c01357",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2006.05,
+              "uncertainty": 319.6867
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_6d05f4aa-5361-47cb-b4dc-7d096e1857b9",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.28468,
+              "uncertainty": 0.195141
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_b195f366-9e4f-48c0-be9d-19e9ee4da1ae",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.79597,
+              "uncertainty": 0.265401
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_b631f347-1b5b-413b-a409-2e5a7659d3b7",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.7018,
+              "uncertainty": 0.132219
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "dc0c123e-e3e0-436a-adb9-eae671ccd07b"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_512e4cc6-1c8f-4d0d-a8ac-75a30a33e078",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2275.53,
+              "uncertainty": 187.9415
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_bcf70bea-e10c-4b78-bc2d-63195656a18e",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2325.0,
+              "uncertainty": 85.22498
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_c1df8de4-01bb-4126-9138-389d59d72fda",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2296.58,
+              "uncertainty": 126.1627
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_4af3cb0a-5dfa-4b1c-a6e0-fc5616321c1c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 52.08264,
+              "uncertainty": 0.67082
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_8428140b-3f9b-4c02-b45c-fbd71d50b270",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.98381,
+              "uncertainty": 0.133666
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_5e5c03d8-3d24-425c-addb-32714fa8753c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.51548,
+              "uncertainty": 0.131268
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "66e84a27-003e-45e7-861a-964af164eabd"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_eeb07886-6bec-445c-815a-ee9ae7f69f53",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 1862.89,
+              "uncertainty": 17.49159
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_adb44a51-9674-4271-bacf-ae12ff4a0e4e",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 2075.53,
+              "uncertainty": 28.65643
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_d9817863-e72e-4c9c-a134-57982eda57f7",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 1676.58,
+              "uncertainty": 59.17367
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_8af74f7a-b602-4f9b-9117-aa464f425646",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.6083,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_845f18a0-0427-4014-93b5-cf94b5888a1d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.42266,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_c4e673e7-f827-407d-a65e-aa9f18c850af",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.7488,
+              "uncertainty": 0.198689
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "edcbafb8-f9cf-44e2-8828-afe55e890024"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_410cf6ad-62cc-4a29-908d-c89dda56dec8",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 61.87,
+              "uncertainty": 0.011165
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_03debe66-28f1-462b-9b97-f19e5a3e1cee",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.42268,
+              "uncertainty": 0.06041
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "b7b82828-fdad-4c5f-996f-489447076d4f"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_f378a9f7-77ce-492d-a437-4f48970ce3eb",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 59.22,
+              "uncertainty": 0.264235
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_9b05af23-5627-44d6-b804-6627cfb76923",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 63.24,
+              "uncertainty": 1.968734
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_37acae02-fe8b-4642-9507-67b19ff4e5be",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 60.48,
+              "uncertainty": 0.617788
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_71e51571-2d40-467b-b34e-ecc7a017bf4c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.47053,
+              "uncertainty": 0.314987
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_22a16706-dfd7-4085-8eb1-e5ab37aa6248",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.23983,
+              "uncertainty": 0.389592
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_f298d572-0900-4c40-bdb9-1549bd45e0d5",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.46899,
+              "uncertainty": 0.065516
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "5872633e-7e3e-481e-88eb-589d7fa79b31"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_d6e77069-8eb4-43ae-96d2-1e35da3db162",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 60.58,
+              "uncertainty": 0.34611
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_906a98df-a143-4cc7-ad57-a1909ecec43f",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 61.2,
+              "uncertainty": 0.594528
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_15ded986-3674-424e-b580-c598bc4356a9",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 61.07,
+              "uncertainty": 0.519377
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_d6dfc46b-34dd-4dfd-8ca7-ddf46d4b7dcb",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.30201,
+              "uncertainty": 0.841491
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_780f51ca-66dc-4d8e-8b97-4e8f408c33de",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.00985,
+              "uncertainty": 0.064352
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_53d9ce77-a85b-4308-b399-ad67b83d4fcf",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.6939,
+              "uncertainty": 0.254227
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "1569087f-f43e-4e5c-8a0c-b9b15b173cfb"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_d3c8ff74-acff-4feb-86d1-4f8be029d6f1",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 62.93,
+              "uncertainty": 1.585408
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_7bd1e122-d0c2-4b51-b714-f4b463996201",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 63.76,
+              "uncertainty": 0.972504
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_af4c9b39-60be-4fd3-89eb-8dbf0c079bd8",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 68.09,
+              "uncertainty": 0.521491
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_dfd78ceb-6e4b-4ac8-bc17-3140aba3e5dc",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.88156,
+              "uncertainty": 0.896266
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_fe2beff1-7f1b-40d2-9126-864fe4c3f5c2",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.96435,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_ea11ff3d-a5f2-483b-ac63-88f5297f7840",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.14931,
+              "uncertainty": 0.51761
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "dd0fec45-cb07-46f0-81d5-03ec0b337329"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_eb31abd6-f73a-463f-9b3c-ffee6491b8c1",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 10.68,
+              "uncertainty": 0.561776
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_b20cc734-915e-4728-b4a3-15ec1927e81f",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 48.45932,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "b58ccb02-3c2c-4fcd-8894-7cec512bba43"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_2e06701a-91c4-47f1-bc19-f25da6e08a4f",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 10.44,
+              "uncertainty": 0.696338
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_88627839-6f74-4be2-a410-ba8c6cb4c631",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 10.18,
+              "uncertainty": 0.076511
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_9dbc9b60-4898-4730-8a20-aeb74743fb72",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 9.73,
+              "uncertainty": 0.143778
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_d243d4bb-b215-4889-865f-3c30a4d86564",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.63715,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_bd1a0d10-03b2-4035-ae9f-c3734dc9d5df",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.47053,
+              "uncertainty": 0.314987
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_a791c008-7f40-4c13-9289-a638c4abab3c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.24796,
+              "uncertainty": 0.124888
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "f33dd4ef-ee34-4224-8790-36efc99894e4"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_3e05d57b-4b3e-45da-a02b-d441b24dcdfb",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 9.79,
+              "uncertainty": 0.095459
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_3797516b-0a74-4a05-91be-ac72e7af0e3c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 9.93,
+              "uncertainty": 0.012756
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_412fb7ce-25c5-476b-815b-ba59a77a9ee3",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 9.59,
+              "uncertainty": 0.164876
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_683afa19-1d74-4781-b1d4-02a5179544f0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 48.37954,
+              "uncertainty": 0.463073
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_f07be249-16bf-4771-8f96-0f56a2c041e0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.20373,
+              "uncertainty": 0.062334
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_35fbc925-99a6-43cd-b8b7-e58ab76abb71",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.29483,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "3b289c65-c646-44a5-925c-7d5755b782e2"
+      ],
+      "compounds": [
+        "Betaine",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_betaine",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Betaine"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_d9d9fdba-3606-4c50-80ed-b8b47f18446b",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 9.89,
+              "uncertainty": 0.968922
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_fa48ec90-6e5f-4fa5-9379-08069762784c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 10.45,
+              "uncertainty": 0.469047
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_9a960f51-a47d-4780-b84d-9ce54bf7bdfe",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 11.69,
+              "uncertainty": 0.055113
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_0f24f41c-c8d2-4538-8820-ea705b8f8b75",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.6373,
+              "uncertainty": 0.121871
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_3776a6ac-d56a-40ac-8ede-4da3b41b5041",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.94095,
+              "uncertainty": 0.185049
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_9d085b5e-fb35-4f5d-9674-8255e0d7c505",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.73828,
+              "uncertainty": 0.063669
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_betaine",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: Bet-Gly (1:2)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    }
+  ]
+}

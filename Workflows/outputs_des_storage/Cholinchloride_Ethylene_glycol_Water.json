@@ -1,0 +1,3071 @@
+{
+  "version": {
+    "versionMajor": 1,
+    "versionMinor": 0
+  },
+  "citation": null,
+  "compound": [
+    {
+      "compoundID": "Cholinchloride",
+      "pubChemID": 1421524652763,
+      "commonName": "Cholinchloride",
+      "SELFIE": null,
+      "name_IUPAC": null,
+      "standard_InChI": null,
+      "standard_InChI_key": null,
+      "molar_weigth": null,
+      "smiles_code": null,
+      "sigma_profile": null
+    },
+    {
+      "compoundID": "Ethylene Glycol",
+      "pubChemID": 174,
+      "commonName": "Ethylene Glycol",
+      "SELFIE": null,
+      "name_IUPAC": "ethane-1,2-diol",
+      "standard_InChI": "InChI=1S/C2H6O2/c3-1-2-4/h3-4H,1-2H2",
+      "standard_InChI_key": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
+      "molar_weigth": 62.07,
+      "smiles_code": "C(CO)O",
+      "sigma_profile": null
+    },
+    {
+      "compoundID": "Water",
+      "pubChemID": 962,
+      "commonName": "Water",
+      "SELFIE": null,
+      "name_IUPAC": "oxidane",
+      "standard_InChI": "InChI=1S/H2O/h1H2",
+      "standard_InChI_key": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+      "molar_weigth": 18.015,
+      "smiles_code": "O",
+      "sigma_profile": null
+    }
+  ],
+  "fluid": [
+    {
+      "fluidID": [
+        "de4973bb-6403-49e8-9c88-51bef11c35d0"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_2a9783d8-ae6b-48e0-ac57-f0ab351245a7",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 47.0,
+              "uncertainty": 2.016727
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_e58f27a7-0c9f-41ef-a06c-a576bc1f702c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.15965,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "f1e82091-7342-471b-8f8f-9b7d87244a4f"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_8face1a3-f1a7-4038-98fe-182797e63078",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 45.0,
+              "uncertainty": 0.208293
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_84c02779-83f6-4a77-a453-1088b23ab39b",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.42567,
+              "uncertainty": 0.251544
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "44533fb8-43da-4109-9532-9d0f9965bbb1"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_6dc3efb1-6a5e-4135-8d5e-3bc5c2d88eb5",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 45.0,
+              "uncertainty": 0.312616
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_df01d8a8-7d43-4b72-bf7b-a1e346ddb96d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.33051,
+              "uncertainty": 0.130327
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "81ca66a7-8812-4d91-85a8-1319e02aa5bf"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_bb0d7be7-1dd4-4109-b601-61d98a292a99",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 46.0,
+              "uncertainty": 0.494975
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_23e72ecb-38e4-4ae6-819c-f3a3a02f51a2",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.82881,
+              "uncertainty": 0.191687
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.333,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.667,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "2e463cdf-2b9e-4217-937d-c891432a60e4"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_b42a5721-e64b-487a-aab3-7c7a77926d6e",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.047254
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_50804af8-0d12-4d70-8783-d0904b464671",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.33769,
+              "uncertainty": 0.180606
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "6d00ea45-5864-4464-9e3f-e08e436120df"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_748c1e38-0781-410e-865f-04f4ef93a7c8",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.244929
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_8ee981ee-d6a7-43b7-bfaf-214d60537b30",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.493223
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_159989c5-a2d1-45ba-af82-8af2b2120d5e",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.286564
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_05ed844f-4f94-491f-8888-18d08a9a0fea",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.33642,
+              "uncertainty": 0.125328
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_c8f2a926-b16c-4b8d-8c59-2810679eaa9f",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.2478,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_18340311-681d-4f2d-9b91-2fffc5daeb0c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.51413,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "470f9359-7343-47a8-a9c6-93e822fb47df"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_610ee251-157d-42d4-8e6f-d672e28d9588",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.133978
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_98aa598f-d27d-4521-a4f5-16c09f5e6b4a",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.026517
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_f4d37ed6-0299-4ff3-a560-5ccfb90ac055",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.555425
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_d4668205-978a-49d5-9845-041478f3cbff",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.33642,
+              "uncertainty": 0.125328
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_95ad98f2-2d66-417e-8652-e7ee505fda41",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.4699,
+              "uncertainty": 0.18899
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_0c15f435-2be3-411d-893b-29e3f7655c26",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.78346,
+              "uncertainty": 0.127564
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "4af7b3cd-f216-418f-9558-7480e67fdb29"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_43a9a98c-c2aa-4d95-97d4-bc284fc9ae0a",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.055824
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_8782dced-e20b-41fd-b5c7-0cadec0976ad",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.227846
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_dca7b17b-bc52-4b19-ac45-2371b5cb2cf2",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 12.0,
+              "uncertainty": 0.225601
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_d9014ff3-a8c0-451e-9281-e3a0e5635656",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.94095,
+              "uncertainty": 0.185049
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_1c717960-d931-4462-bd92-9ce80f8da810",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.07196,
+              "uncertainty": 0.124015
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_25e52434-0d6f-4253-9d66-4dac245cba99",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.7833,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.14,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.28,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.58,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "46997eee-b2df-4788-ac30-e86c44068bda"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_3b46689c-b444-41af-80dc-84bf5eb3d212",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.61,
+              "uncertainty": 0.020206
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_3e751f63-70c9-4305-b3bc-3c8f761c9842",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 48.79024,
+              "uncertainty": 0.117747
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "34be18aa-dd79-4345-a949-7c59e4fadb86"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_5e846c4f-1a45-4527-ac53-05763a2875ea",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.65,
+              "uncertainty": 0.13
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_e64fdbf6-6e9e-4ff3-9cef-4d700a5ba237",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.9,
+              "uncertainty": 0.869791
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_145ef9cd-3876-43c7-ab0a-6a7a2c0f4215",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.53,
+              "uncertainty": 0.17566
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_e94e8f02-0845-4316-b384-0ae7404b3f6d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 48.91563,
+              "uncertainty": 0.177529
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_640784bb-9980-422a-9440-2a31548bee80",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.42357,
+              "uncertainty": 0.302055
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_cace06ca-32c8-4caa-b182-47e3441a7392",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.85357,
+              "uncertainty": 0.061468
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "31778919-6f0e-49b9-9b70-234bcdd9dcb0"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_64d51386-4bbf-4f37-9c65-232cc1d77e32",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.62,
+              "uncertainty": 0.090807
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_e9d7c378-3409-45e2-9811-dbef75bb276b",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 5.07,
+              "uncertainty": 0.044257
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_e6b98396-b2ef-4394-a1ae-980db871e8d4",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.87,
+              "uncertainty": 0.217654
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_5f380a1d-659e-4553-b083-9ec927bf60f1",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.89946,
+              "uncertainty": 0.492625
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_323eef4b-da3e-4f24-b2b8-7af84cb6f488",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.20404,
+              "uncertainty": 0.187004
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_a1ef54e0-c918-4b25-a3be-65cb9320f8a4",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.59414,
+              "uncertainty": 0.06083
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "a18f120b-ec57-46db-b6bb-22f0693adf1c"
+      ],
+      "compounds": [
+        "Cholinchloride",
+        "Ethylene Glycol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_cholinchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Cholinchloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_ethyleneglycol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Ethylene Glycol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_1173c523-7cc5-47dc-ab03-77dd2fe7c3a0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 4.58,
+              "uncertainty": 0.039821
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_b46ab220-1d25-4037-9a1f-9d99749c162b",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 5.9,
+              "uncertainty": 1.773084
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_e757ada3-31af-46dd-98ae-59462c3e4c9f",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 5.65,
+              "uncertainty": 0.187619
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_c89abf38-6021-4035-b3f2-85f0e93db0d9",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.04348,
+              "uncertainty": 0.475869
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_aa7ae966-ffab-4dac-be9d-51199ff35c0d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.63775,
+              "uncertainty": 0.243744
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_6cac4bad-f786-4990-8d83-21af65330256",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.38011,
+              "uncertainty": 0.120611
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_cholinchloride",
+              "paramValue": 0.071,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_ethyleneglycol",
+              "paramValue": 0.143,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.786,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: ChCl-EG (1:2)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    }
+  ]
+}

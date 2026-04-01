@@ -132,9 +132,9 @@ Description: Contains metadata and experimental context for a dataset related to
 - parameter
   - Type: Parameter[]
   - Description: A list of experimental parameters. Parameters may vary across data points (e.g., temperature, pressure, composition) or serve as constraints that remain fixed across the dataset (e.g., constant pressure or fixed mole ratio). These define the input conditions under which properties are observed or measured.
-- measurement
-  - Type: Measurement[]
-  - Description: A collection of measured or calculated numerical data points associated with the specified properties and experimental parameters.
+- sample
+  - Type: Sample
+  - Description: Sample
 
 
 
@@ -192,6 +192,27 @@ Description: Contains the numerical data values related to both properties and p
   - Type: string
   - Description: A free-text description providing additional detail about the method used to generate the data (e.g., specific experimental setup, calculation model, simulation type, or literature source details).
 
+### Sample
+
+- sample_id
+  - Type: Identifier
+- associated_compounds[]
+  - Type: string
+- measurement
+  - Type: Measurement[]
+  - Description: A collection of measured or calculated numerical data points associated with the specified properties and experimental parameters.
+- storage
+  - Type: Storage
+- preparation
+  - Type: Preparation
+- vendor_chemical
+  - Type: Vendor_Chemical
+
+### Preparation
+
+- prepMethod
+  - Type: string
+  - Description: The description on how it was prepared
   
 ### PropertyValue
 
@@ -245,6 +266,38 @@ Description: Represents a numerical value for a parameter that was varied or con
   - Type: float
   - Description: Power-of-ten scale factor applied to the unit (e.g., 3 for kilo, -6 for micro). Applied as 10^scale.
 
+### Storage
+- storage_type
+  - Type: StorageType
+  - Description: One of: Fresh, Fridge, Open, Closed
+- Temperature
+  - Type: float
+  - Description: Temperature under which the sample is stored
+- vessel
+  - Type: string
+  - Description: Type of vessel used for storage
+- Pressure
+  - Type: float
+  - Description: Pressure under which the sample is stored
+- prepared
+  - Type: string
+  - Description: Date, of Sample preparation
+- used
+  - Type: string
+  - Description: Time when the sample has been used
+
+
+### Vendor_Chemical
+- assciciated_compound
+  - Type: identifier
+- CAS:
+  - Type: string
+- purity
+  - Type: string
+- Vendor
+  - Type: string
+- LOT
+  - Type: string
 
 ## Enumerations
 
@@ -278,6 +331,7 @@ LITERATURE = literature
 DENSITY = density
   # kg/m^3
 SPECIFIC_HEAT_CAPACITY = specificHeatCapacity
+MOLAR_HEAT_CAPACITY = molarHeatCapacity
   # J/(kg*K)
 THERMAL_CONDUCTIVITY = thermalConductivity
   # W/(m*K)
@@ -378,6 +432,7 @@ IONIC_STRENGTH = ionicStrength
 
 ### Parameters
 ```python
+TIME = Time
 TEMPERATURE = Temperature
 # K
 UPPER_TEMPERATURE = Upper temperature
@@ -444,11 +499,18 @@ AMOUNT_DENSITY = Amount density
   # mol/m^3
 MOLAR_ENTROPY = Molar entropy
   # J/K/mol
-RELATIVE_ACTIVITY = (Relative)
- activity
+RELATIVE_ACTIVITY = Relative activity
 ACTIVITY_COEFFICIENT = Activity coefficient
 AMOUNT_MOL = Amount
   # mol
 MASS = Mass
   # kg
+```
+
+### StorageType
+```python
+FRESH = Fresh
+FRIDGE = Fridge
+OPEN = Open
+CLOSED = Closed
 ```

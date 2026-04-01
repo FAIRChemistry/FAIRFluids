@@ -3,8 +3,17 @@
 FAIRFluids Web Interface
 
 A Flask web application for querying and visualizing thermophysical property data
-from the Neo4j database. Allows users to select components and generate
-viscosity vs temperature plots with multiple compositions.
+from the Neo4j database. Uses the Experiment-centered graph structure where
+Experiments are central nodes connected to Compounds, Properties, and Parameters.
+Allows users to select components and generate viscosity vs temperature plots
+with multiple compositions.
+
+Graph Structure:
+    - Experiment nodes (central) with properties like prop_viscosity, param_temperature
+    - Experiment -[:HAS_COMPOUND]-> Compound (with mole_fraction on edge)
+    - Experiment -[:HAS_PROPERTY]-> Property (with value and uncertainty on edge)
+    - Experiment -[:HAS_PARAMETER]-> Parameter (with value and uncertainty on edge)
+    - Experiment -[:CITED_IN]-> Citation
 
 Usage:
     python app.py
@@ -70,30 +79,52 @@ class Neo4jDataService:
     def get_fluids_with_compounds(
         self, compound_ids: List[str]
     ) -> List[Dict[str, Any]]:
-        """Get fluids that contain the specified compounds."""
+        """Get experiments (grouped by fluidID/composition) that contain the specified compounds."""
         with self.driver.session() as session:
-            # Create parameter for the query
-            compound_params = "', '".join(compound_ids)
-
+            # Use parameterized query for safety
             result = session.run(
-                f"""
-                MATCH (f:Fluid)-[:HAS_COMPOUND]->(c:Compound)
-                WHERE c.compoundID IN ['{compound_params}']
-                WITH f, collect(c.commonName) as compounds
-                WHERE size(compounds) >= {len(compound_ids)}
-                RETURN f.name as fluid_name, 
+                """
+                MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
+                WHERE c.compoundID IN $compound_ids
+                WITH e, collect(DISTINCT c.commonName) as compounds, 
+                     collect(DISTINCT {compound: c.commonName, mole_fraction: r.mole_fraction}) as compound_details
+                WHERE size(compounds) >= $min_compounds
+                WITH e, compounds, compound_details,
+                     COALESCE(e.fluidID, e.experiment_id) as fluid_id
+                // Group by fluid_id and compound composition
+                WITH fluid_id, 
+                     collect(DISTINCT compounds)[0] as compounds,
+                     collect(DISTINCT compound_details)[0] as compound_details,
+                     count(DISTINCT e) as experiment_count
+                RETURN fluid_id,
                        compounds,
-                       size(compounds) as component_count
-                ORDER BY f.name
-            """
+                       compound_details,
+                       size(compounds) as component_count,
+                       experiment_count
+                ORDER BY fluid_id
+            """,
+                compound_ids=compound_ids,
+                min_compounds=len(compound_ids),
             )
 
             fluids = []
             for record in result:
+                # Build composition string from compound_details
+                comp_details = record["compound_details"]
+                comp_strings = []
+                for comp_detail in comp_details:
+                    comp_name = comp_detail.get("compound", "")
+                    mole_frac = comp_detail.get("mole_fraction")
+                    if mole_frac is not None:
+                        comp_strings.append(f"{comp_name} (x={mole_frac:.3f})")
+                    else:
+                        comp_strings.append(comp_name)
+
                 fluids.append(
                     {
-                        "fluid_id": record["fluid_name"],
+                        "fluid_id": record["fluid_id"] or "unknown",
                         "compounds": record["compounds"],
+                        "compound_details": comp_strings,
                         "component_count": record["component_count"],
                     }
                 )
@@ -103,77 +134,103 @@ class Neo4jDataService:
     def get_viscosity_temperature_data(
         self, fluid_ids: List[str]
     ) -> List[Dict[str, Any]]:
-        """Get viscosity vs temperature data for specified fluids."""
+        """Get viscosity vs temperature data for specified experiments (by fluidID)."""
         with self.driver.session() as session:
-            # Create parameter for the query
-            fluid_params = "', '".join(fluid_ids)
-
             result = session.run(
-                f"""
-                MATCH (f:Fluid)-[:HAS_MEASUREMENT]->(m:Measurement)
-                WHERE f.name IN ['{fluid_params}']
-                AND m.param_temperature IS NOT NULL
-                AND m.prop_viscosity IS NOT NULL
-                WITH f, m, m.param_temperature as temperature_value, 
-                     m.prop_viscosity as viscosity_value
-                WITH f, m, temperature_value, viscosity_value,
-                     [key IN keys(m) WHERE key STARTS WITH 'param_' AND (key CONTAINS 'mole_fraction' OR key CONTAINS 'mass_fraction') | 
-                      {{param: substring(key, 6), value: m[key]}}] as compositions
-                RETURN f.name as fluid_name,
+                """
+                MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
+                WHERE (e.fluidID IN $fluid_ids OR e.experiment_id IN $fluid_ids)
+                AND e.param_temperature IS NOT NULL
+                AND e.prop_viscosity IS NOT NULL
+                WITH e, collect(DISTINCT {compound: c.commonName, mole_fraction: r.mole_fraction}) as compound_details
+                WITH e, compound_details,
+                     e.param_temperature as temperature_value,
+                     e.prop_viscosity as viscosity_value,
+                     [key IN keys(e) WHERE key STARTS WITH 'param_' AND (key CONTAINS 'mole_fraction' OR key CONTAINS 'mass_fraction') | 
+                      {param: substring(key, 6), value: e[key]}] as compositions
+                RETURN COALESCE(e.fluidID, e.experiment_id) as fluid_id,
                        temperature_value,
                        viscosity_value,
                        compositions,
-                       m.measurement_id as measurement_id
-                ORDER BY f.name, temperature_value
-            """
+                       compound_details,
+                       e.experiment_id as experiment_id
+                ORDER BY fluid_id, temperature_value
+            """,
+                fluid_ids=fluid_ids,
             )
 
             data = []
             for record in result:
+                # Build compositions from compound_details (mole fractions on edges)
+                compositions = list(record["compositions"])
+
+                # Add mole fractions from HAS_COMPOUND relationships
+                for comp_detail in record["compound_details"]:
+                    mole_frac = comp_detail.get("mole_fraction")
+                    if mole_frac is not None:
+                        comp_name = comp_detail.get("compound", "")
+                        # Check if we already have this composition
+                        found = False
+                        for comp in compositions:
+                            if (
+                                comp.get("param", "").lower().replace("_", " ")
+                                == comp_name.lower()
+                            ):
+                                found = True
+                                break
+                        if not found:
+                            compositions.append(
+                                {
+                                    "param": f"mole_fraction_{comp_name}",
+                                    "value": mole_frac,
+                                }
+                            )
+
                 data.append(
                     {
-                        "fluid_id": record["fluid_name"],
+                        "fluid_id": record["fluid_id"],
                         "compounds": [
-                            record["fluid_name"]
-                        ],  # Use fluid name as compounds for now
+                            cd.get("compound", "") for cd in record["compound_details"]
+                        ],
                         "viscosity": record["viscosity_value"],
                         "temperature": record["temperature_value"],
-                        "compositions": record["compositions"],
-                        "measurement_id": record["measurement_id"],
+                        "compositions": compositions,
+                        "measurement_id": record["experiment_id"],
                     }
                 )
 
             return data
 
     def get_composition_data(self, fluid_ids: List[str]) -> List[Dict[str, Any]]:
-        """Get composition data for specified fluids."""
+        """Get composition data for specified experiments (by fluidID)."""
         with self.driver.session() as session:
-            fluid_params = "', '".join(fluid_ids)
-
             result = session.run(
-                f"""
-                MATCH (f:Fluid)-[:HAS_MEASUREMENT]->(m:Measurement)
-                WHERE f.name IN ['{fluid_params}']
-                AND (m.parameterID CONTAINS 'mole_fraction' OR m.parameterID CONTAINS 'mass_fraction')
-                RETURN f.name as fluid_name,
-                       m.parameterID as parameter_type,
-                       m.value as comp_value,
-                       m.measurement_id as measurement_id
-                ORDER BY f.name, m.parameterID
-            """
+                """
+                MATCH (e:Experiment)-[r:HAS_COMPOUND]->(c:Compound)
+                WHERE (e.fluidID IN $fluid_ids OR e.experiment_id IN $fluid_ids)
+                WITH e, c, r.mole_fraction as mole_fraction
+                WHERE mole_fraction IS NOT NULL
+                RETURN COALESCE(e.fluidID, e.experiment_id) as fluid_id,
+                       c.commonName as compound_name,
+                       c.compoundID as compound_id,
+                       'mole_fraction' as parameter_type,
+                       mole_fraction as comp_value,
+                       e.experiment_id as experiment_id
+                ORDER BY fluid_id, compound_name
+            """,
+                fluid_ids=fluid_ids,
             )
 
             compositions = []
             for record in result:
                 compositions.append(
                     {
-                        "fluid_id": record["fluid_name"],
-                        "compound_name": record[
-                            "parameter_type"
-                        ],  # Use parameter type as compound name for now
+                        "fluid_id": record["fluid_id"],
+                        "compound_name": record["compound_name"],
+                        "compound_id": record["compound_id"],
                         "parameter_type": record["parameter_type"],
                         "value": record["comp_value"],
-                        "measurement_id": record["measurement_id"],
+                        "measurement_id": record["experiment_id"],
                     }
                 )
 
@@ -203,7 +260,7 @@ def get_compounds():
 
 @app.route("/api/fluids")
 def get_fluids():
-    """API endpoint to get fluids containing selected compounds."""
+    """API endpoint to get experiments (grouped by fluidID/composition) containing selected compounds."""
     try:
         compound_ids = request.args.getlist("compound_ids[]")
         if not compound_ids:
@@ -218,7 +275,7 @@ def get_fluids():
 
 @app.route("/api/viscosity-data")
 def get_viscosity_data():
-    """API endpoint to get viscosity vs temperature data."""
+    """API endpoint to get viscosity vs temperature data from experiments."""
     try:
         fluid_ids = request.args.getlist("fluid_ids[]")
         if not fluid_ids:
@@ -233,7 +290,7 @@ def get_viscosity_data():
 
 @app.route("/api/composition-data")
 def get_composition_data():
-    """API endpoint to get composition data."""
+    """API endpoint to get composition data from experiments (mole fractions from HAS_COMPOUND edges)."""
     try:
         fluid_ids = request.args.getlist("fluid_ids[]")
         if not fluid_ids:
@@ -248,7 +305,7 @@ def get_composition_data():
 
 @app.route("/api/plot")
 def generate_plot():
-    """API endpoint to generate viscosity vs temperature plot."""
+    """API endpoint to generate viscosity vs temperature plot from experiment data."""
     try:
         fluid_ids = request.args.getlist("fluid_ids[]")
         if not fluid_ids:

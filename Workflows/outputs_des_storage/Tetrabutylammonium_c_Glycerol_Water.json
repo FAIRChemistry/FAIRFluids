@@ -1,0 +1,3351 @@
+{
+  "version": {
+    "versionMajor": 1,
+    "versionMinor": 0
+  },
+  "citation": null,
+  "compound": [
+    {
+      "compoundID": "Tetrabutylammonium Chloride",
+      "pubChemID": 70681,
+      "commonName": "Tetrabutylammonium Chloride",
+      "SELFIE": null,
+      "name_IUPAC": "tetrabutylazanium chloride",
+      "standard_InChI": "InChI=1S/C16H36N.ClH/c1-5-9-13-17(14-10-6-2,15-11-7-3)16-12-8-4;/h5-16H2,1-4H3;1H/q+1;/p-1",
+      "standard_InChI_key": "NHGXDBSUJJNIRV-UHFFFAOYSA-M",
+      "molar_weigth": 277.9,
+      "smiles_code": "CCCC[N+](CCCC)(CCCC)CCCC.[Cl-]",
+      "sigma_profile": null
+    },
+    {
+      "compoundID": "Glycerol",
+      "pubChemID": 753,
+      "commonName": "Glycerol",
+      "SELFIE": null,
+      "name_IUPAC": "propane-1,2,3-triol",
+      "standard_InChI": "InChI=1S/C3H8O3/c4-1-3(6)2-5/h3-6H,1-2H2",
+      "standard_InChI_key": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+      "molar_weigth": 92.09,
+      "smiles_code": "C(C(CO)O)O",
+      "sigma_profile": null
+    },
+    {
+      "compoundID": "Water",
+      "pubChemID": 962,
+      "commonName": "Water",
+      "SELFIE": null,
+      "name_IUPAC": "oxidane",
+      "standard_InChI": "InChI=1S/H2O/h1H2",
+      "standard_InChI_key": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+      "molar_weigth": 18.015,
+      "smiles_code": "O",
+      "sigma_profile": null
+    }
+  ],
+  "fluid": [
+    {
+      "fluidID": [
+        "c4a0893f-5d2c-4c5c-a475-23f2b3432bf9"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_d5068750-bce6-46f9-9d5a-9d4bb0d447f0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 971.34,
+              "uncertainty": 44.32443
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_9d10e8ef-19cf-4c80-a17b-a81d5600df3d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.6947,
+              "uncertainty": 0.381346
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "d72b97c9-5f8b-4e82-b599-1e05b7426b5d"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_a8121cb1-b384-4c45-a51b-ab458ee7178a",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 919.58,
+              "uncertainty": 27.61438
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_e580045b-e0a7-4e05-b66b-0635e5018512",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 999.58,
+              "uncertainty": 28.13541
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_2a9b53cc-58db-44ab-9dbc-15a651d471ec",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 720.87,
+              "uncertainty": 140.7887
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_efa9c971-ec4b-4522-adcd-f8b1eef266ec",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.10429,
+              "uncertainty": 0.581279
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_4f8c9909-713d-4a1d-862c-921ab7892928",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.82848,
+              "uncertainty": 0.063895
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_983938e2-cf04-4943-8bd9-948b1307ada9",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.00985,
+              "uncertainty": 0.064352
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "b726e602-c906-427f-b949-8e634c851e04"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_556e329c-00b0-41a4-b2f2-65575a5bbf68",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 839.24,
+              "uncertainty": 5.098612
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_b436d7b8-3cb1-4545-9ea2-6dc685cd35f0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.69326,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "1a2dfd1e-dc3f-449c-85bd-388adf7a1ac0"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_75b38266-8099-47eb-b8f5-8129ee81397e",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 921.45,
+              "uncertainty": 42.91022
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_3e1a2ca1-c492-4f67-85ea-a0fa6b81460b",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 867.47,
+              "uncertainty": 37.43944
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_cba75339-4a44-465e-a1d6-47ff11043863",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 788.39,
+              "uncertainty": 8.894659
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_26275766-e321-47c7-90b7-e3d1df7d7d7d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.33051,
+              "uncertainty": 0.130327
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_d505db07-aee7-46a2-a89b-de5eeeea34cd",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.14735,
+              "uncertainty": 0.258795
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_dec8daab-c0ce-4b4d-9bfe-6699d3779d76",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 51.51548,
+              "uncertainty": 0.131268
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.25,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.75,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.0,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_0% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "f22201ad-0e52-48df-b1dd-efd51397e91a"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_8e6d9f02-eda7-4f55-b92e-009a27b56b63",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 70.84,
+              "uncertainty": 1.75288
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_75f3fbfe-3df2-4361-a79f-da02be9a357d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.94095,
+              "uncertainty": 0.185049
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "c30486d3-1e19-4885-ae72-59d0ea4f3ce4"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_1572ba13-4513-4125-96a3-52d1cb4d34e8",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 68.07,
+              "uncertainty": 2.541863
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_43a2e72c-779d-44ba-956e-48faf5a1d29d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 66.66,
+              "uncertainty": 0.174916
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_6624123c-cbb2-4e1a-8629-ec1d7645fed5",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 65.66,
+              "uncertainty": 2.23669
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_c2d2dc3b-6fef-449f-834d-4cfc55357517",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.68332,
+              "uncertainty": 0.549405
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_6a5b6414-44c4-4307-baef-dc94abab53cb",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.78346,
+              "uncertainty": 0.127564
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_00f847d2-fe76-4dcf-afb9-a57eb51240f8",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.562,
+              "uncertainty": 0.569009
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "11813431-422c-441d-a0f4-6c2c33b10fc1"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_4274e295-e3ac-4451-9b4e-bfea944de59b",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 68.56,
+              "uncertainty": 0.312616
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_23d786cf-7e69-467d-ba21-39a9083cd798",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 67.52,
+              "uncertainty": 0.387048
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_5c7d2b49-43fa-4613-a624-e19b61abd183",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 61.26,
+              "uncertainty": 3.434374
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_dd131c42-8a2a-47c6-9100-8d4ad6d28034",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.51429,
+              "uncertainty": 0.126216
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_b818bdee-d4ed-49c9-a444-4397a7df42dc",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.60417,
+              "uncertainty": 0.253328
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_1d0d1abf-80b4-4659-97e0-2415af0bc9fa",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.87367,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "9ee0ce78-5d2f-46c7-894d-92807bd55444"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_363e36f8-9a09-4339-92d5-d8a656c0621d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 71.42,
+              "uncertainty": 0.107927
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_893f86e6-068a-4a9b-bfc7-db83446cf540",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 70.11,
+              "uncertainty": 0.312616
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_9bd06921-388a-432b-a35b-9939cdc26689",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 92.91,
+              "uncertainty": 7.479825
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_9bd3afb5-cf5c-43f5-a25d-01c7e96cde7c",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.47053,
+              "uncertainty": 0.314987
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_4eda04a0-3f23-4ae5-a3d3-283a4b7504e6",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.91901,
+              "uncertainty": 0.064123
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_88d02cb0-be01-4422-babb-4ec663f52c56",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.7833,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.094,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.282,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.624,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_20% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "f285aee7-4476-494b-a6c7-d0a6043d8f95"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_20872c94-cef2-4103-9501-6e74f5a83ee0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 14.47,
+              "uncertainty": 0.48381
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_325bbb31-4672-4757-8a87-ad927d068319",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.51004,
+              "uncertainty": 0.42435
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 0.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        }
+      ],
+      "storage": null
+    },
+    {
+      "fluidID": [
+        "31eff72b-b6bf-469a-98c0-414090416344"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_a72036d8-c12a-4a59-ab04-a23b05c52bcd",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 14.37,
+              "uncertainty": 0.210039
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_0a472d6e-e8ae-4eb4-ae7d-2fa9f65fb999",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 14.91,
+              "uncertainty": 0.08695
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_40165737-b59e-4a7d-8eb1-acb9d3deb1d6",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 14.54,
+              "uncertainty": 0.075746
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_62f5bfcd-c422-430e-83d0-67639f6dbde7",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 48.70698,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_c3cff9b1-85e6-4085-9abe-d4e39bbfddb0",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.59503,
+              "uncertainty": 0.304154
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_81c3a332-c218-40b8-a6fa-bdbea97c84ac",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.76679,
+              "uncertainty": 0.061254
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Closed",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "69ce3e22-0a30-4fcf-9af0-73507937b154"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_b3e99410-8b34-45b7-9851-174506f0e167",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 15.22,
+              "uncertainty": 0.167035
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_d6fa7552-ac4d-443e-8478-d69ce249f004",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 14.54,
+              "uncertainty": 0.02233
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_6678ff38-38d1-4fd4-b3d4-deceba2501ff",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 14.17,
+              "uncertainty": 0.037216
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 38.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_1f709342-de05-4766-ab84-da3dc685ae18",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.76709,
+              "uncertainty": 0.183763
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_362d54ef-a01b-4246-be9c-8c21158ac956",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.89719,
+              "uncertainty": 0.123151
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_d898e4b5-e0ea-4f1b-bd8c-71b0fa6fbd71",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.11665,
+              "uncertainty": 0.310586
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 39.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Fridge",
+        "Temperature": null,
+        "Pressure": null
+      }
+    },
+    {
+      "fluidID": [
+        "fec6f142-e5b9-452e-9eae-e17dd767aca8"
+      ],
+      "compounds": [
+        "Tetrabutylammonium Chloride",
+        "Glycerol",
+        "Water"
+      ],
+      "property": [
+        {
+          "propertyID": "viscosity",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "mPa·s",
+            "name": "milliPascal second",
+            "base_units": []
+          }
+        },
+        {
+          "propertyID": "polarity",
+          "properties": "polarity",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": []
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_time",
+          "parameter": "Time",
+          "unit": {
+            "unitID": "days",
+            "name": "days",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Tetrabutylammonium Chloride"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_glycerol",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_mole_fraction_water",
+          "parameter": "Mole fraction",
+          "unit": {
+            "unitID": "1",
+            "name": "dimensionless",
+            "base_units": [
+              {
+                "kind": null,
+                "exponent": null,
+                "multiplier": 1.0,
+                "scale": 0.0
+              }
+            ]
+          },
+          "associated_compounds": [
+            "Water"
+          ]
+        }
+      ],
+      "measurement": [
+        {
+          "measurement_id": "meas_viscosity_8f17c837-b163-4ab5-92b9-2eddf9a524f3",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 15.53,
+              "uncertainty": 0.089319
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_ff8cf7fa-9846-4384-a429-84cb399deb35",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 15.88,
+              "uncertainty": 0.189802
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_viscosity_b534ce5f-5698-45fe-8991-e63d98d2feff",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "viscosity",
+              "propValue": 20.55,
+              "uncertainty": 1.041176
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_cd132b5a-f6c2-4a4e-95bb-3743c761449d",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 49.72348,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 7.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_32e4481c-ba42-410d-adc3-1f63ef710801",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.02803,
+              "uncertainty": 0.061899
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 14.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        },
+        {
+          "measurement_id": "meas_polarity_6441994b-9339-429f-86e9-2824c8406916",
+          "source_doi": null,
+          "propertyValue": [
+            {
+              "propertyID": "polarity",
+              "propValue": 50.7833,
+              "uncertainty": 0.0
+            }
+          ],
+          "parameterValue": [
+            {
+              "parameterID": "parameter_time",
+              "paramValue": 40.0,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_tetrabutylammoniumchloride",
+              "paramValue": 0.045,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_glycerol",
+              "paramValue": 0.135,
+              "uncertainty": null
+            },
+            {
+              "parameterID": "parameter_mole_fraction_water",
+              "paramValue": 0.82,
+              "uncertainty": null
+            }
+          ],
+          "method": "measured",
+          "method_description": "Experimental measurement (Comment: TBAC-Gly (1:3)_40% H2O)"
+        }
+      ],
+      "storage": {
+        "storage_condition": "Open",
+        "Temperature": null,
+        "Pressure": null
+      }
+    }
+  ]
+}

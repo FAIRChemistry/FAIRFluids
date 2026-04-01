@@ -118,6 +118,7 @@ class FAIRFluidsDocument(
         property: list[Property]= [],
         parameter: list[Parameter]= [],
         measurement: list[Measurement]= [],
+        storage: Optional[Storage]= None,
         **kwargs,
     ):
         """Helper method to add a new Fluid to the fluid list."""
@@ -126,7 +127,8 @@ class FAIRFluidsDocument(
             "compounds": compounds,
             "property": property,
             "parameter": parameter,
-            "measurement": measurement
+            "measurement": measurement,
+            "storage": storage
         }
 
         self.fluid.append(
@@ -505,6 +507,11 @@ class Fluid(
         tag="measurement",
         description="""A collection of measured or calculated numerical data points associated with the
             specified properties and experimental parameters.""",
+        json_schema_extra=dict(),
+    )
+    storage: Optional[Storage] = element(
+        default= None,
+        tag="storage",
         json_schema_extra=dict(),
     )
 
@@ -1026,6 +1033,48 @@ class BaseUnit(
         return parsed_xml.toprettyxml(indent="  ")
 
 
+class Storage(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    storage_condition: Optional[StorageCondition] = element(
+        default= None,
+        tag="storage_condition",
+        description="""One of: Fresh, Fridge, Open, Closed""",
+        json_schema_extra=dict(),
+    )
+    Temperature: Optional[float] = element(
+        default= None,
+        tag="Temperature",
+        description="""Temperature under which the sample is stored""",
+        json_schema_extra=dict(),
+    )
+    Pressure: Optional[float] = element(
+        default= None,
+        tag="Pressure",
+        description="""Pressure under which the sample is stored""",
+        json_schema_extra=dict(),
+    )
+
+
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
 class LitType(Enum):
     """Enumeration for LitType values"""
     ARCHIVEDDOCUMENT = "archivedDocument"
@@ -1119,7 +1168,7 @@ class Parameters(Enum):
     PRESSURE = "Pressure"
     RATIO_OF_AMOUNT_OF_SOLUTE_TO_MASS_OF_SOLUTION = "Ratio of amount of solute to mass of solution"
     RATIO_OF_MASS_OF_SOLUTE_TO_VOLUME_OF_SOLUTION = "Ratio of mass of solute to volume of solution"
-    RELATIVE_ACTIVITY = "(Relative)"
+    RELATIVE_ACTIVITY = "Relative activity"
     SOLVENT_AMOUNT_CONCENTRATION_MOLARITY = "Solvent: Amount concentration (molarity)"
     SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Amount ratio of component to other component of binary solvent"
     SOLVENT_MASS_FRACTION = "Solvent: Mass fraction"
@@ -1132,8 +1181,16 @@ class Parameters(Enum):
     SOLVENT_VOLUME_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT = "Solvent: Volume ratio of component to other component of binary solvent"
     SPECIFIC_VOLUME = "Specific volume"
     TEMPERATURE = "Temperature"
+    TIME = "Time"
     UPPER_PRESSURE = "Upper pressure"
     UPPER_TEMPERATURE = "Upper temperature"
     VOLUME_FRACTION = "Volume fraction"
     VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT = "Volume ratio of solute to solvent"
     WAVELENGTH = "Wavelength"
+
+class StorageCondition(Enum):
+    """Enumeration for StorageCondition values"""
+    CLOSED = "Closed"
+    FRESH = "Fresh"
+    FRIDGE = "Fridge"
+    OPEN = "Open"
