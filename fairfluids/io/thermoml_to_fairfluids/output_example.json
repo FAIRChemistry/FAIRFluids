@@ -1,0 +1,2099 @@
+{
+  "citation": {
+    "litType": "journal",
+    "author": [
+      {
+        "given_name": "N. R.",
+        "family_name": "Rodriguez"
+      },
+      {
+        "given_name": "J. F.",
+        "family_name": "Guell"
+      },
+      {
+        "given_name": "M. C.",
+        "family_name": "Kroon"
+      }
+    ],
+    "doi": "10.1021/acs.jced.5b00717",
+    "page": "865-872",
+    "pub_name": "J. Chem. Eng. Data",
+    "title": "Glycerol-Based Deep Eutectic Solvents as Extractants for the Separation of MEK and Ethanol via Liquid Liquid Extraction",
+    "lit_volume_num": "61",
+    "publication_year": "2016"
+  },
+  "compound": [
+    {
+      "compoundID": "compound_1",
+      "commonName": "choline chloride",
+      "standard_InChI": "InChI=1S/C5H14NO.ClH/c1-6(2,3)4-5-7;/h7H,4-5H2,1-3H3;1H/q+1;/p-1",
+      "standard_InChI_key": "SGMZJAMFUVOLNK-UHFFFAOYSA-M"
+    },
+    {
+      "compoundID": "compound_2",
+      "commonName": "tetramethylammonium chloride",
+      "standard_InChI": "InChI=1S/C4H12N.ClH/c1-5(2,3)4;/h1-4H3;1H/q+1;/p-1",
+      "standard_InChI_key": "OKIZCWYLBDKLSU-UHFFFAOYSA-M"
+    },
+    {
+      "compoundID": "compound_3",
+      "commonName": "glycerol",
+      "standard_InChI": "InChI=1S/C3H8O3/c4-1-3(6)2-5/h3-6H,1-2H2",
+      "standard_InChI_key": "PEDCQBHIVMGVHV-UHFFFAOYSA-N"
+    }
+  ],
+  "fluid": [
+    {
+      "fluidID": [
+        "fluid_1"
+      ],
+      "compounds": [
+        "compound_glycerol",
+        "compound_choline_chloride"
+      ],
+      "property": [
+        {
+          "propertyID": "property_1",
+          "properties": "density",
+          "unit": {
+            "unitID": "unit_1",
+            "name": "kilogram per cubic meter",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1
+              },
+              {
+                "kind": "length",
+                "exponent": -3
+              }
+            ]
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_1",
+          "parameters": "Amount ratio of solute to solvent",
+          "unit": {
+            "unitID": "unit_2",
+            "name": "Amount ratio of solute to solvent",
+            "base_units": []
+          },
+          "associated_compounds": [
+            "glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_2",
+          "parameters": "Temperature",
+          "unit": {
+            "unitID": "unit_3",
+            "name": "kelvin",
+            "base_units": [
+              {
+                "kind": "temperature",
+                "exponent": 1
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_3",
+          "parameters": "Pressure",
+          "unit": {
+            "unitID": "unit_4",
+            "name": "kilopascal",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1,
+                "scale": 3.0
+              },
+              {
+                "kind": "length",
+                "exponent": -1
+              },
+              {
+                "kind": "time",
+                "exponent": -2
+              }
+            ]
+          },
+          "associated_compounds": []
+        }
+      ],
+      "sample": {
+        "sample_id": "sample_1",
+        "associated_compounds": [
+          "compound_glycerol",
+          "compound_choline_chloride"
+        ],
+        "measurement": [
+          {
+            "measurement_id": "measurement_1",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1217.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_2",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1214.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_3",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1211.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_4",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1208.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_5",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1205.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_6",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1202.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_7",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1200.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_8",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1194.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_9",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1191.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_10",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1188.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_11",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1185.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_12",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1183.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_13",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1180.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_14",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_1",
+                "propValue": 1177.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_1",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_2",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_3",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          }
+        ]
+      }
+    },
+    {
+      "fluidID": [
+        "fluid_2"
+      ],
+      "compounds": [
+        "compound_glycerol",
+        "compound_choline_chloride"
+      ],
+      "property": [
+        {
+          "propertyID": "property_2",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "unit_5",
+            "name": "pascal second",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1
+              },
+              {
+                "kind": "length",
+                "exponent": -1
+              },
+              {
+                "kind": "time",
+                "exponent": -1
+              }
+            ]
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_4",
+          "parameters": "Amount ratio of solute to solvent",
+          "unit": {
+            "unitID": "unit_6",
+            "name": "Amount ratio of solute to solvent",
+            "base_units": []
+          },
+          "associated_compounds": [
+            "glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_5",
+          "parameters": "Temperature",
+          "unit": {
+            "unitID": "unit_7",
+            "name": "kelvin",
+            "base_units": [
+              {
+                "kind": "temperature",
+                "exponent": 1
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_6",
+          "parameters": "Pressure",
+          "unit": {
+            "unitID": "unit_8",
+            "name": "kilopascal",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1,
+                "scale": 3.0
+              },
+              {
+                "kind": "length",
+                "exponent": -1
+              },
+              {
+                "kind": "time",
+                "exponent": -2
+              }
+            ]
+          },
+          "associated_compounds": []
+        }
+      ],
+      "sample": {
+        "sample_id": "sample_2",
+        "associated_compounds": [
+          "compound_glycerol",
+          "compound_choline_chloride"
+        ],
+        "measurement": [
+          {
+            "measurement_id": "measurement_15",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.5782,
+                "uncertainty": 0.0479
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_16",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.4003,
+                "uncertainty": 0.0283
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_17",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.2834,
+                "uncertainty": 0.0168
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_18",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.2051,
+                "uncertainty": 0.0099
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_19",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.1517,
+                "uncertainty": 0.0058
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_20",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.113,
+                "uncertainty": 0.0033
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_21",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.08796,
+                "uncertainty": 0.00187
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_22",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.5146,
+                "uncertainty": 0.0406
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_23",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.3657,
+                "uncertainty": 0.0247
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_24",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.2657,
+                "uncertainty": 0.0151
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_25",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.197,
+                "uncertainty": 0.0093
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_26",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.1489,
+                "uncertainty": 0.0056
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_27",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.1147,
+                "uncertainty": 0.0034
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_28",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_2",
+                "propValue": 0.08981,
+                "uncertainty": 0.00196
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_4",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_5",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_6",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          }
+        ]
+      }
+    },
+    {
+      "fluidID": [
+        "fluid_3"
+      ],
+      "compounds": [
+        "compound_glycerol",
+        "compound_tetramethylammonium_chloride"
+      ],
+      "property": [
+        {
+          "propertyID": "property_3",
+          "properties": "density",
+          "unit": {
+            "unitID": "unit_9",
+            "name": "kilogram per cubic meter",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1
+              },
+              {
+                "kind": "length",
+                "exponent": -3
+              }
+            ]
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_7",
+          "parameters": "Mass ratio of solute to solvent",
+          "unit": {
+            "unitID": "unit_10",
+            "name": "Mass ratio of solute to solvent",
+            "base_units": []
+          },
+          "associated_compounds": [
+            "glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_8",
+          "parameters": "Temperature",
+          "unit": {
+            "unitID": "unit_11",
+            "name": "kelvin",
+            "base_units": [
+              {
+                "kind": "temperature",
+                "exponent": 1
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_9",
+          "parameters": "Pressure",
+          "unit": {
+            "unitID": "unit_12",
+            "name": "kilopascal",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1,
+                "scale": 3.0
+              },
+              {
+                "kind": "length",
+                "exponent": -1
+              },
+              {
+                "kind": "time",
+                "exponent": -2
+              }
+            ]
+          },
+          "associated_compounds": []
+        }
+      ],
+      "sample": {
+        "sample_id": "sample_3",
+        "associated_compounds": [
+          "compound_glycerol",
+          "compound_tetramethylammonium_chloride"
+        ],
+        "measurement": [
+          {
+            "measurement_id": "measurement_29",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1180.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_30",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1177.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_31",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1174.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_32",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1171.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_33",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1168.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_34",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1166.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_35",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1163.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_36",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1158.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_37",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1155.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_38",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1152.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_39",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1149.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_40",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1147.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_41",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1144.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_42",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "density",
+                "propertyID": "property_3",
+                "propValue": 1141.0,
+                "uncertainty": 5.0
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Mass ratio of solute to solvent",
+                "parameterID": "parameter_7",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_8",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_9",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          }
+        ]
+      }
+    },
+    {
+      "fluidID": [
+        "fluid_4"
+      ],
+      "compounds": [
+        "compound_glycerol",
+        "compound_tetramethylammonium_chloride"
+      ],
+      "property": [
+        {
+          "propertyID": "property_4",
+          "properties": "viscosity",
+          "unit": {
+            "unitID": "unit_13",
+            "name": "pascal second",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1
+              },
+              {
+                "kind": "length",
+                "exponent": -1
+              },
+              {
+                "kind": "time",
+                "exponent": -1
+              }
+            ]
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_10",
+          "parameters": "Amount ratio of solute to solvent",
+          "unit": {
+            "unitID": "unit_14",
+            "name": "Amount ratio of solute to solvent",
+            "base_units": []
+          },
+          "associated_compounds": [
+            "glycerol"
+          ]
+        },
+        {
+          "parameterID": "parameter_11",
+          "parameters": "Temperature",
+          "unit": {
+            "unitID": "unit_15",
+            "name": "kelvin",
+            "base_units": [
+              {
+                "kind": "temperature",
+                "exponent": 1
+              }
+            ]
+          },
+          "associated_compounds": []
+        },
+        {
+          "parameterID": "parameter_12",
+          "parameters": "Pressure",
+          "unit": {
+            "unitID": "unit_16",
+            "name": "kilopascal",
+            "base_units": [
+              {
+                "kind": "mass",
+                "exponent": 1,
+                "scale": 3.0
+              },
+              {
+                "kind": "length",
+                "exponent": -1
+              },
+              {
+                "kind": "time",
+                "exponent": -2
+              }
+            ]
+          },
+          "associated_compounds": []
+        }
+      ],
+      "sample": {
+        "sample_id": "sample_4",
+        "associated_compounds": [
+          "compound_glycerol",
+          "compound_tetramethylammonium_chloride"
+        ],
+        "measurement": [
+          {
+            "measurement_id": "measurement_43",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.5575,
+                "uncertainty": 0.0455
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_44",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.3847,
+                "uncertainty": 0.0267
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_45",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.272,
+                "uncertainty": 0.0157
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_46",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.197,
+                "uncertainty": 0.0093
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_47",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.1458,
+                "uncertainty": 0.0054
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_48",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.1102,
+                "uncertainty": 0.0031
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_49",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.0848,
+                "uncertainty": 0.00173
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 4.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_50",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.5818,
+                "uncertainty": 0.0483
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 293.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_51",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.4069,
+                "uncertainty": 0.029
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 298.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_52",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.2905,
+                "uncertainty": 0.0174
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 303.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_53",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.2124,
+                "uncertainty": 0.0105
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 308.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_54",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.1585,
+                "uncertainty": 0.0063
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 313.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_55",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.1207,
+                "uncertainty": 0.0037
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 318.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          },
+          {
+            "measurement_id": "measurement_56",
+            "source_doi": "10.1021/acs.jced.5b00717",
+            "propertyValue": [
+              {
+                "properties": "viscosity",
+                "propertyID": "property_4",
+                "propValue": 0.09357,
+                "uncertainty": 0.00214
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameters": "Amount ratio of solute to solvent",
+                "parameterID": "parameter_10",
+                "paramValue": 2.0
+              },
+              {
+                "parameters": "Temperature",
+                "parameterID": "parameter_11",
+                "paramValue": 323.15
+              },
+              {
+                "parameters": "Pressure",
+                "parameterID": "parameter_12",
+                "paramValue": 101.0
+              }
+            ],
+            "method": "literature"
+          }
+        ]
+      }
+    }
+  ]
+}

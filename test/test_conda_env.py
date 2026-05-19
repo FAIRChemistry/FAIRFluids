@@ -14,7 +14,7 @@ def test_imports():
         'lxml',
         'numpy',
         'pandas',
-        'jupyter',
+        'ipykernel',
         'matplotlib',
         'seaborn',
         'scipy',

@@ -11,6 +11,7 @@ from .lib import (
     Parameter,
     ParameterValue,
     Measurement,
+    Sample,
     UnitDefinition,
     BaseUnit,
     Method,
@@ -22,8 +23,43 @@ import xml.etree.ElementTree as ET
 import requests
 import numpy as np
 import uuid
+import hashlib
+import colorsys
 from collections import defaultdict
 import pandas as pd
+
+from fairfluids.inspection.document import (
+    show_available_parameters,
+    show_available_properties,
+)
+from fairfluids.operations.sample_utils import _ensure_fluid_sample, _get_measurements
+from fairfluids.operations.compounds import (
+    combine_compounds,
+    calculate_ratio_of_solvent,
+    cleanup_orphaned_parameters,
+)
+from fairfluids.io.cml_parser import FAIRFluidsCMLParser
+
+
+def _string_to_hex_color(s: str, sat: float = 0.65, val: float = 0.85) -> str:
+    """Deterministically map strings to hex colors (used for DOI coloring)."""
+    h = hashlib.sha256(str(s).encode()).hexdigest()
+    h_int = int(h[:8], 16)
+    hue = (h_int * 0.618033988749895) % 1.0
+    r, g, b = colorsys.hsv_to_rgb(hue, sat, val)
+    return "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+
+
+def _get_doi_plot_style(
+    doi: Any, custom_styles: Optional[dict[str, dict[str, str]]] = None
+) -> dict[str, str]:
+    """Return DOI plotting style; prefers caller-provided styles."""
+    doi_str = str(doi)
+    style = custom_styles.get(doi_str, {}) if custom_styles else {}
+    return {
+        "color": style.get("color", _string_to_hex_color(doi_str)),
+        "marker": style.get("marker", "o"),
+    }
 
 
 def _is_compositional_parameter(param_name_lower: str) -> bool:
@@ -82,11 +118,11 @@ def filter_fluid_compounds_by_mole_fractions(fluid):
     Returns:
         The fluid object with filtered compounds and parameters
     """
-    if not fluid.measurement:
+    if not _get_measurements(fluid):
         return fluid
 
     print(
-        f"=== Filtering Fluid with {len(fluid.compounds)} compounds and {len(fluid.measurement)} measurements ==="
+        f"=== Filtering Fluid with {len(fluid.compounds)} compounds and {len(_get_measurements(fluid))} measurements ==="
     )
 
     # Track which compounds should be kept (non-zero mole fractions OR other compositional params present)
@@ -106,7 +142,7 @@ def filter_fluid_compounds_by_mole_fractions(fluid):
         compositional_param_types = []  # track which types we found
 
         # Check all measurements for this compound
-        for measurement in fluid.measurement:
+        for measurement in _get_measurements(fluid):
             for param_value in measurement.parameterValue:
                 # Find the parameter definition for this parameter value
                 param_def = parameter_lookup.get(param_value.parameterID)
@@ -115,14 +151,14 @@ def filter_fluid_compounds_by_mole_fractions(fluid):
                 if (
                     param_def
                     and compound_id in param_def.associated_compounds
-                    and hasattr(param_def, "parameter")
-                    and param_def.parameter is not None
+                    and hasattr(param_def, "parameters")
+                    and param_def.parameters is not None
                 ):
 
                     # Normalize parameter name
-                    param_name = str(param_def.parameter)
-                    if hasattr(param_def.parameter, "value"):
-                        param_name = param_def.parameter.value
+                    param_name = str(param_def.parameters)
+                    if hasattr(param_def.parameters, "value"):
+                        param_name = param_def.parameters.value
                     param_name_lower = param_name.lower()
 
                     # Check if this is any compositional parameter
@@ -196,7 +232,7 @@ def filter_fluid_compounds_by_mole_fractions(fluid):
     ]
 
     # Remove parameter values from measurements for compounds that are not kept
-    for measurement in fluid.measurement:
+    for measurement in _get_measurements(fluid):
         original_param_values = measurement.parameterValue.copy()
         measurement.parameterValue = []
 
@@ -225,1030 +261,6 @@ def filter_fluid_compounds_by_mole_fractions(fluid):
         f"Final result: {len(fluid.compounds)} compounds, {len(fluid.parameter)} parameters"
     )
     return fluid
-
-
-class FAIRFluidsCMLParser:
-    """
-    Robust parser for CML files to populate the FAIRFluids data model.
-    """
-
-    def __init__(
-        self,
-        cml_path: str,
-        compounds: Optional[List[Dict[str, Any]]] = None,
-        document: Optional[FAIRFluidsDocument] = None,
-    ):
-        self.cml_path = cml_path
-        self.compounds = compounds or []
-        if document is not None:
-            self.document = document
-        else:
-            self.document = FAIRFluidsDocument()
-        self.compound_name_to_id = {}
-        self._parse_cml_root()
-
-    def _parse_cml_root(self):
-        try:
-            self.root = ET.parse(self.cml_path).getroot()
-        except Exception as e:
-            raise RuntimeError(f"Failed to parse CML file: {e}")
-
-    def populate_compounds(self):
-        """
-        Populate compounds in the document. If compounds are provided, use them; otherwise, try to extract from CML.
-        Also builds a mapping from index to compoundID for later use. If the document already has compounds, do not add duplicates.
-        Additionally, builds a list of common names (lowercase, fallback to index) for use in parameterID generation.
-        """
-        self.index_to_compoundID = {}
-        self.compound_common_names = []
-        compound_counter = 1
-
-        # If the document already has compounds, use them
-        if getattr(self.document, "compound", None) and len(self.document.compound) > 0:
-            for i, compound in enumerate(self.document.compound):
-                if compound.commonName:
-                    self.compound_name_to_id[compound.commonName] = i
-                    self.compound_common_names.append(compound.commonName.lower())
-                else:
-                    self.compound_common_names.append(str(i))
-
-                # Generate consistent compound ID: compound_<common_name> or compound_<pubChemID> or compound_<number>
-                if compound.compoundID is not None:
-                    self.index_to_compoundID[i] = str(compound.compoundID)
-                else:
-                    # Generate new consistent ID
-                    if compound.commonName:
-                        # Clean the common name to ensure consistency with parameter IDs
-                        clean_name = (
-                            compound.commonName.lower()
-                            .replace(" ", "")
-                            .replace("-", "")
-                            .replace("_", "")
-                        )
-                        compound_id = f"compound_{clean_name}"
-                    elif compound.pubChemID is not None:
-                        compound_id = f"compound_{compound.pubChemID}"
-                    else:
-                        compound_id = f"compound_{compound_counter}"
-                        compound_counter += 1
-
-                    # Update the compound's ID
-                    compound.compoundID = compound_id
-                    self.index_to_compoundID[i] = compound_id
-        else:
-            for i, comp in enumerate(self.compounds):
-                # Check if compound has pubChemID and fetch data from PubChem if available
-                pubchem_id = comp.get("pubChemID")
-                if pubchem_id is not None:
-                    # Ensure pubchem_id is an integer
-                    try:
-                        pubchem_id = int(pubchem_id)
-                    except (ValueError, TypeError):
-                        print(
-                            f"Warning: Invalid pubChemID format: {pubchem_id}, skipping PubChem fetch"
-                        )
-                        pubchem_id = None
-
-                    if pubchem_id is not None:
-                        print(
-                            f"Fetching compound data from PubChem for CID {pubchem_id}..."
-                        )
-                        fetched_data = fetch_compound_from_pubchem(pubchem_id)
-                        if fetched_data is not None:
-                            # Merge fetched data with provided data, preferring fetched data
-                            # but keeping any additional fields from provided data
-                            merged_data = comp.copy()
-                            merged_data.update(fetched_data)
-                            # Ensure pubChemID is preserved
-                            merged_data["pubChemID"] = pubchem_id
-                            comp = merged_data
-                            print(
-                                f"Successfully fetched and merged data for CID {pubchem_id}"
-                            )
-                        else:
-                            print(
-                                f"Warning: Failed to fetch data from PubChem for CID {pubchem_id}, using provided data"
-                            )
-
-                compound = self.document.add_to_compound(**comp)
-                if compound.commonName:
-                    self.compound_name_to_id[compound.commonName] = i
-                    self.compound_common_names.append(compound.commonName.lower())
-                else:
-                    self.compound_common_names.append(str(i))
-
-                # Generate consistent compound ID: compound_<common_name> or compound_<pubChemID> or compound_<number>
-                if compound.compoundID is not None:
-                    self.index_to_compoundID[i] = str(compound.compoundID)
-                else:
-                    # Generate new consistent ID
-                    if compound.commonName:
-                        # Clean the common name to ensure consistency with parameter IDs
-                        clean_name = (
-                            compound.commonName.lower()
-                            .replace(" ", "")
-                            .replace("-", "")
-                            .replace("_", "")
-                        )
-                        compound_id = f"compound_{clean_name}"
-                    elif compound.pubChemID is not None:
-                        compound_id = f"compound_{compound.pubChemID}"
-                    else:
-                        compound_id = f"compound_{compound_counter}"
-                        compound_counter += 1
-
-                    # Update the compound's ID
-                    compound.compoundID = compound_id
-                    self.index_to_compoundID[i] = compound_id
-
-    def _extract_experiments(self) -> List[ET.Element]:
-        return self.root.findall(
-            ".//{http://www.xml-cml.org/schema}module[@dictRef='des:experiment']"
-        )
-
-    def _extract_properties(self, experiment: ET.Element) -> Dict[str, str]:
-        properties = {}
-        property_list = experiment.find(
-            ".//{http://www.xml-cml.org/schema}propertyList"
-        )
-        if property_list is not None:
-            for prop in property_list:
-                dict_ref = prop.get("dictRef")
-                if dict_ref:
-                    prop_type = dict_ref.split(":")[-1]
-                    scalar = prop.find(".//{http://www.xml-cml.org/schema}scalar")
-                    if scalar is not None:
-                        properties[prop_type] = scalar.text
-        return properties
-
-    def _extract_parameters(self, experiment: ET.Element) -> Dict[str, str]:
-        parameters = {}
-        param_list = experiment.find(".//{http://www.xml-cml.org/schema}parameterList")
-        if param_list is not None:
-            for param in param_list:
-                dict_ref = param.get("dictRef")
-                if dict_ref:
-                    param_type = dict_ref.split(":")[-1]
-                    scalar = param.find(".//{http://www.xml-cml.org/schema}scalar")
-                    if scalar is not None:
-                        parameters[param_type] = scalar.text
-        return parameters
-
-    def _extract_measurement_modules(self) -> List[tuple]:
-        """
-        Extract both experiment and simulation modules, returning a list of (element, method_type) tuples.
-        """
-        ns = "{http://www.xml-cml.org/schema}"
-        experiments = [
-            (el, "EXPERIMENTAL")
-            for el in self.root.findall(f".//{ns}module[@dictRef='des:experiment']")
-        ]
-        simulations = [
-            (el, "SIMULATION")
-            for el in self.root.findall(f".//{ns}module[@dictRef='des:simulation']")
-        ]
-        return experiments + simulations
-
-    def _make_unit(self, name: str) -> UnitDefinition:
-        if name == "K":
-            return UnitDefinition(
-                unitID="K",
-                name="kelvin",
-                base_units=[BaseUnit(symbol="K", power=1, multiplier=1.0, scale=0.0)],
-            )
-        if name == "Pa·s":
-            return UnitDefinition(unitID="Pa·s", name="Pascal second", base_units=[])
-        if name == "mPa·s":
-            return UnitDefinition(
-                unitID="mPa·s", name="milliPascal second", base_units=[]
-            )
-        if name == "m2/s":
-            return UnitDefinition(
-                unitID="m2/s",
-                name="square meter per second",
-                base_units=[
-                    BaseUnit(symbol="m2/s", power=1, multiplier=1.0, scale=0.0)
-                ],
-            )
-        if name == "1":
-            return UnitDefinition(
-                unitID="1",
-                name="dimensionless",
-                base_units=[BaseUnit(symbol="1", power=1, multiplier=1.0, scale=0.0)],
-            )
-        return UnitDefinition(unitID=name, name=name, base_units=[])
-
-    def _make_property(self, exp_id: str, property_type: str = "viscosity") -> Property:
-        # Extend for other property types as needed
-        if property_type == "viscosity":
-            return Property(
-                propertyID="viscosity",
-                properties=Properties.VISCOSITY,
-                unit=self._make_unit("Pa·s"),
-            )
-        if property_type == "kinematic_viscosity":
-            return Property(
-                propertyID="kinematic_viscosity",
-                properties=Properties.KINEMATIC_VISCOSITY,
-                unit=self._make_unit("m2/s"),
-            )
-        if property_type == "conductivity":
-            return Property(
-                propertyID="conductivity",
-                properties=Properties.THERMAL_CONDUCTIVITY,
-                unit=self._make_unit("S/m"),
-            )
-        if property_type == "density":
-            return Property(
-                propertyID="density",
-                properties=Properties.DENSITY,
-                unit=self._make_unit("kg/m3"),
-            )
-        # Add more property types as needed
-        raise NotImplementedError(f"Property type {property_type} not implemented.")
-
-    def _make_parameter(
-        self, name: str, value: str, idx: int, compound_index: Optional[int] = None
-    ) -> Parameter:
-        if name == "temperature":
-            return Parameter(
-                parameterID="parameter_temperature",
-                parameter=Parameters.TEMPERATURE,
-                unit=self._make_unit("K"),
-                associated_compounds=[],
-            )
-        if name == "mole_fraction_of_water":
-            compound_id = (
-                self.index_to_compoundID.get(compound_index, str(compound_index))
-                if compound_index is not None
-                else None
-            )
-            return Parameter(
-                parameterID="parameter_mole_fraction_water",
-                parameter=Parameters.MOLE_FRACTION,
-                unit=self._make_unit("1"),
-                associated_compounds=[compound_id] if compound_id else [],
-            )
-        if name == "molar_ratio_of_DES":
-            compound_id = (
-                self.index_to_compoundID.get(compound_index, str(compound_index))
-                if compound_index is not None
-                else None
-            )
-            return Parameter(
-                parameterID="parameter_molar_ratio_des",
-                parameter=Parameters.AMOUNT_RATIO_OF_SOLUTE_TO_SOLVENT,
-                unit=self._make_unit("1"),
-                associated_compounds=[compound_id] if compound_id else [],
-            )
-        # Add more parameter types as needed
-        compound_id = (
-            self.index_to_compoundID.get(compound_index, str(compound_index))
-            if compound_index is not None
-            else None
-        )
-        return Parameter(
-            parameterID=f"parameter_{name}_{idx}",
-            parameter=None,
-            unit=self._make_unit("1"),
-            associated_compounds=[compound_id] if compound_id else [],
-        )
-
-    def _make_property_value(
-        self, property_type: str, value: str, uncertainty: Optional[str]
-    ) -> PropertyValue:
-        return PropertyValue(
-            propertyID=property_type,
-            propValue=float(value),
-            uncertainty=None if uncertainty in (None, "NG") else float(uncertainty),
-        )
-
-    def _make_parameter_value(self, param: Parameter, value: str) -> ParameterValue:
-        return ParameterValue(
-            parameterID=param.parameterID, paramValue=float(value), uncertainty=None
-        )
-
-    def _calculate_mole_fractions(self, molar_ratio: float, water_fraction: float):
-        """
-        Calculate mole fractions for all three components based on DES molar ratio and water fraction.
-        Returns (x1, x2, x3) for component 1, 2, and water.
-        Ensures fractions sum to exactly 1.0 by normalizing to eliminate floating point imprecision.
-        """
-        r = molar_ratio
-        w = water_fraction
-        x3 = w
-        x1 = (r * (1 - x3)) / (r + 1)
-        x2 = (1 - x3) - x1
-
-        # Normalize to ensure exact sum of 1.0 and eliminate floating point imprecision
-        total = x1 + x2 + x3
-        x1_normalized = x1 / total
-        x2_normalized = x2 / total
-        x3_normalized = x3 / total
-
-        # Round to a reasonable precision to avoid floating point artifacts
-        # Using 12 decimal places should be sufficient for most applications
-        precision = 12
-        x1_final = round(x1_normalized, precision)
-        x2_final = round(x2_normalized, precision)
-        x3_final = round(x3_normalized, precision)
-
-        # Verify the sum is exactly 1.0 (within floating point precision)
-        sum_check = x1_final + x2_final + x3_final
-        if abs(sum_check - 1.0) > 1e-10:
-            # If rounding caused issues, adjust the largest component
-            diff = 1.0 - sum_check
-            if abs(x3_final) >= abs(x2_final) and abs(x3_final) >= abs(x1_final):
-                x3_final += diff
-            elif abs(x2_final) >= abs(x1_final):
-                x2_final += diff
-            else:
-                x1_final += diff
-
-        return x1_final, x2_final, x3_final
-
-    def populate_fluids_and_measurements(self):
-        """
-        Populate multiple fluids based on unique compositions from CML experiments and simulations.
-        Each unique composition gets its own fluid block with only the compounds present in that composition.
-        """
-        measurement_modules = self._extract_measurement_modules()
-
-        # Scan all modules to find all unique property types
-        property_types = set()
-        for exp, _ in measurement_modules:
-            props = self._extract_properties(exp)
-            if "value_viscosity" in props:
-                property_types.add("viscosity")
-            if "value_conductivity" in props:
-                property_types.add("conductivity")
-            if "value_density" in props:
-                property_types.add("density")
-
-        # Build property objects for all found types
-        property_objs = [
-            self._make_property(pt, property_type=pt) for pt in property_types
-        ]
-
-        # Group measurements by composition (unique mole fraction combinations)
-        composition_groups = {}
-
-        for exp, method_type in measurement_modules:
-            props = self._extract_properties(exp)
-            params = self._extract_parameters(exp)
-
-            mole_fraction_water = params.get("mole_fraction_of_water")
-            molar_ratio_des = params.get("molar_ratio_of_DES")
-
-            if molar_ratio_des is not None and mole_fraction_water is not None:
-                r = float(molar_ratio_des)
-                w = float(mole_fraction_water)
-                x1, x2, x3 = self._calculate_mole_fractions(r, w)
-
-                # Create composition key (rounded to 3 decimal places to group similar compositions)
-                composition_key = (round(x1, 3), round(x2, 3), round(x3, 3))
-
-                if composition_key not in composition_groups:
-                    composition_groups[composition_key] = []
-
-                composition_groups[composition_key].append(
-                    (exp, method_type, props, params)
-                )
-
-        print(f"Found {len(composition_groups)} unique compositions")
-
-        # Create a separate fluid for each unique composition
-        for composition_key, measurements in composition_groups.items():
-            x1, x2, x3 = composition_key
-
-            # Determine which compounds are present (non-zero mole fractions)
-            present_compounds = []
-            present_compound_indices = []
-
-            for i, mole_frac in enumerate([x1, x2, x3]):
-                if mole_frac > 0:  # Only include compounds with non-zero mole fractions
-                    compound_id = self.index_to_compoundID.get(i, str(i))
-                    present_compounds.append(compound_id)
-                    present_compound_indices.append(i)
-
-            print(f"Composition {composition_key}: compounds {present_compounds}")
-
-            # Create parameters only for present compounds
-            parameters = []
-
-            # Add mole fraction parameters for present compounds
-            for i in present_compound_indices:
-                compound_id = self.index_to_compoundID.get(i, str(i))
-                if i < len(self.compound_common_names):
-                    common_name = self.compound_common_names[i]
-                else:
-                    common_name = str(i)
-
-                # Clean the common name to ensure consistency with compound IDs
-                clean_name = (
-                    common_name.lower()
-                    .replace(" ", "")
-                    .replace("-", "")
-                    .replace("_", "")
-                )
-
-                param = Parameter(
-                    parameterID=f"parameter_mole_fraction_{clean_name}",
-                    parameter=Parameters.MOLE_FRACTION,
-                    unit=self._make_unit("1"),
-                    associated_compounds=[compound_id],
-                )
-                parameters.append(param)
-
-            # Add temperature parameter (always present)
-            temp_param = self._make_parameter(
-                "temperature", "298.15", len(parameters) + 1
-            )
-            parameters.append(temp_param)
-
-            # Create the fluid for this composition
-            fluid = self.document.add_to_fluid(
-                compounds=present_compounds,
-                property=property_objs,
-                parameter=parameters,
-                measurement=[],
-            )
-
-            # Add all measurements for this composition
-            for exp, method_type, props, params in measurements:
-                exp_id = props.get("ID", "unknown")
-                doi = props.get(
-                    "DOI"
-                )  # Use None if DOI is missing (consistent with Optional[str] type)
-                temperature = params.get("temperature")
-                mole_fraction_water = params.get("mole_fraction_of_water")
-                molar_ratio_des = params.get("molar_ratio_of_DES")
-
-                parameter_values = []
-
-                # Add mole fraction parameter values for present compounds
-                if molar_ratio_des is not None and mole_fraction_water is not None:
-                    r = float(molar_ratio_des)
-                    w = float(mole_fraction_water)
-                    calc_x1, calc_x2, calc_x3 = self._calculate_mole_fractions(r, w)
-                    mole_fracs = [calc_x1, calc_x2, calc_x3]
-
-                    for i in present_compound_indices:
-                        if i < len(self.compound_common_names):
-                            common_name = self.compound_common_names[i]
-                        else:
-                            common_name = str(i)
-
-                        clean_name = (
-                            common_name.lower()
-                            .replace(" ", "")
-                            .replace("-", "")
-                            .replace("_", "")
-                        )
-
-                        param_id = f"parameter_mole_fraction_{clean_name}"
-                        param = next(
-                            (p for p in parameters if p.parameterID == param_id),
-                            None,
-                        )
-                        if param:
-                            parameter_values.append(
-                                self._make_parameter_value(param, str(mole_fracs[i]))
-                            )
-
-                # Add temperature parameter value
-                if temperature is not None:
-                    temp_param = next(
-                        (
-                            p
-                            for p in parameters
-                            if p.parameterID == "parameter_temperature"
-                        ),
-                        None,
-                    )
-                    if temp_param:
-                        parameter_values.append(
-                            self._make_parameter_value(temp_param, temperature)
-                        )
-
-                # Collect property values for all present property types
-                property_values = []
-                if "value_viscosity" in props:
-                    # Convert from mPa·s to Pa·s (divide by 1000)
-                    viscosity_value_pas = float(props["value_viscosity"]) / 1000.0
-                    viscosity_uncertainty_pas = None
-                    if props.get("error_viscosity") not in (None, "NG"):
-                        viscosity_uncertainty_pas = (
-                            float(props.get("error_viscosity")) / 1000.0
-                        )
-                    property_values.append(
-                        PropertyValue(
-                            propertyID="viscosity",
-                            propValue=viscosity_value_pas,
-                            uncertainty=viscosity_uncertainty_pas,
-                        )
-                    )
-                if "value_conductivity" in props:
-                    property_values.append(
-                        self._make_property_value(
-                            "conductivity",
-                            props["value_conductivity"],
-                            props.get("error_conductivity"),
-                        )
-                    )
-                if "value_density" in props:
-                    property_values.append(
-                        self._make_property_value(
-                            "density",
-                            props["value_density"],
-                            props.get("error_density"),
-                        )
-                    )
-
-                # Set method based on method_type
-                if method_type == "EXPERIMENTAL":
-                    method = Method.MEASURED
-                    method_description = "Experimental measurement"
-                else:
-                    method = Method.SIMULATED
-                    method_description = "Simulation measurement"
-
-                fluid.add_to_measurement(
-                    measurement_id=str(uuid.uuid4()),
-                    source_doi=doi,
-                    propertyValue=property_values,
-                    parameterValue=parameter_values,
-                    method=method,
-                    method_description=method_description,
-                )
-
-    def parse(self) -> FAIRFluidsDocument:
-        self.populate_compounds()
-        self.populate_fluids_and_measurements()
-        return self.document
-
-
-def fetch_compound_from_pubchem(pubchem_id: int) -> Optional[Dict[str, Any]]:
-    """
-    Fetch compound information from PubChem using the pubChemID.
-
-    Args:
-        pubchem_id: The PubChem CID
-
-    Returns:
-        Dictionary with compound information or None if not found
-    """
-    try:
-        # Get detailed compound info using the CID
-        # Note: PubChem returns 'SMILES' not 'CanonicalSMILES', and 'IsomericSMILES' may not be available
-        info_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{pubchem_id}/property/IUPACName,MolecularFormula,MolecularWeight,SMILES,InChI,InChIKey,Title/JSON"
-        info_response = requests.get(info_url, timeout=10)
-
-        if info_response.status_code == 200:
-            data = info_response.json()
-            if (
-                "PropertyTable" in data
-                and "Properties" in data["PropertyTable"]
-                and len(data["PropertyTable"]["Properties"]) > 0
-            ):
-                info_data = data["PropertyTable"]["Properties"][0]
-
-                return {
-                    "pubChemID": pubchem_id,
-                    "commonName": info_data.get("Title", f"Compound_{pubchem_id}"),
-                    "name_IUPAC": info_data.get("IUPACName"),
-                    "smiles_code": info_data.get(
-                        "SMILES"
-                    ),  # PubChem returns 'SMILES' not 'CanonicalSMILES'
-                    "molar_weigth": info_data.get("MolecularWeight"),
-                    "standard_InChI": info_data.get("InChI"),
-                    "standard_InChI_key": info_data.get("InChIKey"),
-                    "SELFIE": None,
-                    "sigma_profile": None,
-                }
-    except Exception as e:
-        print(f"Error fetching compound from PubChem: {e}")
-        return None
-
-    return None
-
-
-def combine_compounds(
-    document: FAIRFluidsDocument,
-    old_molecules: List[int],
-    new_molecule: int,
-) -> FAIRFluidsDocument:
-    """
-    Combine separate compounds (e.g., choline chloride ions) into a single compound.
-
-    This function:
-    1. Fetches information for the new combined molecule from PubChem
-    2. Removes the old compounds from the document
-    3. Adds the new compound to the document
-    4. Updates all fluid references to use the new compound
-    5. Merges parameter values (e.g., mole fractions) for the old compounds
-    6. Removes old parameter definitions
-
-    Args:
-        document: The FAIRFluidsDocument to modify
-        old_molecules: List of pubChemIDs for the old compounds to be combined
-        new_molecule: The pubChemID for the new combined compound
-
-    Returns:
-        The modified FAIRFluidsDocument
-    """
-    print(f"=== Combining Compounds ===")
-    print(f"Old molecules (pubChemIDs): {old_molecules}")
-    print(f"New molecule (pubChemID): {new_molecule}")
-
-    # Fetch compound data from PubChem
-    new_compound_data = fetch_compound_from_pubchem(new_molecule)
-    if new_compound_data is None:
-        raise ValueError(
-            f"Could not fetch compound data from PubChem for CID {new_molecule}"
-        )
-
-    # Find old compounds to remove
-    old_compound_ids = []
-    old_compound_indices = []
-    for i, compound in enumerate(document.compound):
-        if compound.pubChemID in old_molecules:
-            old_compound_ids.append(compound.compoundID)
-            old_compound_indices.append(i)
-            print(
-                f"Found old compound to remove: {compound.compoundID} (pubChemID: {compound.pubChemID})"
-            )
-
-    if len(old_compound_ids) == 0:
-        print("Warning: No old compounds found to remove")
-        return document
-
-    # Create new compound
-    # Clean the common name to generate a consistent compoundID
-    clean_name = (
-        new_compound_data["commonName"]
-        .lower()
-        .replace(" ", "")
-        .replace("-", "")
-        .replace("_", "")
-        .replace(".", "")
-    )
-    new_compound_id = f"compound_{clean_name}"
-
-    new_compound = document.add_to_compound(
-        compoundID=new_compound_id, **new_compound_data
-    )
-
-    print(f"Created new compound: {new_compound.compoundID}")
-
-    # Remove old compounds
-    for idx in sorted(old_compound_indices, reverse=True):
-        del document.compound[idx]
-
-    # For each fluid, update compounds list and parameter values
-    for fluid in document.fluid:
-        # Update compounds list
-        compounds_list = list(fluid.compounds)
-        updated_compounds = []
-        old_compound_present = False
-
-        for comp_id in compounds_list:
-            if comp_id in old_compound_ids:
-                old_compound_present = True
-            else:
-                updated_compounds.append(comp_id)
-
-        # If any old compounds were in the fluid, replace with new compound
-        if old_compound_present:
-            updated_compounds.append(new_compound_id)
-            fluid.compounds = updated_compounds
-            print(f"Updated fluid compounds: {fluid.compounds}")
-
-        # Find parameters associated with old compounds
-        old_param_ids = []
-        for param in fluid.parameter:
-            if any(comp in old_compound_ids for comp in param.associated_compounds):
-                old_param_ids.append(param.parameterID)
-
-        # Remove old parameter definitions
-        fluid.parameter = [
-            p for p in fluid.parameter if p.parameterID not in old_param_ids
-        ]
-
-        # Add new parameter for the combined compound
-        # Check if we need to add a mole fraction parameter
-        if old_param_ids:  # If there were old parameters, add new one
-            # Get the common name for parameter ID generation
-            clean_param_name = (
-                new_compound_data["commonName"]
-                .lower()
-                .replace(" ", "")
-                .replace("-", "")
-                .replace("_", "")
-                .replace(".", "")
-            )
-
-            new_param_id = f"parameter_mole_fraction_{clean_param_name}"
-
-            # Check if this parameter already exists
-            param_exists = any(p.parameterID == new_param_id for p in fluid.parameter)
-
-            if not param_exists:
-                new_param = Parameter(
-                    parameterID=new_param_id,
-                    parameter=Parameters.MOLE_FRACTION,
-                    unit=UnitDefinition(
-                        unitID="1",
-                        name="dimensionless",
-                        base_units=[
-                            BaseUnit(symbol="1", power=1, multiplier=1.0, scale=0.0)
-                        ],
-                    ),
-                    associated_compounds=[new_compound_id],
-                )
-                fluid.parameter.append(new_param)
-                print(f"Added new parameter: {new_param_id}")
-
-        # Update measurements
-        for measurement in fluid.measurement:
-            # Find parameter values for old compounds
-            old_param_values = {}
-            param_values_to_keep = []
-
-            # Get the common name for the new parameter ID
-            clean_param_name = (
-                new_compound_data["commonName"]
-                .lower()
-                .replace(" ", "")
-                .replace("-", "")
-                .replace("_", "")
-                .replace(".", "")
-            )
-            new_param_id = f"parameter_mole_fraction_{clean_param_name}"
-
-            combined_value = 0.0
-            has_old_values = False
-
-            for pv in measurement.parameterValue:
-                if pv.parameterID in old_param_ids:
-                    combined_value += pv.paramValue or 0.0
-                    has_old_values = True
-                else:
-                    param_values_to_keep.append(pv)
-
-            # If we found old parameter values, add the combined one
-            if has_old_values:
-                # Find the parameter definition for the new parameter
-                new_param = next(
-                    (p for p in fluid.parameter if p.parameterID == new_param_id), None
-                )
-
-                if new_param:
-                    new_param_value = ParameterValue(
-                        parameterID=new_param_id,
-                        paramValue=combined_value,
-                        uncertainty=None,
-                    )
-                    param_values_to_keep.append(new_param_value)
-                    print(
-                        f"Combined mole fractions: {old_param_ids} -> {combined_value}"
-                    )
-
-            measurement.parameterValue = param_values_to_keep
-
-    print("=== Compound Combination Complete ===")
-    return document
-
-
-def calculate_ratio_of_solvent(
-    doc: FAIRFluidsDocument,
-    parameter_id_1: str,
-    parameter_id_2: str,
-    name: str,
-    compound_id_1: Optional[str] = None,
-    compound_id_2: Optional[str] = None,
-    precision: Optional[int] = None,
-) -> FAIRFluidsDocument:
-    """
-    Calculate and add solvent ratio parameter for binary solvents.
-
-    This function adds a new parameter representing the ratio of two components in a binary solvent
-    (e.g., glycerol/choline chloride ratio in glyceline). For each measurement, it calculates the
-    ratio from existing mole fraction parameters and adds it as a new parameterValue.
-
-    Args:
-        doc: The FAIRFluidsDocument to modify
-        parameter_id_1: Parameter ID for the first component (e.g., "parameter_mole_fraction_glycerol")
-        parameter_id_2: Parameter ID for the second component (e.g., "parameter_mole_fraction_cholinechloride")
-        name: Name for the new ratio parameter (e.g., "glyceline")
-        compound_id_1: Compound ID for the first component (optional)
-        compound_id_2: Compound ID for the second component (optional)
-        precision: Number of decimal places to round the ratio to (optional). If None, no rounding is applied.
-
-    Returns:
-        The modified FAIRFluidsDocument
-
-    Example:
-        doc = calculate_ratio_of_solvent(
-            doc=fairfluids_document,
-            parameter_id_1="parameter_mole_fraction_glycerol",
-            parameter_id_2="parameter_mole_fraction_cholinechloride",
-            name="glyceline",
-            compound_id_1="compound_glycerol",
-            compound_id_2="compound_cholinechloride",
-            precision=2  # Round to 2 decimal places
-        )
-    """
-    print(f"=== Calculating Solvent Ratio: {name} ===")
-    print(f"Component 1: {parameter_id_1}")
-    print(f"Component 2: {parameter_id_2}")
-    print(f"Processing {len(doc.fluid)} fluids")
-
-    # Create parameter ID for the new ratio parameter
-    new_param_id = f"parameter_solvent_ratio_{name}"
-
-    # Create associated_compounds list
-    associated_compounds_list = []
-    if compound_id_1:
-        associated_compounds_list.append(compound_id_1)
-    if compound_id_2:
-        associated_compounds_list.append(compound_id_2)
-
-    # Process each fluid in the document
-    for fluid_idx, fluid in enumerate(doc.fluid):
-        print(f"\n--- Processing Fluid {fluid_idx + 1} ---")
-
-        # Check if both required compounds are present in the fluid
-        compounds_in_fluid = set(fluid.compounds)
-
-        # Determine if we should process this fluid
-        should_process = True
-        if compound_id_1 and compound_id_1 not in compounds_in_fluid:
-            print(
-                f"Skipping fluid {fluid_idx + 1}: {compound_id_1} not in compounds list"
-            )
-            should_process = False
-        if compound_id_2 and compound_id_2 not in compounds_in_fluid:
-            print(
-                f"Skipping fluid {fluid_idx + 1}: {compound_id_2} not in compounds list"
-            )
-            should_process = False
-
-        if not should_process:
-            continue
-
-        # Check if parameter already exists in this fluid
-        param_exists = any(p.parameterID == new_param_id for p in fluid.parameter)
-
-        if not param_exists:
-            # Create new parameter with associated_compounds
-            new_param = Parameter(
-                parameterID=new_param_id,
-                parameter=Parameters.SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT,
-                unit=UnitDefinition(
-                    unitID="1",
-                    name="dimensionless",
-                    base_units=[
-                        BaseUnit(symbol="1", power=1, multiplier=1.0, scale=0.0)
-                    ],
-                ),
-                associated_compounds=associated_compounds_list,
-            )
-            fluid.parameter.append(new_param)
-            print(f"Added new parameter: {new_param_id}")
-            print(f"Associated compounds: {associated_compounds_list}")
-        else:
-            print(f"Parameter {new_param_id} already exists, skipping creation")
-
-        # Calculate ratios for each measurement in this fluid
-        for measurement in fluid.measurement:
-            # Find parameter values for both components
-            value_1 = None
-            value_2 = None
-
-            for pv in measurement.parameterValue:
-                if pv.parameterID == parameter_id_1:
-                    value_1 = pv.paramValue
-                elif pv.parameterID == parameter_id_2:
-                    value_2 = pv.paramValue
-
-            # Calculate ratio if both values exist
-            if value_1 is not None and value_2 is not None:
-                # Avoid division by zero
-                if value_2 != 0:
-                    ratio = value_1 / value_2
-
-                    # Round to specified precision if provided
-                    if precision is not None:
-                        ratio = round(ratio, precision)
-                else:
-                    ratio = float("inf") if value_1 > 0 else 0.0
-
-                print(
-                    f"Measurement {measurement.measurement_id}: ratio = {value_1} / {value_2} = {ratio}"
-                )
-
-                # Check if parameter value already exists for this measurement
-                existing_pv = next(
-                    (
-                        pv
-                        for pv in measurement.parameterValue
-                        if pv.parameterID == new_param_id
-                    ),
-                    None,
-                )
-
-                if not existing_pv:
-                    # Add new parameter value
-                    new_param_value = ParameterValue(
-                        parameterID=new_param_id,
-                        paramValue=ratio,
-                        uncertainty=None,
-                    )
-                    measurement.parameterValue.append(new_param_value)
-                    print(
-                        f"Added ratio value {ratio} to measurement {measurement.measurement_id}"
-                    )
-                else:
-                    # Update existing value
-                    existing_pv.paramValue = ratio
-                    print(
-                        f"Updated ratio value to {ratio} for measurement {measurement.measurement_id}"
-                    )
-            else:
-                if value_1 is None:
-                    print(
-                        f"Warning: {parameter_id_1} not found in measurement {measurement.measurement_id}"
-                    )
-                if value_2 is None:
-                    print(
-                        f"Warning: {parameter_id_2} not found in measurement {measurement.measurement_id}"
-                    )
-
-    print("=== Solvent Ratio Calculation Complete ===")
-    return doc
-
-
-def cleanup_orphaned_parameters(doc: FAIRFluidsDocument) -> FAIRFluidsDocument:
-    """
-    Remove parameters from fluids where the associated compounds are not in the fluid's compounds list.
-
-    This function is useful for cleaning up parameters that were incorrectly added to fluids.
-    For example, if a fluid only has water but has a glyceline ratio parameter, this will remove it.
-
-    Args:
-        doc: The FAIRFluidsDocument to clean up
-
-    Returns:
-        The cleaned FAIRFluidsDocument
-
-    Example:
-        doc = cleanup_orphaned_parameters(doc)
-    """
-    print("=== Cleaning up orphaned parameters ===")
-
-    total_removed = 0
-
-    for fluid_idx, fluid in enumerate(doc.fluid):
-        compounds_in_fluid = set(fluid.compounds)
-        params_to_remove = []
-        param_ids_to_remove = set()
-
-        for param in fluid.parameter:
-            # Check if this parameter has associated compounds
-            if hasattr(param, "associated_compounds") and param.associated_compounds:
-                # Check if ALL associated compounds are in the fluid's compounds list
-                compounds_exist = all(
-                    comp in compounds_in_fluid for comp in param.associated_compounds
-                )
-
-                if not compounds_exist:
-                    params_to_remove.append(param)
-                    param_ids_to_remove.add(param.parameterID)
-                    print(
-                        f"Fluid {fluid_idx + 1}: Removing parameter {param.parameterID}"
-                    )
-                    print(f"  Associated compounds: {param.associated_compounds}")
-                    print(f"  Fluid compounds: {list(compounds_in_fluid)}")
-
-        if params_to_remove:
-            # Remove from parameter list
-            fluid.parameter = [
-                p for p in fluid.parameter if p.parameterID not in param_ids_to_remove
-            ]
-
-            # Remove from measurements
-            for measurement in fluid.measurement:
-                measurement.parameterValue = [
-                    pv
-                    for pv in measurement.parameterValue
-                    if pv.parameterID not in param_ids_to_remove
-                ]
-
-            total_removed += len(params_to_remove)
-
-    print(f"=== Cleanup complete: removed {total_removed} orphaned parameters ===")
-    return doc
 
 
 def calculate_activationEnergy(
@@ -1357,7 +369,7 @@ def calculate_activationEnergy(
                 Parameters.SOLVENT_AMOUNT_RATIO_OF_COMPONENT_TO_OTHER_COMPONENT_OF_BINARY_SOLVENT
             )
             for param in fluid.parameter:
-                if param.parameter and param.parameter == target_param_type:
+                if param.parameters and param.parameters == target_param_type:
                     solvent_ratio_param_ids.append(param.parameterID)
 
             if not solvent_ratio_param_ids:
@@ -1388,7 +400,7 @@ def calculate_activationEnergy(
         if per_source:
             # Group by fluid AND source_doi
             # Process measurements and group by source_doi within this fluid
-            for measurement in fluid.measurement:
+            for measurement in _get_measurements(fluid):
                 # Apply solvent ratio filter if specified
                 if not matches_solvent_ratio_filter(measurement):
                     continue
@@ -1404,11 +416,11 @@ def calculate_activationEnergy(
 
                 for param_val in measurement.parameterValue:
                     param_def = parameter_lookup.get(param_val.parameterID)
-                    if param_def and param_def.parameter:
+                    if param_def and param_def.parameters:
                         param_name = str(
-                            param_def.parameter.value
-                            if hasattr(param_def.parameter, "value")
-                            else param_def.parameter
+                            param_def.parameters.value
+                            if hasattr(param_def.parameters, "value")
+                            else param_def.parameters
                         )
                         if (
                             "temperature" in param_name.lower()
@@ -1442,11 +454,11 @@ def calculate_activationEnergy(
                     if not grouped_data[group_id]["mole_fractions"]:
                         for param_val in measurement.parameterValue:
                             param_def = parameter_lookup.get(param_val.parameterID)
-                            if param_def and param_def.parameter:
+                            if param_def and param_def.parameters:
                                 param_name = str(
-                                    param_def.parameter.value
-                                    if hasattr(param_def.parameter, "value")
-                                    else param_def.parameter
+                                    param_def.parameters.value
+                                    if hasattr(param_def.parameters, "value")
+                                    else param_def.parameters
                                 )
                                 if (
                                     "mole fraction" in param_name.lower()
@@ -1465,7 +477,7 @@ def calculate_activationEnergy(
             # Group by fluid only (use all measurements from this fluid regardless of source_doi)
             group_id = base_group_id
 
-            for measurement in fluid.measurement:
+            for measurement in _get_measurements(fluid):
                 # Apply solvent ratio filter if specified
                 if not matches_solvent_ratio_filter(measurement):
                     continue
@@ -1476,11 +488,11 @@ def calculate_activationEnergy(
 
                 for param_val in measurement.parameterValue:
                     param_def = parameter_lookup.get(param_val.parameterID)
-                    if param_def and param_def.parameter:
+                    if param_def and param_def.parameters:
                         param_name = str(
-                            param_def.parameter.value
-                            if hasattr(param_def.parameter, "value")
-                            else param_def.parameter
+                            param_def.parameters.value
+                            if hasattr(param_def.parameters, "value")
+                            else param_def.parameters
                         )
                         if (
                             "temperature" in param_name.lower()
@@ -1514,11 +526,11 @@ def calculate_activationEnergy(
                     if not grouped_data[group_id]["mole_fractions"]:
                         for param_val in measurement.parameterValue:
                             param_def = parameter_lookup.get(param_val.parameterID)
-                            if param_def and param_def.parameter:
+                            if param_def and param_def.parameters:
                                 param_name = str(
-                                    param_def.parameter.value
-                                    if hasattr(param_def.parameter, "value")
-                                    else param_def.parameter
+                                    param_def.parameters.value
+                                    if hasattr(param_def.parameters, "value")
+                                    else param_def.parameters
                                 )
                                 if (
                                     "mole fraction" in param_name.lower()
@@ -1670,3 +682,1414 @@ def calculate_activationEnergy(
         return df
 
     return results
+
+
+def group_and_filter_measurements(
+    df: pd.DataFrame,
+    group_key: str = "source_doi",
+    composition_filters: Optional[Dict[str, Union[float, Tuple[float, float]]]] = None,
+    filter_before_grouping: bool = True,
+    aggregations: Optional[Dict[str, Union[str, List[str]]]] = None,
+    tolerance: float = 1e-6,
+    dropna_group_key: bool = False,
+) -> Union[pd.DataFrame, Any]:
+    """
+    Group measurement data by a key (e.g. DOI) with optional mole-fraction filters.
+
+    This utility is intended for FAIRFluids DataFrames and supports both workflows:
+    1) Filter composition first, then group by DOI
+    2) Group by DOI first, then apply composition filter inside each DOI
+
+    Args:
+        df: Input DataFrame (e.g. output from visualization/filter utilities)
+        group_key: Column name used for grouping (default: "source_doi")
+        composition_filters: Dictionary of composition filters. Each key is a column
+            name (e.g. "mole_fraction_water"). Value can be:
+              - float: exact match within tolerance
+              - (min, max): inclusive interval
+        filter_before_grouping: If True, apply composition filters before grouping.
+            If False, create groups first and then keep filtered rows within each group.
+        aggregations: Optional pandas aggregation mapping. If provided, returns
+            aggregated DataFrame. If None, returns a GroupBy object.
+        tolerance: Absolute tolerance for exact-value composition filters.
+        dropna_group_key: Passed to pandas groupby(dropna=...).
+
+    Returns:
+        If aggregations is None: pandas GroupBy object.
+        If aggregations is provided: aggregated DataFrame with reset index.
+    """
+    if group_key not in df.columns:
+        raise ValueError(
+            f"Group key '{group_key}' not found. Available columns: {list(df.columns)}"
+        )
+
+    def _apply_composition_filters(frame: pd.DataFrame) -> pd.DataFrame:
+        if not composition_filters:
+            return frame
+
+        filtered = frame.copy()
+        for column, selector in composition_filters.items():
+            if column not in filtered.columns:
+                raise ValueError(
+                    f"Composition column '{column}' not found. "
+                    f"Available columns: {list(filtered.columns)}"
+                )
+
+            if isinstance(selector, tuple):
+                if len(selector) != 2:
+                    raise ValueError(
+                        f"Range filter for '{column}' must be a (min, max) tuple."
+                    )
+                lower, upper = selector
+                filtered = filtered[
+                    filtered[column].between(lower, upper, inclusive="both")
+                ]
+            else:
+                filtered = filtered[
+                    (filtered[column] - float(selector)).abs() <= tolerance
+                ]
+
+        return filtered
+
+    if filter_before_grouping:
+        working_df = _apply_composition_filters(df)
+        grouped = working_df.groupby(group_key, dropna=dropna_group_key)
+    else:
+        grouped = df.groupby(group_key, dropna=dropna_group_key)
+        if composition_filters:
+            grouped_frames = [
+                _apply_composition_filters(group_frame) for _, group_frame in grouped
+            ]
+            grouped_frames = [g for g in grouped_frames if not g.empty]
+            if grouped_frames:
+                working_df = pd.concat(grouped_frames, ignore_index=True)
+            else:
+                working_df = df.iloc[0:0].copy()
+            grouped = working_df.groupby(group_key, dropna=dropna_group_key)
+
+    if aggregations is None:
+        return grouped
+
+    return grouped.agg(aggregations).reset_index()
+
+
+def extract_property_dataframe(
+    doc: FAIRFluidsDocument,
+    property_type: str,
+    components: Optional[List[str]] = None,
+    target_ratio: Optional[float] = None,
+    ratio_column: str = "Solvent: Amount ratio of component to other component of binary solvent",
+    exact_component_match: bool = False,
+    ratio_tolerance: float = 1e-6,
+    include_na_ratio: bool = True,
+    sort_by: Optional[str] = "temperature",
+    ascending: bool = True,
+    keep_only_relevant_columns: bool = True,
+) -> pd.DataFrame:
+    """
+    Build a filtered DataFrame for a selected property, components, and optional ratio.
+
+    Args:
+        doc: FAIRFluids document.
+        property_type: Property to select (e.g., "viscosity", "thermalConductivity", "density").
+        components: Optional component names to filter for (case-insensitive). If provided:
+            - exact_component_match=False: all listed components must be present
+            - exact_component_match=True: fluid must contain exactly this set of components
+        target_ratio: Optional numeric ratio value to filter by using ``ratio_column``.
+        ratio_column: Column name for ratio filtering.
+        exact_component_match: Whether component filtering should be exact set matching.
+        ratio_tolerance: Absolute tolerance for numeric ratio comparison.
+        include_na_ratio: If True and target_ratio is provided, keep rows where
+            ratio_column is missing/NA in addition to matching target_ratio.
+        sort_by: Optional column to sort by.
+        ascending: Sort direction.
+        keep_only_relevant_columns: If True, returns only a compact set of columns:
+            fluid_compounds, mole_fractions, <property>_value, <property>_uncertainty,
+            temperature, source_doi, ratio_column, mole_fraction_water (if available).
+
+    Returns:
+        Filtered pandas DataFrame.
+    """
+    from .visualization import extract_fairfluids_data
+
+    df = extract_fairfluids_data(doc)
+    if df.empty:
+        return df
+
+    # Keep only selected property type
+    if "property_type" not in df.columns:
+        raise ValueError(
+            "Column 'property_type' missing in extracted data. "
+            "Please verify extract_fairfluids_data output."
+        )
+    df = df[df["property_type"] == property_type].copy()
+    if df.empty:
+        return df
+
+    # Build/refresh mole fraction columns dynamically from fluid_compounds + mole_fractions
+    if "fluid_compounds" in df.columns and "mole_fractions" in df.columns:
+        all_compounds = set()
+        for comp_list in df["fluid_compounds"]:
+            if isinstance(comp_list, list):
+                all_compounds.update([str(c) for c in comp_list])
+
+        for compound in sorted(all_compounds):
+            col_name = f"mole_fraction_{compound}"
+
+            def _extract_compound_fraction(row, target_compound=compound):
+                comps = row.get("fluid_compounds")
+                fracs = row.get("mole_fractions")
+                if not isinstance(comps, list) or not isinstance(fracs, (list, tuple)):
+                    return np.nan
+                for idx, comp in enumerate(comps):
+                    if str(comp).strip().lower() == target_compound.strip().lower():
+                        return fracs[idx] if idx < len(fracs) else np.nan
+                return np.nan
+
+            df[col_name] = df.apply(_extract_compound_fraction, axis=1)
+
+    # Component filtering
+    if components:
+        requested = [str(c).strip().lower() for c in components]
+
+        def _matches_components(comp_list):
+            if not isinstance(comp_list, list):
+                return False
+            available = [str(c).strip().lower() for c in comp_list]
+            if exact_component_match:
+                return set(available) == set(requested)
+            return all(c in available for c in requested)
+
+        df = df[df["fluid_compounds"].apply(_matches_components)].copy()
+        if df.empty:
+            return df
+
+    # Ratio filtering
+    if target_ratio is not None:
+        if ratio_column not in df.columns:
+            raise ValueError(
+                f"Ratio column '{ratio_column}' not found. Available columns: {list(df.columns)}"
+            )
+        ratio_numeric = pd.to_numeric(df[ratio_column], errors="coerce")
+        ratio_match = (ratio_numeric - float(target_ratio)).abs() <= ratio_tolerance
+        if include_na_ratio:
+            ratio_missing = ratio_numeric.isna()
+            # Keep rows with requested ratio OR missing ratio values (NA).
+            df = df[ratio_match | ratio_missing].copy()
+        else:
+            df = df[ratio_match].copy()
+
+    # Optional sort
+    if sort_by and sort_by in df.columns:
+        df = df.sort_values(by=sort_by, ascending=ascending)
+
+    # Add a robust water mole fraction helper column if composition data is available
+    if "fluid_compounds" in df.columns and "mole_fractions" in df.columns:
+
+        def _extract_water_fraction(row):
+            comps = row.get("fluid_compounds")
+            fracs = row.get("mole_fractions")
+            if not isinstance(comps, list) or not isinstance(fracs, (list, tuple)):
+                return np.nan
+            for idx, comp in enumerate(comps):
+                comp_name = str(comp).strip().lower()
+                if comp_name in {"water", "h2o"}:
+                    return fracs[idx] if idx < len(fracs) else np.nan
+            return np.nan
+
+        df["mole_fraction_water"] = df.apply(_extract_water_fraction, axis=1)
+
+    if keep_only_relevant_columns:
+        property_value_col = f"{property_type}_value"
+        property_uncertainty_col = f"{property_type}_uncertainty"
+        desired_columns = [
+            "fluid_compounds",
+            "mole_fractions",
+            property_value_col,
+            property_uncertainty_col,
+            "temperature",
+            "source_doi",
+            ratio_column,
+            "mole_fraction_water",
+        ]
+        existing_columns = [col for col in desired_columns if col in df.columns]
+        df = df[existing_columns].copy()
+
+    return df
+
+
+def fit_arrhenius(
+    df: pd.DataFrame,
+    viscosity_col: str = "viscosity_value",
+    temperature_col: str = "temperature",
+    doi_col: str = "source_doi",
+    molefractions_col: str = "mole_fractions",
+    include_water_mole_fraction: bool = False,
+    water_col: str = "mole_fraction_water",
+    t_range: Optional[Tuple[float, float]] = None,
+    show_plot: bool = False,
+    plot_figsize: Tuple[float, float] = (8, 5),
+    plot_color_by: str = "source_doi",
+    plot_cmap: str = "Blues",
+    doi_plot_styles: Optional[dict[str, dict[str, str]]] = None,
+    min_points: int = 2,
+    molefrac_round: int = 6,
+    log_base: str = "ln",
+    viscosity_uncertainty_col: Optional[str] = None,
+) -> pd.DataFrame:
+    """
+    Fit Arrhenius model per (DOI, mole-fraction) group on a DataFrame.
+
+    Grouping order:
+      1) source_doi
+      2) mole_fractions
+
+    Arrhenius form (fit axis x = 1/(R*T)):
+      - ln(eta) = ln(As) + Ea * x
+
+    Args:
+        df: Input DataFrame containing viscosity/temperature/grouping columns.
+        viscosity_col: Column with viscosity values (must be > 0).
+        temperature_col: Column with absolute temperature in K (must be > 0).
+        doi_col: Column used as first-level group key.
+        molefractions_col: Column with sequence-like mole fractions (list/tuple).
+        include_water_mole_fraction: If True, include water mole fraction per fitted
+            group in result column ``mole_fraction_water``.
+        water_col: Column name used when water mole fraction already exists in input.
+        t_range: Optional inclusive temperature window in Kelvin as (T_min, T_max).
+            Only points within this range are used for fitting.
+        show_plot: If True, show a per-group Arrhenius fit plot for inspection.
+        plot_figsize: Figure size used for inspection plots.
+        plot_color_by: Color mapping for plots ("source_doi" or "mole_fraction_water").
+        plot_cmap: Colormap used when plot_color_by="mole_fraction_water".
+        doi_plot_styles: Optional custom style mapping for DOI-based plotting.
+            Expected shape: {"doi": {"color": "#hex", "marker": "o"}, ...}.
+            Used only when plot_color_by="source_doi"; missing entries fall back
+            to deterministic default color and marker "o".
+        min_points: Minimum number of points required per group for fitting.
+        molefrac_round: Decimal rounding for stable mole-fraction grouping.
+        log_base: Must be "ln". Other values are not supported.
+        viscosity_uncertainty_col: Optionally, column name for viscosity uncertainty. Can be NaN/nonexistent.
+
+    Returns:
+        DataFrame with one row per fitted group and columns:
+            - source_doi
+            - mole_fractions
+            - n_points
+            - lnAs
+            - As
+            - Ea_J_mol
+            - Ea_kJ_mol
+            - lnAs_std
+            - As_std
+            - Ea_J_mol_std
+            - Ea_kJ_mol_std
+            - R_squared
+            - slope
+            - intercept
+            - slope_std
+            - intercept_std
+            - T_min
+            - T_max
+            - viscosity_uncertainty (may be NaN if not available)
+    """
+    required_cols = [viscosity_col, temperature_col, doi_col, molefractions_col]
+    missing_cols = [c for c in required_cols if c not in df.columns]
+    if missing_cols:
+        raise ValueError(
+            f"Missing required columns for fit_arrhenius: {missing_cols}. "
+            f"Available columns: {list(df.columns)}"
+        )
+
+    R = 8.314462618  # J/(mol*K)
+
+    work = df.copy()
+    work[viscosity_col] = pd.to_numeric(work[viscosity_col], errors="coerce")
+    work[temperature_col] = pd.to_numeric(work[temperature_col], errors="coerce")
+
+    if viscosity_uncertainty_col and viscosity_uncertainty_col in work.columns:
+        work[viscosity_uncertainty_col] = pd.to_numeric(
+            work[viscosity_uncertainty_col], errors="coerce"
+        )
+
+    work = work[
+        work[viscosity_col].notna()
+        & work[temperature_col].notna()
+        & work[doi_col].notna()
+        & (work[viscosity_col] > 0)
+        & (work[temperature_col] > 0)
+    ].copy()
+
+    if t_range is not None:
+        if not isinstance(t_range, (list, tuple)) or len(t_range) != 2:
+            raise ValueError(
+                "t_range must be a tuple/list with two values: (T_min, T_max)."
+            )
+        t_min, t_max = float(t_range[0]), float(t_range[1])
+        if t_min > t_max:
+            raise ValueError(
+                f"Invalid t_range: T_min ({t_min}) must be <= T_max ({t_max})."
+            )
+        work = work[
+            work[temperature_col].between(t_min, t_max, inclusive="both")
+        ].copy()
+
+    if include_water_mole_fraction and water_col not in work.columns:
+        if "fluid_compounds" in work.columns:
+
+            def _derive_water_fraction(row):
+                fracs = row.get(molefractions_col)
+                comps = row.get("fluid_compounds")
+                if not isinstance(fracs, (list, tuple, np.ndarray)):
+                    return np.nan
+                if isinstance(comps, list):
+                    for idx, comp in enumerate(comps):
+                        if str(comp).strip().lower() in {"water", "h2o"}:
+                            return fracs[idx] if idx < len(fracs) else np.nan
+                return np.nan
+
+            work[water_col] = work.apply(_derive_water_fraction, axis=1)
+
+    def _normalize_molefractions(mf: Any):
+        if isinstance(mf, (list, tuple, np.ndarray)):
+            try:
+                return tuple(round(float(x), molefrac_round) for x in mf)
+            except (TypeError, ValueError):
+                return np.nan
+        return np.nan
+
+    work["_mf_key"] = work[molefractions_col].apply(_normalize_molefractions)
+    work = work[work["_mf_key"].notna()].copy()
+
+    if log_base != "ln":
+        raise ValueError(
+            "fit_arrhenius supports only natural logarithm. "
+            "Please set log_base='ln'."
+        )
+
+    results = []
+    grouped = list(work.groupby([doi_col, "_mf_key"], dropna=False))
+    if show_plot:
+        import matplotlib.pyplot as plt
+        from matplotlib import colors as mcolors
+        from matplotlib.lines import Line2D
+
+        fig, ax = plt.subplots(figsize=plot_figsize)
+        cmap = plt.get_cmap(plot_cmap)
+        water_for_color = (
+            pd.to_numeric(work[water_col], errors="coerce")
+            if water_col in work.columns
+            else pd.Series(dtype=float)
+        )
+        has_water_colors = not water_for_color.empty and water_for_color.notna().any()
+        if has_water_colors:
+            w_min = float(water_for_color.min())
+            w_max = float(water_for_color.max())
+            if np.isclose(w_min, w_max):
+                w_min = max(0.0, w_min - 1e-6)
+                w_max = min(1.0, w_max + 1e-6)
+            norm = mcolors.Normalize(vmin=w_min, vmax=w_max)
+        else:
+            norm = None
+
+        if plot_color_by not in {"source_doi", "mole_fraction_water"}:
+            raise ValueError(
+                "plot_color_by must be 'source_doi' or 'mole_fraction_water'."
+            )
+
+        def _doi_style(doi_value: Any) -> dict[str, str]:
+            doi_str = str(doi_value)
+            if doi_plot_styles:
+                if doi_str not in doi_plot_styles:
+                    raise ValueError(
+                        "Custom 'doi_plot_styles' is missing an entry for DOI: "
+                        f"{doi_str}"
+                    )
+            return _get_doi_plot_style(doi_str, custom_styles=doi_plot_styles)
+
+        def _group_color(doi_value, group_frame):
+            if plot_color_by == "source_doi":
+                return _doi_style(doi_value)["color"]
+            water_values = (
+                pd.to_numeric(group_frame[water_col], errors="coerce").dropna()
+                if water_col in group_frame.columns
+                else pd.Series(dtype=float)
+            )
+            water_value = (
+                float(water_values.iloc[0]) if not water_values.empty else np.nan
+            )
+            if has_water_colors and np.isfinite(water_value):
+                return cmap(norm(water_value))
+            return "#9aa0a6"
+
+    for group_idx, ((doi, mf_key), group) in enumerate(grouped):
+        # Fit on inverse thermal energy axis: x = 1 / (R*T)
+        x_model = 1.0 / (R * group[temperature_col].to_numpy(dtype=float))
+        # Plot on the same axis convention as plot_viscosity: 1000/(R*T)
+        x_plot = 1000.0 * x_model
+
+        y = np.log(group[viscosity_col].to_numpy(dtype=float))
+        y_label = "ln(eta)"
+
+        if len(group) < min_points:
+            if show_plot:
+                doi_style = _doi_style(doi)
+                color = _group_color(doi, group)
+                ax.scatter(
+                    x_plot,
+                    y,
+                    s=35,
+                    alpha=0.8,
+                    color=color,
+                    marker=doi_style["marker"],
+                    edgecolor="black",
+                    linewidth=0.3,
+                )
+                ax.scatter(
+                    x_plot,
+                    y,
+                    s=45,
+                    alpha=0.9,
+                    color=color,
+                    marker=doi_style["marker"],
+                )
+            continue
+
+        # Ordinary least squares (OLS) fit on ln(eta) vs 1/(R*T).
+        slope_std = np.nan
+        intercept_std = np.nan
+        slope, intercept = np.polyfit(x_model, y, 1)
+        # Approximate parameter standard deviations from covariance (if estimable).
+        try:
+            _, cov = np.polyfit(x_model, y, 1, cov=True)
+            slope_std = (
+                float(np.sqrt(cov[0, 0])) if np.isfinite(cov[0, 0]) else np.nan
+            )
+            intercept_std = (
+                float(np.sqrt(cov[1, 1])) if np.isfinite(cov[1, 1]) else np.nan
+            )
+        except (TypeError, ValueError, np.linalg.LinAlgError):
+            slope_std = np.nan
+            intercept_std = np.nan
+        # With x = 1/(R*T), slope directly equals Ea [J/mol].
+        ea_j_mol = slope
+        log_as = intercept  # ln(As)
+        as_value = np.exp(intercept)
+        ea_j_mol_std = slope_std if np.isfinite(slope_std) else np.nan
+        ea_kj_mol_std = ea_j_mol_std / 1000.0 if np.isfinite(ea_j_mol_std) else np.nan
+        ln_as_std = intercept_std if np.isfinite(intercept_std) else np.nan
+        as_std = as_value * ln_as_std if np.isfinite(ln_as_std) else np.nan
+
+        y_pred = slope * x_model + intercept
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        r_squared = np.nan if ss_tot == 0 else 1.0 - (ss_res / ss_tot)
+
+        # A) Uncertainty handling for DataFrame output:
+        viscosity_uncertainty = np.nan
+        if viscosity_uncertainty_col and viscosity_uncertainty_col in group.columns:
+            unc_vals = pd.to_numeric(
+                group[viscosity_uncertainty_col], errors="coerce"
+            ).dropna()
+            if not unc_vals.empty:
+                # Use mean (could choose min, max, or first too), but document
+                viscosity_uncertainty = float(unc_vals.mean())
+            else:
+                viscosity_uncertainty = np.nan
+
+        row = {
+            "source_doi": doi,
+            "mole_fractions": mf_key,
+            "n_points": len(group),
+            "lnAs": log_as,
+            "As": as_value,
+            "Ea_J_mol": ea_j_mol,
+            "Ea_kJ_mol": ea_j_mol / 1000.0,
+            "lnAs_std": ln_as_std,
+            "As_std": as_std,
+            "Ea_J_mol_std": ea_j_mol_std,
+            "Ea_kJ_mol_std": ea_kj_mol_std,
+            "R_squared": r_squared,
+            "slope": slope,
+            "intercept": intercept,
+            "slope_std": slope_std,
+            "intercept_std": intercept_std,
+            "T_min": float(group[temperature_col].min()),
+            "T_max": float(group[temperature_col].max()),
+        }
+        if viscosity_uncertainty_col:
+            row["viscosity_uncertainty"] = viscosity_uncertainty
+        if include_water_mole_fraction and water_col in group.columns:
+            water_values = pd.to_numeric(group[water_col], errors="coerce").dropna()
+            row["mole_fraction_water"] = (
+                float(water_values.iloc[0]) if not water_values.empty else np.nan
+            )
+
+        results.append(row)
+
+        # B) Plotting: Only plot error bars if uncertainty is present and not NaN for each point
+        if show_plot:
+            doi_style = _doi_style(doi)
+            color = _group_color(doi, group)
+            marker = doi_style["marker"] if plot_color_by == "source_doi" else "o"
+            x_fit_plot = np.linspace(np.min(x_plot), np.max(x_plot), 100)
+            y_fit = slope * (x_fit_plot / 1000.0) + intercept
+
+            if viscosity_uncertainty_col and viscosity_uncertainty_col in group.columns:
+                # Convert uncertainty to array (log space error propagation)
+                unc_vec = pd.to_numeric(
+                    group[viscosity_uncertainty_col], errors="coerce"
+                ).to_numpy()
+                # propagate to ln space: d(ln(eta)) = d(eta)/eta
+                visc_arr = group[viscosity_col].to_numpy(dtype=float)
+                dy = np.divide(
+                    unc_vec,
+                    visc_arr,
+                    out=np.full_like(unc_vec, np.nan),
+                    where=visc_arr != 0,
+                )
+                # Only plot errorbars for points where dy is finite
+                mask_valid = np.isfinite(dy) & np.isfinite(x_plot) & np.isfinite(y)
+                if np.any(mask_valid):
+                    ax.errorbar(
+                        x_plot[mask_valid],
+                        y[mask_valid],
+                        yerr=dy[mask_valid],
+                        fmt=marker,
+                        ms=4,
+                        alpha=0.8,
+                        color=color,
+                        ecolor=color,
+                        elinewidth=1.2,
+                        capsize=3,
+                        capthick=1,
+                        markeredgecolor="black",
+                        markeredgewidth=0.2,
+                        label=None if plot_color_by == "source_doi" else None,
+                        zorder=11,
+                    )
+                if np.any(~mask_valid):
+                    ax.scatter(
+                        x_plot[~mask_valid],
+                        y[~mask_valid],
+                        s=30,
+                        alpha=0.8,
+                        color=color,
+                        marker=marker,
+                        edgecolor="black",
+                        linewidth=0.2,
+                        zorder=10,
+                    )
+            else:
+                ax.scatter(
+                    x_plot,
+                    y,
+                    s=30,
+                    alpha=0.8,
+                    color=color,
+                    marker=marker,
+                    edgecolor="black",
+                    linewidth=0.2,
+                    zorder=10,
+                )
+            ax.plot(
+                x_fit_plot, y_fit, linestyle="--", linewidth=1.8, color=color, zorder=5
+            )
+
+    result_df = pd.DataFrame(results)
+    if show_plot:
+        ax.set_title(r"Plot of ln($\eta$) vs (RT)$^{-1}$")
+        ax.set_xlabel(r"(RT)$^{-1}$ / mol kJ$^{-1}$")
+        ax.set_ylabel(r"ln($\eta$ / $Pa \cdot s$)")
+        ax.grid(alpha=0.2)
+        if plot_color_by == "source_doi":
+            doi_values = sorted(work[doi_col].dropna().astype(str).unique())
+            handles = [
+                Line2D(
+                    [0],
+                    [0],
+                    marker=_doi_style(doi)["marker"],
+                    linestyle="None",
+                    markerfacecolor=_doi_style(doi)["color"],
+                    markeredgecolor="black",
+                    markeredgewidth=0.3,
+                    markersize=6,
+                    label=doi,
+                )
+                for doi in doi_values
+            ]
+            ax.legend(
+                handles=handles,
+                title="DOI",
+                bbox_to_anchor=(1.02, 1),
+                loc="upper left",
+                fontsize=8,
+                title_fontsize=9,
+            )
+        elif plot_color_by == "mole_fraction_water" and has_water_colors:
+            sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax, pad=0.01)
+            cbar.set_label("Water mole fraction")
+        plt.tight_layout()
+        plt.show()
+    if not result_df.empty:
+        result_df = result_df.sort_values(
+            by=["source_doi", "mole_fractions"]
+        ).reset_index(drop=True)
+    return result_df
+
+
+def fit_extended_arrhenius(
+    df: pd.DataFrame,
+    k_col: str = "viscosity_value",
+    temperature_col: str = "temperature",
+    doi_col: str = "source_doi",
+    molefractions_col: str = "mole_fractions",
+    include_water_mole_fraction: bool = False,
+    water_col: str = "mole_fraction_water",
+    t_range: Optional[Tuple[float, float]] = None,
+    show_plot: bool = False,
+    plot_figsize: Tuple[float, float] = (8, 5),
+    plot_color_by: str = "source_doi",
+    plot_cmap: str = "Blues",
+    min_points: int = 3,
+    molefrac_round: int = 6,
+) -> pd.DataFrame:
+    """
+    Fit extended Arrhenius model for viscosity eta per (DOI, mole-fraction) group on a DataFrame.
+
+    Model:
+        eta = B * T^n * exp(Ea / (R*T))
+
+    Linearized form used for fitting:
+        ln(eta) = ln(B) + n*ln(T) + Ea/(R*T)
+
+    Grouping order:
+      1) source_doi
+      2) mole_fractions
+
+    Args:
+        df: Input DataFrame containing viscosity/temperature/grouping columns.
+        k_col: Column with positive viscosity values (eta).
+        temperature_col: Column with absolute temperature in K (must be > 0).
+        doi_col: Column used as first-level group key.
+        molefractions_col: Column with sequence-like mole fractions (list/tuple).
+        include_water_mole_fraction: If True, include water mole fraction per fitted
+            group in result column ``mole_fraction_water``.
+        water_col: Column name used when water mole fraction already exists in input.
+        t_range: Optional inclusive temperature window in Kelvin as (T_min, T_max).
+            Only points within this range are used for fitting.
+        show_plot: If True, show a combined plot with all group fits.
+        plot_figsize: Figure size used for inspection plots.
+        plot_color_by: Color mapping for plots ("source_doi" or "mole_fraction_water").
+        plot_cmap: Colormap used when plot_color_by="mole_fraction_water".
+        min_points: Minimum number of points required per group for fitting.
+            For this model, at least 3 points are recommended.
+        molefrac_round: Decimal rounding for stable mole-fraction grouping.
+
+    Returns:
+        DataFrame with one row per fitted group and columns:
+            - source_doi
+            - mole_fractions
+            - n_points
+            - B
+            - n
+            - Ea_J_mol
+            - Ea_kJ_mol
+            - R_squared
+            - lnB
+            - T_min
+            - T_max
+            - mole_fraction_water (optional)
+    """
+    required_cols = [k_col, temperature_col, doi_col, molefractions_col]
+    missing_cols = [c for c in required_cols if c not in df.columns]
+    if missing_cols:
+        raise ValueError(
+            f"Missing required columns for fit_extended_arrhenius: {missing_cols}. "
+            f"Available columns: {list(df.columns)}"
+        )
+
+    R = 8.314462618  # J/(mol*K)
+
+    work = df.copy()
+    work[k_col] = pd.to_numeric(work[k_col], errors="coerce")
+    work[temperature_col] = pd.to_numeric(work[temperature_col], errors="coerce")
+
+    work = work[
+        work[k_col].notna()
+        & work[temperature_col].notna()
+        & work[doi_col].notna()
+        & (work[k_col] > 0)
+        & (work[temperature_col] > 0)
+    ].copy()
+
+    if t_range is not None:
+        if not isinstance(t_range, (list, tuple)) or len(t_range) != 2:
+            raise ValueError(
+                "t_range must be a tuple/list with two values: (T_min, T_max)."
+            )
+        t_min, t_max = float(t_range[0]), float(t_range[1])
+        if t_min > t_max:
+            raise ValueError(
+                f"Invalid t_range: T_min ({t_min}) must be <= T_max ({t_max})."
+            )
+        work = work[
+            work[temperature_col].between(t_min, t_max, inclusive="both")
+        ].copy()
+
+    if include_water_mole_fraction and water_col not in work.columns:
+        if "fluid_compounds" in work.columns:
+
+            def _derive_water_fraction(row):
+                fracs = row.get(molefractions_col)
+                comps = row.get("fluid_compounds")
+                if not isinstance(fracs, (list, tuple, np.ndarray)):
+                    return np.nan
+                if isinstance(comps, list):
+                    for idx, comp in enumerate(comps):
+                        if str(comp).strip().lower() in {"water", "h2o"}:
+                            return fracs[idx] if idx < len(fracs) else np.nan
+                return np.nan
+
+            work[water_col] = work.apply(_derive_water_fraction, axis=1)
+
+    def _normalize_molefractions(mf: Any):
+        if isinstance(mf, (list, tuple, np.ndarray)):
+            try:
+                return tuple(round(float(x), molefrac_round) for x in mf)
+            except (TypeError, ValueError):
+                return np.nan
+        return np.nan
+
+    work["_mf_key"] = work[molefractions_col].apply(_normalize_molefractions)
+    work = work[work["_mf_key"].notna()].copy()
+
+    results = []
+    grouped = list(work.groupby([doi_col, "_mf_key"], dropna=False))
+    if show_plot:
+        import matplotlib.pyplot as plt
+        from matplotlib import colors as mcolors
+        from matplotlib.lines import Line2D
+
+        fig, ax = plt.subplots(figsize=plot_figsize)
+        cmap = plt.get_cmap(plot_cmap)
+        water_for_color = (
+            pd.to_numeric(work[water_col], errors="coerce")
+            if water_col in work.columns
+            else pd.Series(dtype=float)
+        )
+        has_water_colors = not water_for_color.empty and water_for_color.notna().any()
+        if has_water_colors:
+            w_min = float(water_for_color.min())
+            w_max = float(water_for_color.max())
+            if np.isclose(w_min, w_max):
+                w_min = max(0.0, w_min - 1e-6)
+                w_max = min(1.0, w_max + 1e-6)
+            norm = mcolors.Normalize(vmin=w_min, vmax=w_max)
+        else:
+            norm = None
+
+        if plot_color_by not in {"source_doi", "mole_fraction_water"}:
+            raise ValueError(
+                "plot_color_by must be 'source_doi' or 'mole_fraction_water'."
+            )
+
+        def _group_color(doi_value, group_frame):
+            if plot_color_by == "source_doi":
+                return _string_to_hex_color(str(doi_value))
+            water_values = (
+                pd.to_numeric(group_frame[water_col], errors="coerce").dropna()
+                if water_col in group_frame.columns
+                else pd.Series(dtype=float)
+            )
+            water_value = (
+                float(water_values.iloc[0]) if not water_values.empty else np.nan
+            )
+            if has_water_colors and np.isfinite(water_value):
+                return cmap(norm(water_value))
+            return "#9aa0a6"
+
+    for group_idx, ((doi, mf_key), group) in enumerate(grouped):
+        t = group[temperature_col].to_numpy(dtype=float)
+        k = group[k_col].to_numpy(dtype=float)
+
+        # Linear model: y = a0 + a1*x1 + a2*x2
+        # y = ln(eta), x1 = ln(T), x2 = 1/T
+        y = np.log(k)
+
+        if len(group) < min_points:
+            if show_plot:
+                color = _group_color(doi, group)
+                x_plot = 1.0 / (R * t)
+                ax.scatter(
+                    x_plot,
+                    y,
+                    s=45,
+                    alpha=0.9,
+                    color=color,
+                    marker="x",
+                )
+            continue
+
+        x1 = np.log(t)
+        x2 = 1.0 / t
+        x = np.column_stack([np.ones_like(t), x1, x2])
+
+        coeffs, _, _, _ = np.linalg.lstsq(x, y, rcond=None)
+        ln_b, n_value, coeff_inv_t = coeffs
+
+        # coeff_inv_t = Ea/R
+        ea_j_mol = coeff_inv_t * R
+        b_value = float(np.exp(ln_b))
+
+        y_pred = x @ coeffs
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        r_squared = np.nan if ss_tot == 0 else 1.0 - (ss_res / ss_tot)
+
+        if show_plot:
+            color = _group_color(doi, group)
+            t_fit = np.linspace(np.min(t), np.max(t), 120)
+            y_fit = ln_b + n_value * np.log(t_fit) + (ea_j_mol / (R * t_fit))
+            x_plot = 1.0 / (R * t)
+            x_fit = 1.0 / (R * t_fit)
+            order = np.argsort(x_plot)
+            fit_order = np.argsort(x_fit)
+            ax.scatter(
+                x_plot[order],
+                y[order],
+                s=30,
+                alpha=0.8,
+                color=color,
+                edgecolor="black",
+                linewidth=0.2,
+            )
+            ax.plot(
+                x_fit[fit_order],
+                y_fit[fit_order],
+                linestyle="--",
+                linewidth=1.8,
+                color=color,
+            )
+
+        row = {
+            "source_doi": doi,
+            "mole_fractions": mf_key,
+            "n_points": len(group),
+            "B": b_value,
+            "n": float(n_value),
+            "Ea_J_mol": float(ea_j_mol),
+            "Ea_kJ_mol": float(ea_j_mol / 1000.0),
+            "R_squared": float(r_squared) if not np.isnan(r_squared) else np.nan,
+            "lnB": float(ln_b),
+            "T_min": float(group[temperature_col].min()),
+            "T_max": float(group[temperature_col].max()),
+        }
+        if include_water_mole_fraction and water_col in group.columns:
+            water_values = pd.to_numeric(group[water_col], errors="coerce").dropna()
+            row["mole_fraction_water"] = (
+                float(water_values.iloc[0]) if not water_values.empty else np.nan
+            )
+
+        results.append(row)
+
+    result_df = pd.DataFrame(results)
+    if show_plot:
+        ax.set_xlabel("1/(R*T) [mol/J]")
+        ax.set_ylabel("ln(eta)")
+        ax.set_title("Extended Arrhenius fits (all groups)")
+        ax.grid(alpha=0.2)
+        if plot_color_by == "source_doi":
+            doi_values = sorted(work[doi_col].dropna().astype(str).unique())
+            handles = [
+                Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    linestyle="None",
+                    markerfacecolor=_string_to_hex_color(doi),
+                    markeredgecolor="black",
+                    markeredgewidth=0.3,
+                    markersize=6,
+                    label=doi,
+                )
+                for doi in doi_values
+            ]
+            ax.legend(
+                handles=handles,
+                title="DOI",
+                bbox_to_anchor=(1.02, 1),
+                loc="upper left",
+                fontsize=8,
+                title_fontsize=9,
+            )
+        elif plot_color_by == "mole_fraction_water" and has_water_colors:
+            sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax, pad=0.01)
+            cbar.set_label("Water mole fraction")
+        plt.tight_layout()
+        plt.show()
+    if not result_df.empty:
+        result_df = result_df.sort_values(
+            by=["source_doi", "mole_fractions"]
+        ).reset_index(drop=True)
+    return result_df
+
+
+def fit_vft(
+    df: pd.DataFrame,
+    viscosity_col: str = "viscosity_value",
+    temperature_col: str = "temperature",
+    doi_col: str = "source_doi",
+    molefractions_col: str = "mole_fractions",
+    include_water_mole_fraction: bool = False,
+    water_col: str = "mole_fraction_water",
+    t_range: Optional[Tuple[float, float]] = None,
+    show_plot: bool = False,
+    plot_figsize: Tuple[float, float] = (8, 5),
+    plot_color_by: str = "source_doi",
+    plot_cmap: str = "Blues",
+    doi_plot_styles: Optional[dict[str, dict[str, str]]] = None,
+    min_points: int = 4,
+    molefrac_round: int = 6,
+    initial_guesses: Optional[Dict[str, float]] = None,
+    viscosity_uncertainty_col: Optional[str] = None,
+) -> pd.DataFrame:
+    """
+    Fit 3-parameter Vogel-Fulcher-Tammann (VFT) model for viscosity per group.
+
+    Model:
+        eta(T) = eta0 * exp(B / (T - T0))
+
+    Equivalent log form used in fitting:
+        ln(eta) = ln(eta0) + B / (T - T0)
+
+    Grouping order:
+      1) source_doi
+      2) mole_fractions
+
+    Args:
+        df: Input DataFrame containing viscosity/temperature/grouping columns.
+        viscosity_col: Column with positive viscosity values eta.
+        temperature_col: Column with absolute temperature in K (must be > 0).
+        doi_col: Column used as first-level group key.
+        molefractions_col: Column with sequence-like mole fractions (list/tuple).
+        include_water_mole_fraction: If True, include water mole fraction per fitted
+            group in result column ``mole_fraction_water``.
+        water_col: Column name used when water mole fraction already exists in input.
+        t_range: Optional inclusive temperature window in Kelvin as (T_min, T_max).
+            Only points within this range are used for fitting.
+        show_plot: If True, show a combined plot with all group fits.
+        plot_figsize: Figure size used for inspection plots.
+        plot_color_by: Color mapping for plots ("source_doi" or "mole_fraction_water").
+        plot_cmap: Colormap used when plot_color_by="mole_fraction_water".
+        doi_plot_styles: Optional custom style mapping for DOI-based plotting.
+            Expected shape: {"doi": {"color": "#hex", "marker": "o"}, ...}.
+            Used only when plot_color_by="source_doi"; missing entries fall back
+            to deterministic default color and marker "o".
+        min_points: Minimum number of points required per group for fitting.
+            For this model, at least 4 points are recommended.
+        molefrac_round: Decimal rounding for stable mole-fraction grouping.
+        initial_guesses: Optional dictionary with initial guesses for fitting parameters.
+            Keys: "ln_eta0", "B", "T0". If not provided, automatic guesses are used.
+        viscosity_uncertainty_col: Optionally, column name for viscosity uncertainty.
+            If provided, weighted fitting in log-space is attempted using
+            dln(eta)=deta/eta, and uncertainty-aware error bars are shown in plots.
+
+    Returns:
+        DataFrame with one row per fitted group and columns:
+            - source_doi
+            - mole_fractions
+            - n_points
+            - eta0
+            - ln_eta0
+            - B
+            - T0
+            - eta0_std
+            - ln_eta0_std
+            - B_std
+            - T0_std
+            - R_squared
+            - T_min
+            - T_max
+            - viscosity_uncertainty (if viscosity_uncertainty_col was provided)
+            - mole_fraction_water (optional)
+    """
+    required_cols = [viscosity_col, temperature_col, doi_col, molefractions_col]
+    missing_cols = [c for c in required_cols if c not in df.columns]
+    if missing_cols:
+        raise ValueError(
+            f"Missing required columns for fit_vft: {missing_cols}. "
+            f"Available columns: {list(df.columns)}"
+        )
+
+    R = 8.314462618  # J/(mol*K), only used for x-axis transformation in plots
+
+    work = df.copy()
+    work[viscosity_col] = pd.to_numeric(work[viscosity_col], errors="coerce")
+    work[temperature_col] = pd.to_numeric(work[temperature_col], errors="coerce")
+    if viscosity_uncertainty_col and viscosity_uncertainty_col in work.columns:
+        work[viscosity_uncertainty_col] = pd.to_numeric(
+            work[viscosity_uncertainty_col], errors="coerce"
+        )
+
+    work = work[
+        work[viscosity_col].notna()
+        & work[temperature_col].notna()
+        & work[doi_col].notna()
+        & (work[viscosity_col] > 0)
+        & (work[temperature_col] > 0)
+    ].copy()
+
+    if t_range is not None:
+        if not isinstance(t_range, (list, tuple)) or len(t_range) != 2:
+            raise ValueError(
+                "t_range must be a tuple/list with two values: (T_min, T_max)."
+            )
+        t_min, t_max = float(t_range[0]), float(t_range[1])
+        if t_min > t_max:
+            raise ValueError(
+                f"Invalid t_range: T_min ({t_min}) must be <= T_max ({t_max})."
+            )
+        work = work[
+            work[temperature_col].between(t_min, t_max, inclusive="both")
+        ].copy()
+
+    if include_water_mole_fraction and water_col not in work.columns:
+        if "fluid_compounds" in work.columns:
+
+            def _derive_water_fraction(row):
+                fracs = row.get(molefractions_col)
+                comps = row.get("fluid_compounds")
+                if not isinstance(fracs, (list, tuple, np.ndarray)):
+                    return np.nan
+                if isinstance(comps, list):
+                    for idx, comp in enumerate(comps):
+                        if str(comp).strip().lower() in {"water", "h2o"}:
+                            return fracs[idx] if idx < len(fracs) else np.nan
+                return np.nan
+
+            work[water_col] = work.apply(_derive_water_fraction, axis=1)
+
+    def _normalize_molefractions(mf: Any):
+        if isinstance(mf, (list, tuple, np.ndarray)):
+            try:
+                return tuple(round(float(x), molefrac_round) for x in mf)
+            except (TypeError, ValueError):
+                return np.nan
+        return np.nan
+
+    work["_mf_key"] = work[molefractions_col].apply(_normalize_molefractions)
+    work = work[work["_mf_key"].notna()].copy()
+
+    def _vft_log_model(t, ln_eta0, b_value, t0):
+        return ln_eta0 + (b_value / (t - t0))
+
+    results = []
+    grouped = list(work.groupby([doi_col, "_mf_key"], dropna=False))
+
+    if show_plot:
+        import matplotlib.pyplot as plt
+        from matplotlib import colors as mcolors
+        from matplotlib.lines import Line2D
+
+        fig, ax = plt.subplots(figsize=plot_figsize)
+        cmap = plt.get_cmap(plot_cmap)
+        water_for_color = (
+            pd.to_numeric(work[water_col], errors="coerce")
+            if water_col in work.columns
+            else pd.Series(dtype=float)
+        )
+        has_water_colors = not water_for_color.empty and water_for_color.notna().any()
+        if has_water_colors:
+            w_min = float(water_for_color.min())
+            w_max = float(water_for_color.max())
+            if np.isclose(w_min, w_max):
+                w_min = max(0.0, w_min - 1e-6)
+                w_max = min(1.0, w_max + 1e-6)
+            norm = mcolors.Normalize(vmin=w_min, vmax=w_max)
+        else:
+            norm = None
+
+        if plot_color_by not in {"source_doi", "mole_fraction_water"}:
+            raise ValueError(
+                "plot_color_by must be 'source_doi' or 'mole_fraction_water'."
+            )
+
+        def _doi_style(doi_value: Any) -> dict[str, str]:
+            doi_str = str(doi_value)
+            fallback = {"color": _string_to_hex_color(doi_str), "marker": "o"}
+            if not doi_plot_styles:
+                return fallback
+            style = doi_plot_styles.get(doi_str, {})
+            color = style.get("color", fallback["color"])
+            marker = style.get("marker", fallback["marker"])
+            return {"color": color, "marker": marker}
+
+        def _group_color(doi_value, group_frame):
+            if plot_color_by == "source_doi":
+                return _doi_style(doi_value)["color"]
+            water_values = (
+                pd.to_numeric(group_frame[water_col], errors="coerce").dropna()
+                if water_col in group_frame.columns
+                else pd.Series(dtype=float)
+            )
+            water_value = (
+                float(water_values.iloc[0]) if not water_values.empty else np.nan
+            )
+            if has_water_colors and np.isfinite(water_value):
+                return cmap(norm(water_value))
+            return "#9aa0a6"
+
+    for group_idx, ((doi, mf_key), group) in enumerate(grouped):
+        t = group[temperature_col].to_numpy(dtype=float)
+        eta = group[viscosity_col].to_numpy(dtype=float)
+        y = np.log(eta)
+
+        if len(group) < min_points:
+            if show_plot:
+                doi_style = _doi_style(doi)
+                color = _group_color(doi, group)
+                x_plot = 1.0 / (R * t)
+                ax.scatter(
+                    x_plot,
+                    y,
+                    s=45,
+                    alpha=0.9,
+                    color=color,
+                    marker=doi_style["marker"],
+                )
+            continue
+
+        # Initial guesses and bounds (ensure T0 < min(T))
+        min_t = float(np.min(t))
+        if initial_guesses is not None:
+            ln_eta0_guess = initial_guesses.get("ln_eta0", float(np.min(y)))
+            b_guess = initial_guesses.get("B", 1000.0)
+            t0_guess = initial_guesses.get("T0", min_t - 50.0)
+        else:
+            ln_eta0_guess = float(np.min(y))
+            b_guess = 1000.0
+            t0_guess = min_t - 50.0
+
+        t0_upper = min_t - 1e-6
+        if not np.isfinite(t0_upper):
+            t0_upper = min_t - 1e-3
+
+        lower_bounds = [-np.inf, 0.0, -np.inf]
+        upper_bounds = [np.inf, np.inf, t0_upper]
+
+        try:
+            from scipy.optimize import curve_fit
+
+            sigma = None
+            fit_kwargs = {}
+            if viscosity_uncertainty_col and viscosity_uncertainty_col in group.columns:
+                unc_vec = pd.to_numeric(
+                    group[viscosity_uncertainty_col], errors="coerce"
+                ).to_numpy(dtype=float)
+                sigma_candidate = np.divide(
+                    unc_vec,
+                    eta,
+                    out=np.full_like(unc_vec, np.nan, dtype=float),
+                    where=eta != 0,
+                )
+                valid_sigma = np.isfinite(sigma_candidate) & (sigma_candidate > 0)
+                if np.any(valid_sigma):
+                    sigma = sigma_candidate
+                    fit_kwargs["sigma"] = sigma
+                    fit_kwargs["absolute_sigma"] = True
+
+            popt, pcov = curve_fit(
+                _vft_log_model,
+                t,
+                y,
+                p0=[ln_eta0_guess, b_guess, t0_guess],
+                bounds=(lower_bounds, upper_bounds),
+                maxfev=20000,
+                **fit_kwargs,
+            )
+            ln_eta0, b_value, t0 = popt
+            param_std = np.sqrt(np.diag(pcov)) if pcov is not None else np.array([np.nan, np.nan, np.nan])
+            ln_eta0_std = float(param_std[0]) if np.isfinite(param_std[0]) else np.nan
+            b_std = float(param_std[1]) if np.isfinite(param_std[1]) else np.nan
+            t0_std = float(param_std[2]) if np.isfinite(param_std[2]) else np.nan
+        except Exception:
+            # Skip non-converged groups silently in the returned fit table;
+            # still show points in plot if requested.
+            if show_plot:
+                doi_style = _doi_style(doi)
+                color = _group_color(doi, group)
+                x_plot = 1.0 / (R * t)
+                ax.scatter(
+                    x_plot,
+                    y,
+                    s=45,
+                    alpha=0.9,
+                    color=color,
+                    marker=doi_style["marker"],
+                )
+            continue
+
+        y_pred = _vft_log_model(t, ln_eta0, b_value, t0)
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        r_squared = np.nan if ss_tot == 0 else 1.0 - (ss_res / ss_tot)
+
+        eta0 = float(np.exp(ln_eta0))
+        eta0_std = eta0 * ln_eta0_std if np.isfinite(ln_eta0_std) else np.nan
+        viscosity_uncertainty = np.nan
+        if viscosity_uncertainty_col and viscosity_uncertainty_col in group.columns:
+            unc_vals = pd.to_numeric(
+                group[viscosity_uncertainty_col], errors="coerce"
+            ).dropna()
+            if not unc_vals.empty:
+                viscosity_uncertainty = float(unc_vals.mean())
+
+        if show_plot:
+            doi_style = _doi_style(doi)
+            color = _group_color(doi, group)
+            marker = doi_style["marker"] if plot_color_by == "source_doi" else "o"
+            t_fit = np.linspace(np.min(t), np.max(t), 180)
+            y_fit = _vft_log_model(t_fit, ln_eta0, b_value, t0)
+
+            x_plot = 1.0 / (R * t)
+            x_fit = 1.0 / (R * t_fit)
+            order = np.argsort(x_plot)
+            fit_order = np.argsort(x_fit)
+
+            if viscosity_uncertainty_col and viscosity_uncertainty_col in group.columns:
+                unc_vec = pd.to_numeric(
+                    group[viscosity_uncertainty_col], errors="coerce"
+                ).to_numpy(dtype=float)
+                dy = np.divide(
+                    unc_vec,
+                    eta,
+                    out=np.full_like(unc_vec, np.nan, dtype=float),
+                    where=eta != 0,
+                )
+                mask_valid = np.isfinite(dy) & np.isfinite(x_plot) & np.isfinite(y)
+                if np.any(mask_valid):
+                    mask_sorted = np.argsort(x_plot[mask_valid])
+                    x_ok = x_plot[mask_valid][mask_sorted]
+                    y_ok = y[mask_valid][mask_sorted]
+                    dy_ok = dy[mask_valid][mask_sorted]
+                    ax.errorbar(
+                        x_ok,
+                        y_ok,
+                        yerr=dy_ok,
+                        fmt=marker,
+                        ms=4,
+                        alpha=0.8,
+                        color=color,
+                        ecolor=color,
+                        elinewidth=1.1,
+                        capsize=3,
+                        markeredgecolor="black",
+                        markeredgewidth=0.2,
+                        zorder=10,
+                    )
+                if np.any(~mask_valid):
+                    mask_sorted = np.argsort(x_plot[~mask_valid])
+                    ax.scatter(
+                        x_plot[~mask_valid][mask_sorted],
+                        y[~mask_valid][mask_sorted],
+                        s=30,
+                        alpha=0.8,
+                        color=color,
+                        marker=marker,
+                        edgecolor="black",
+                        linewidth=0.2,
+                        zorder=9,
+                    )
+            else:
+                ax.scatter(
+                    x_plot[order],
+                    y[order],
+                    s=30,
+                    alpha=0.8,
+                    color=color,
+                    marker=marker,
+                    edgecolor="black",
+                    linewidth=0.2,
+                )
+            ax.plot(
+                x_fit[fit_order],
+                y_fit[fit_order],
+                linestyle="--",
+                linewidth=1.8,
+                color=color,
+            )
+
+        row = {
+            "source_doi": doi,
+            "mole_fractions": mf_key,
+            "n_points": len(group),
+            "eta0": eta0,
+            "ln_eta0": float(ln_eta0),
+            "B": float(b_value),
+            "T0": float(t0),
+            "eta0_std": eta0_std,
+            "ln_eta0_std": ln_eta0_std,
+            "B_std": b_std,
+            "T0_std": t0_std,
+            "R_squared": float(r_squared) if not np.isnan(r_squared) else np.nan,
+            "T_min": float(group[temperature_col].min()),
+            "T_max": float(group[temperature_col].max()),
+        }
+        if viscosity_uncertainty_col:
+            row["viscosity_uncertainty"] = viscosity_uncertainty
+        if include_water_mole_fraction and water_col in group.columns:
+            water_values = pd.to_numeric(group[water_col], errors="coerce").dropna()
+            row["mole_fraction_water"] = (
+                float(water_values.iloc[0]) if not water_values.empty else np.nan
+            )
+
+        results.append(row)
+
+    result_df = pd.DataFrame(results)
+    if show_plot:
+        ax.set_xlabel("1/(R*T) [mol/J]")
+        ax.set_ylabel("ln(eta)")
+        ax.set_title("VFT (3-parameter) fits (all groups)")
+        ax.grid(alpha=0.2)
+        if plot_color_by == "source_doi":
+            doi_values = sorted(work[doi_col].dropna().astype(str).unique())
+            handles = [
+                Line2D(
+                    [0],
+                    [0],
+                    marker=_doi_style(doi)["marker"],
+                    linestyle="None",
+                    markerfacecolor=_doi_style(doi)["color"],
+                    markeredgecolor="black",
+                    markeredgewidth=0.3,
+                    markersize=6,
+                    label=doi,
+                )
+                for doi in doi_values
+            ]
+            ax.legend(
+                handles=handles,
+                title="DOI",
+                bbox_to_anchor=(1.02, 1),
+                loc="upper left",
+                fontsize=8,
+                title_fontsize=9,
+            )
+        elif plot_color_by == "mole_fraction_water" and has_water_colors:
+            sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax, pad=0.01)
+            cbar.set_label("Water mole fraction")
+        plt.tight_layout()
+        plt.show()
+
+    if not result_df.empty:
+        result_df = result_df.sort_values(
+            by=["source_doi", "mole_fractions"]
+        ).reset_index(drop=True)
+    return result_df

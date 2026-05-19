@@ -117,8 +117,7 @@ class FAIRFluidsDocument(
         compounds: list[str]= [],
         property: list[Property]= [],
         parameter: list[Parameter]= [],
-        measurement: list[Measurement]= [],
-        storage: Optional[Storage]= None,
+        sample: Optional[Sample]= None,
         **kwargs,
     ):
         """Helper method to add a new Fluid to the fluid list."""
@@ -127,8 +126,7 @@ class FAIRFluidsDocument(
             "compounds": compounds,
             "property": property,
             "parameter": parameter,
-            "measurement": measurement,
-            "storage": storage
+            "sample": sample
         }
 
         self.fluid.append(
@@ -502,16 +500,10 @@ class Fluid(
             properties are observed or measured.""",
         json_schema_extra=dict(),
     )
-    measurement: list[Measurement] = element(
-        default_factory=list,
-        tag="measurement",
-        description="""A collection of measured or calculated numerical data points associated with the
-            specified properties and experimental parameters.""",
-        json_schema_extra=dict(),
-    )
-    storage: Optional[Storage] = element(
+    sample: Optional[Sample] = element(
         default= None,
-        tag="storage",
+        tag="sample",
+        description="""Sample""",
         json_schema_extra=dict(),
     )
 
@@ -539,7 +531,7 @@ class Fluid(
     def add_to_parameter(
         self,
         parameterID: Optional[str]= None,
-        parameter: Optional[Parameters]= None,
+        parameters: Optional[Parameters]= None,
         unit: Optional[UnitDefinition]= None,
         associated_compounds: list[str]= [],
         **kwargs,
@@ -547,7 +539,7 @@ class Fluid(
         """Helper method to add a new Parameter to the parameter list."""
         params = {
             "parameterID": parameterID,
-            "parameter": parameter,
+            "parameters": parameters,
             "unit": unit,
             "associated_compounds": associated_compounds
         }
@@ -557,32 +549,6 @@ class Fluid(
         )
 
         return self.parameter[-1]
-
-    def add_to_measurement(
-        self,
-        measurement_id: Optional[str]= None,
-        source_doi: Optional[str]= None,
-        propertyValue: list[PropertyValue]= [],
-        parameterValue: list[ParameterValue]= [],
-        method: Optional[Method]= None,
-        method_description: Optional[str]= None,
-        **kwargs,
-    ):
-        """Helper method to add a new Measurement to the measurement list."""
-        params = {
-            "measurement_id": measurement_id,
-            "source_doi": source_doi,
-            "propertyValue": propertyValue,
-            "parameterValue": parameterValue,
-            "method": method,
-            "method_description": method_description
-        }
-
-        self.measurement.append(
-            Measurement(**params)
-        )
-
-        return self.measurement[-1]
     def xml(self, encoding: str = "unicode") -> str | bytes:
         """Converts the object to an XML string
 
@@ -670,9 +636,9 @@ class Parameter(
             in conjunction with numerical values.""",
         json_schema_extra=dict(),
     )
-    parameter: Optional[Parameters] = element(
+    parameters: Optional[Parameters] = element(
         default= None,
-        tag="parameter",
+        tag="parameters",
         description="""The type or name of the parameter being varied, such as temperature, pressure,
             or mole fraction. Indicates what was controlled or changed during
             the experiment.""",
@@ -769,6 +735,7 @@ class Measurement(
 
     def add_to_propertyValue(
         self,
+        properties: Optional[Properties]= None,
         propertyID: Optional[str]= None,
         propValue: Optional[float]= None,
         uncertainty: Optional[float]= None,
@@ -776,6 +743,7 @@ class Measurement(
     ):
         """Helper method to add a new PropertyValue to the propertyValue list."""
         params = {
+            "properties": properties,
             "propertyID": propertyID,
             "propValue": propValue,
             "uncertainty": uncertainty
@@ -789,6 +757,7 @@ class Measurement(
 
     def add_to_parameterValue(
         self,
+        parameters: Optional[Parameters]= None,
         parameterID: Optional[str]= None,
         paramValue: Optional[float]= None,
         uncertainty: Optional[float]= None,
@@ -796,6 +765,7 @@ class Measurement(
     ):
         """Helper method to add a new ParameterValue to the parameterValue list."""
         params = {
+            "parameters": parameters,
             "parameterID": parameterID,
             "paramValue": paramValue,
             "uncertainty": uncertainty
@@ -824,6 +794,117 @@ class Measurement(
         return parsed_xml.toprettyxml(indent="  ")
 
 
+class Sample(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    sample_id: Optional[str] = element(
+        default= None,
+        tag="sample_id",
+        json_schema_extra=dict(),
+    )
+    associated_compounds: list[str] = element(
+        default_factory=list,
+        tag="associated_compounds",
+        json_schema_extra=dict(),
+    )
+    measurement: list[Measurement] = element(
+        default_factory=list,
+        tag="measurement",
+        description="""A collection of measured or calculated numerical data points associated with the
+            specified properties and experimental parameters.""",
+        json_schema_extra=dict(),
+    )
+    storage: Optional[Storage] = element(
+        default= None,
+        tag="storage",
+        json_schema_extra=dict(),
+    )
+    preparation: Optional[Preparation] = element(
+        default= None,
+        tag="preparation",
+        json_schema_extra=dict(),
+    )
+    vendor_chemical: Optional[Vendor_Chemical] = element(
+        default= None,
+        tag="vendor_chemical",
+        json_schema_extra=dict(),
+    )
+
+
+    def add_to_measurement(
+        self,
+        measurement_id: Optional[str]= None,
+        source_doi: Optional[str]= None,
+        propertyValue: list[PropertyValue]= [],
+        parameterValue: list[ParameterValue]= [],
+        method: Optional[Method]= None,
+        method_description: Optional[str]= None,
+        **kwargs,
+    ):
+        """Helper method to add a new Measurement to the measurement list."""
+        params = {
+            "measurement_id": measurement_id,
+            "source_doi": source_doi,
+            "propertyValue": propertyValue,
+            "parameterValue": parameterValue,
+            "method": method,
+            "method_description": method_description
+        }
+
+        self.measurement.append(
+            Measurement(**params)
+        )
+
+        return self.measurement[-1]
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
+class Preparation(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    prepMethod: Optional[str] = element(
+        default= None,
+        tag="prepMethod",
+        description="""The description on how it was prepared""",
+        json_schema_extra=dict(),
+    )
+
+
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
 class PropertyValue(
     BaseXmlModel,
     search_mode="unordered",
@@ -832,6 +913,11 @@ class PropertyValue(
     Description: Represents a numerical value associated with a specific property
     measurement, including precision and uncertainty information.
     """
+    properties: Optional[Properties] = element(
+        default= None,
+        tag="properties",
+        json_schema_extra=dict(),
+    )
     propertyID: Optional[str] = element(
         default= None,
         tag="propertyID",
@@ -880,6 +966,14 @@ class ParameterValue(
     or controlled during the experiment, including precision and uncertainty
     details.
     """
+    parameters: Optional[Parameters] = element(
+        default= None,
+        tag="parameters",
+        description="""The type or name of the parameter being varied, such as temperature, pressure,
+            or mole fraction. Indicates what was controlled or changed during
+            the experiment.""",
+        json_schema_extra=dict(),
+    )
     parameterID: Optional[str] = element(
         default= None,
         tag="parameterID",
@@ -1037,12 +1131,60 @@ class Storage(
     BaseXmlModel,
     search_mode="unordered",
 ):
-    storage_condition: Optional[StorageCondition] = element(
+    storage_type: Optional[StorageType] = element(
         default= None,
-        tag="storage_condition",
+        tag="storage_type",
         description="""One of: Fresh, Fridge, Open, Closed""",
         json_schema_extra=dict(),
     )
+    storage_conditions: Optional[StorageConditions] = element(
+        default= None,
+        tag="storage_conditions",
+        description="""What storage conditions have been used for the sample""",
+        json_schema_extra=dict(),
+    )
+    vessel: Optional[Vessel] = element(
+        default= None,
+        tag="vessel",
+        description="""Type of vessel used for storage""",
+        json_schema_extra=dict(),
+    )
+    time_prepared: Optional[str] = element(
+        default= None,
+        tag="time_prepared",
+        description="""Date, of Sample preparation""",
+        json_schema_extra=dict(),
+    )
+    time_used: Optional[str] = element(
+        default= None,
+        tag="time_used",
+        description="""Time when the sample has been used""",
+        json_schema_extra=dict(),
+    )
+
+
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
+class StorageConditions(
+    BaseXmlModel,
+    search_mode="unordered",
+):
     Temperature: Optional[float] = element(
         default= None,
         tag="Temperature",
@@ -1053,6 +1195,127 @@ class Storage(
         default= None,
         tag="Pressure",
         description="""Pressure under which the sample is stored""",
+        json_schema_extra=dict(),
+    )
+    gassed: Optional[bool] = element(
+        default= None,
+        tag="gassed",
+        description="""Wether the sample was degassed""",
+        json_schema_extra=dict(),
+    )
+    inert: Optional[bool] = element(
+        default= None,
+        tag="inert",
+        description="""x""",
+        json_schema_extra=dict(),
+    )
+    light: Optional[bool] = element(
+        default= None,
+        tag="light",
+        description="""Wether the sample was under light""",
+        json_schema_extra=dict(),
+    )
+
+
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
+class Vessel(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    id: Optional[str] = element(
+        default= None,
+        tag="id",
+        description="""Unique identifier of the vessel.""",
+        json_schema_extra=dict(),
+    )
+    name: Optional[str] = element(
+        default= None,
+        tag="name",
+        description="""Name of the used vessel.""",
+        json_schema_extra=dict(),
+    )
+    volume: Optional[float] = element(
+        default= None,
+        tag="volume",
+        description="""Volumetric value of the vessel.""",
+        json_schema_extra=dict(),
+    )
+    unit: Optional[UnitDefinition] = element(
+        default= None,
+        tag="unit",
+        description="""Unit""",
+        json_schema_extra=dict(),
+    )
+    constant: Optional[bool] = element(
+        default= True,
+        tag="constant",
+        description="""Whether the volume of the vessel is constant or not. Default is True.""",
+        json_schema_extra=dict(),
+    )
+
+
+    def xml(self, encoding: str = "unicode") -> str | bytes:
+        """Converts the object to an XML string
+
+        Args:
+            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
+                                      Defaults to "unicode".
+
+        Returns:
+            str | bytes: The XML representation of the object
+        """
+        if encoding == "bytes":
+            return self.to_xml()
+
+        raw_xml = self.to_xml(encoding=None)
+        parsed_xml = minidom.parseString(raw_xml)
+        return parsed_xml.toprettyxml(indent="  ")
+
+
+class Vendor_Chemical(
+    BaseXmlModel,
+    search_mode="unordered",
+):
+    assciciated_compound: Optional[str] = element(
+        default= None,
+        tag="assciciated_compound",
+        json_schema_extra=dict(),
+    )
+    CAS: Optional[str] = element(
+        default= None,
+        tag="CAS",
+        json_schema_extra=dict(),
+    )
+    purity: Optional[str] = element(
+        default= None,
+        tag="purity",
+        json_schema_extra=dict(),
+    )
+    Vendor: Optional[str] = element(
+        default= None,
+        tag="Vendor",
+        json_schema_extra=dict(),
+    )
+    LOT: Optional[str] = element(
+        default= None,
+        tag="LOT",
         json_schema_extra=dict(),
     )
 
@@ -1110,6 +1373,7 @@ class Properties(Enum):
     CRITICAL_VOLUME = "criticalVolume"
     DENSITY = "density"
     DIFFUSION_COEFFICIENT = "diffusionCoefficient"
+    ELECTRICAL_CONDUCTIVITY = "electricalConductivity"
     EXCESS_MOLAR_ENTHALPY = "excessMolarEnthalpy"
     EXCESS_MOLAR_ENTROPY = "excessMolarEntropy"
     EXCESS_MOLAR_GIBBS_FREE_ENERGY = "excessMolarGibbsFreeEnergy"
@@ -1125,11 +1389,13 @@ class Properties(Enum):
     MELTING_POINT = "meltingPoint"
     MOLAR_ENTHALPY = "molarEnthalpy"
     MOLAR_ENTROPY = "molarEntropy"
+    MOLAR_HEAT_CAPACITY = "molarHeatCapacity"
     MOLAR_VOLUME = "molarVolume"
     OSMOTIC_COEFFICIENT = "osmoticCoefficient"
     PH = "pH"
     POLARITY = "polarity"
     REFRACTIVE_INDEX = "refractiveIndex"
+    SOLUBILITY = "solubility"
     SPECIFIC_HEAT_CAPACITY = "specificHeatCapacity"
     SPECIFIC_VOLUME = "specificVolume"
     SPEED_OF_SOUND = "speedOfSound"
@@ -1139,6 +1405,7 @@ class Properties(Enum):
     TRIPLE_POINT_TEMPERATURE = "triplePointTemperature"
     VAPOR_PRESSURE = "vaporPressure"
     VISCOSITY = "viscosity"
+    WATER_ACTIVITY = "waterActivity"
 
 class Parameters(Enum):
     """Enumeration for Parameters values"""
@@ -1188,9 +1455,10 @@ class Parameters(Enum):
     VOLUME_RATIO_OF_SOLUTE_TO_SOLVENT = "Volume ratio of solute to solvent"
     WAVELENGTH = "Wavelength"
 
-class StorageCondition(Enum):
-    """Enumeration for StorageCondition values"""
+class StorageType(Enum):
+    """Enumeration for StorageType values"""
     CLOSED = "Closed"
+    DESSICATOR = "Dessicator"
     FRESH = "Fresh"
     FRIDGE = "Fridge"
     OPEN = "Open"

@@ -73,11 +73,12 @@ cd FAIRFluids
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install core dependencies and the package
 pip install -r requirements.txt
-
-# Install the package in development mode
 pip install -e .
+
+# Or install everything (workflows, Neo4j, Bayesian inference)
+pip install -e ".[all]"
 ```
 
 ### Development Setup
@@ -88,9 +89,11 @@ For development work, you can install additional development dependencies:
 # Using conda
 conda env create -f environment.yml
 
-# Using pip
-pip install -r requirements.txt
-pip install -r requirements-conda.txt  # Includes dev dependencies
+# Using pip (after conda env create)
+pip install -r requirements-conda.txt
+
+# Optional extras: viz, neo4j, workflows, bayesian, dev, all
+pip install -e ".[bayesian]"
 ```
 
 ### Testing the Installation

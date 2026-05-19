@@ -12,8 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from .core.lib import FAIRFluidsDocument, Version, Citation
-from .core.fluid_io import FluidIO
-from .core.functionalities import FAIRFluidsCMLParser
+from .io import FluidIO, FAIRFluidsCMLParser
 
 
 def create_document(version_major: int = 1, version_minor: int = 0) -> FAIRFluidsDocument:

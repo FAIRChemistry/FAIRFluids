@@ -29,13 +29,14 @@ from .lib import (
     LitType,
 )
 
-from .fluid_io import FluidIO
-from .functionalities import (
-    FAIRFluidsCMLParser,
-    filter_fluid_compounds_by_mole_fractions,
-    combine_compounds,
+from fairfluids.io import FluidIO, FAIRFluidsCMLParser
+from fairfluids.operations import (
     calculate_ratio_of_solvent,
     cleanup_orphaned_parameters,
+    combine_compounds,
+)
+from .functionalities import (
+    filter_fluid_compounds_by_mole_fractions,
     calculate_activationEnergy,
 )
 from .visualization import filter_fluid_measurements

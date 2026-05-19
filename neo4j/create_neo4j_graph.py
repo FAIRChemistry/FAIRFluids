@@ -29,6 +29,53 @@ class FAIRFluidsNeo4jImporter:
     def close(self):
         self.driver.close()
 
+    @staticmethod
+    def _parameter_field_key(parameter_name: str) -> str:
+        """Build a stable experiment property key from a parameter name."""
+        safe_name = "".join(
+            ch.lower() if ch.isalnum() else "_" for ch in str(parameter_name)
+        )
+        while "__" in safe_name:
+            safe_name = safe_name.replace("__", "_")
+        return safe_name.strip("_")
+
+    @staticmethod
+    def _is_non_empty_value(value) -> bool:
+        """Return True when a value is meaningfully populated."""
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return value.strip() != ""
+        if isinstance(value, (list, tuple, set, dict)):
+            return len(value) > 0
+        return True
+
+    def _build_sample_context(self, sample_entry):
+        """
+        Build flat, non-empty sample metadata that can be attached to Experiment nodes.
+        Nested sample sub-blocks are serialized to JSON strings.
+        """
+        if not isinstance(sample_entry, dict):
+            return {}
+
+        sample_context = {}
+        sample_id = sample_entry.get("sample_id")
+        if self._is_non_empty_value(sample_id):
+            sample_context["sample_id"] = sample_id
+
+        associated_compounds = sample_entry.get("associated_compounds")
+        if self._is_non_empty_value(associated_compounds):
+            sample_context["sample_associated_compounds"] = associated_compounds
+
+        for block_name in ["storage", "preparation", "vendor_chemical"]:
+            block_value = sample_entry.get(block_name)
+            if self._is_non_empty_value(block_value):
+                sample_context[f"sample_{block_name}_json"] = json.dumps(
+                    block_value, ensure_ascii=True, sort_keys=True
+                )
+
+        return sample_context
+
     def clear_database(self):
         """Clear existing data."""
         with self.driver.session() as session:
@@ -38,6 +85,29 @@ class FAIRFluidsNeo4jImporter:
     def create_constraints(self):
         """Create constraints for better performance."""
         with self.driver.session() as session:
+            # Drop legacy composite property constraints and keep semantic
+            # uniqueness on propertyType.
+            try:
+                existing_constraints = session.run(
+                    "SHOW CONSTRAINTS YIELD name, labelsOrTypes, properties "
+                    "RETURN name, labelsOrTypes, properties"
+                )
+                for record in existing_constraints:
+                    labels_or_types = record.get("labelsOrTypes") or []
+                    properties = record.get("properties") or []
+                    if labels_or_types == ["Property"] and properties != [
+                        "propertyType"
+                    ]:
+                        constraint_name = record.get("name")
+                        if constraint_name:
+                            escaped_name = constraint_name.replace("`", "``")
+                            session.run(f"DROP CONSTRAINT `{escaped_name}` IF EXISTS")
+                            print(
+                                f"🧹 Dropped legacy Property constraint: {constraint_name}"
+                            )
+            except Exception as e:
+                print(f"⚠️  Could not inspect/drop legacy constraints: {e}")
+
             # Create constraints
             session.run(
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Experiment) REQUIRE e.experiment_id IS UNIQUE"
@@ -174,8 +244,7 @@ class FAIRFluidsNeo4jImporter:
             """
             UNWIND $properties AS prop
             MERGE (p:Property {propertyType: prop.propertyType})
-            SET p.properties = prop.properties_str,
-                p.original_propertyID = prop.propertyID
+            SET p.properties = prop.properties_str
         """,
             properties=properties_batch,
         )
@@ -188,8 +257,7 @@ class FAIRFluidsNeo4jImporter:
             """
             UNWIND $parameters AS param
             MERGE (p:Parameter {parameter: param.parameter_str})
-            SET p.parameterID = param.parameterID,
-                p.associated_compounds = param.associated_compounds
+            SET p.associated_compounds = param.associated_compounds
         """,
             parameters={"parameters": parameters_batch},
         )
@@ -493,7 +561,10 @@ class FAIRFluidsNeo4jImporter:
                                     "molar_weigth": compound.get("molar_weigth"),
                                     "SELFIE": compound.get("SELFIE") or "",
                                     "smiles_code": compound.get("smiles_code") or "",
-                                    "sigman_profile": compound.get("sigman_profile"),
+                                    # Keep Neo4j field name stable; adapt JSON parsing to lib.py key.
+                                    "sigman_profile": compound.get("sigma_profile")
+                                    if compound.get("sigma_profile") is not None
+                                    else compound.get("sigman_profile"),
                                 }
                                 compounds_batch.append(compound_data)
 
@@ -558,7 +629,10 @@ class FAIRFluidsNeo4jImporter:
                                     parameter_id = param.get("parameterID")
                                     if parameter_id:
                                         # Handle enum values
-                                        parameter_value = param.get("parameter")
+                                        parameter_value = param.get("parameters")
+                                        if parameter_value is None:
+                                            # Backward compatibility with older exports.
+                                            parameter_value = param.get("parameter")
                                         parameter_str = None
                                         if parameter_value is not None:
                                             if hasattr(parameter_value, "value"):
@@ -567,6 +641,20 @@ class FAIRFluidsNeo4jImporter:
                                                 parameter_str = parameter_value
                                             else:
                                                 parameter_str = str(parameter_value)
+
+                                        if not parameter_str:
+                                            print(
+                                                f"⚠️  Missing `parameters` value for parameterID '{parameter_id}' in file '{json_file.name}'. Skipping parameter mapping."
+                                            )
+                                            continue
+                                        if parameter_str not in Parameters._value2member_map_:
+                                            print(
+                                                f"⚠️  Undefined parameter enum value '{parameter_str}' (parameterID '{parameter_id}') in file '{json_file.name}'. Skipping parameter mapping."
+                                            )
+                                            continue
+                                        parameter_field_key = (
+                                            self._parameter_field_key(parameter_str)
+                                        )
 
                                         # Use parameterID as the unique identifier (it's already semantic)
                                         # Handle both associated_compound (singular) and associated_compounds (plural)
@@ -586,21 +674,19 @@ class FAIRFluidsNeo4jImporter:
                                             )
 
                                         parameter_map[parameter_id] = {
-                                            "parameter_str": parameter_str or "",
+                                            "parameter_str": parameter_str,
+                                            "parameter_field_key": parameter_field_key,
                                             "unit": param.get("unit"),
                                             "associated_compounds": associated_compounds_list,
                                         }
 
                                         # Check if this is a mole fraction parameter
                                         # Skip creating Parameter nodes for mole fractions since we store them on edges
-                                        param_str_lower = (parameter_str or "").lower()
-                                        is_mole_fraction = (
-                                            "mole fraction" in param_str_lower
-                                            or "mole_fraction" in parameter_id.lower()
-                                        )
+                                        param_str_lower = parameter_str.lower()
+                                        is_mole_fraction = "mole fraction" in param_str_lower
 
                                         # Collect Parameter node data - skip for mole fraction parameters
-                                        if not is_mole_fraction and parameter_str:
+                                        if not is_mole_fraction:
                                             if parameter_str not in parameters_seen:
                                                 parameters_seen.add(parameter_str)
 
@@ -839,15 +925,20 @@ class FAIRFluidsNeo4jImporter:
                                             else:
                                                 properties_str = str(properties_value)
 
-                                        # Determine property type
-                                        if properties_str:
-                                            property_type = (
-                                                properties_str.lower().replace(" ", "_")
+                                        # Strict enum-based property mapping:
+                                        # - no normalization
+                                        # - no fallback mapping from propertyID
+                                        if not properties_str:
+                                            print(
+                                                f"⚠️  Missing `properties` for propertyID '{property_id}' in file '{json_file.name}'. Skipping property mapping."
                                             )
-                                        else:
-                                            property_type = property_id.lower().replace(
-                                                " ", "_"
+                                            continue
+                                        if properties_str not in Properties._value2member_map_:
+                                            print(
+                                                f"⚠️  Undefined property enum value '{properties_str}' (propertyID '{property_id}') in file '{json_file.name}'. Skipping property mapping."
                                             )
+                                            continue
+                                        property_type = properties_str
 
                                         property_map[property_id] = {
                                             "property_type": property_type,
@@ -856,8 +947,9 @@ class FAIRFluidsNeo4jImporter:
                                         }
 
                                         # Collect Property node data
-                                        if property_type not in properties_seen:
-                                            properties_seen.add(property_type)
+                                        prop_key = property_type
+                                        if prop_key not in properties_seen:
+                                            properties_seen.add(prop_key)
 
                                             properties_batch.append(
                                                 {
@@ -894,9 +986,33 @@ class FAIRFluidsNeo4jImporter:
                                                     }
                                                 )
 
-                            # Process each measurement as an Experiment
-                            if "measurement" in fluid_data:
-                                for measurement in fluid_data["measurement"]:
+                            # Process each measurement as an Experiment.
+                            # Current lib.py writes measurements under fluid.sample.measurement.
+                            # Keep legacy fallback for older JSONs using fluid.measurement.
+                            measurement_entries = []
+                            sample_data = fluid_data.get("sample")
+                            if isinstance(sample_data, dict):
+                                sample_context = self._build_sample_context(sample_data)
+                                for measurement in sample_data.get("measurement", []) or []:
+                                    measurement_entries.append((measurement, sample_context))
+                            elif isinstance(sample_data, list):
+                                for sample_entry in sample_data:
+                                    if isinstance(sample_entry, dict):
+                                        sample_context = self._build_sample_context(
+                                            sample_entry
+                                        )
+                                        for measurement in (
+                                            sample_entry.get("measurement", []) or []
+                                        ):
+                                            measurement_entries.append(
+                                                (measurement, sample_context)
+                                            )
+                            elif "measurement" in fluid_data:
+                                for measurement in fluid_data.get("measurement", []) or []:
+                                    measurement_entries.append((measurement, {}))
+
+                            if measurement_entries:
+                                for measurement, sample_context in measurement_entries:
                                     measurement_id = measurement.get("measurement_id")
                                     if not measurement_id:
                                         experiment_count += 1
@@ -914,11 +1030,9 @@ class FAIRFluidsNeo4jImporter:
                                             prop_info = property_map.get(prop_id)
                                             if prop_info:
                                                 prop_key = prop_info["property_type"]
-                                                property_values[f"prop_{prop_key}"] = (
-                                                    prop_value
-                                                )
+                                                property_values[prop_key] = prop_value
                                                 property_values[
-                                                    f"prop_{prop_key}_uncertainty"
+                                                    f"{prop_key}_uncertainty"
                                                 ] = prop_val.get("uncertainty")
 
                                     # Collect parameter values
@@ -929,15 +1043,30 @@ class FAIRFluidsNeo4jImporter:
                                         param_id = param_val.get("parameterID")
                                         param_value = param_val.get("paramValue")
                                         if param_id and param_value is not None:
-                                            # Use parameterID directly as key (keep original parameterID reference)
-                                            param_key = param_id.replace(
-                                                "parameter_", ""
-                                            ).lower()
-                                            parameter_values[f"param_{param_key}"] = (
-                                                param_value
+                                            param_info = parameter_map.get(param_id)
+                                            if not param_info:
+                                                print(
+                                                    f"⚠️  parameterID '{param_id}' has no mapped parameter definition in file '{json_file.name}'. Skipping parameter value."
+                                                )
+                                                continue
+                                            param_key = param_info.get(
+                                                "parameter_field_key"
                                             )
+                                            if not param_key:
+                                                print(
+                                                    f"⚠️  parameterID '{param_id}' has no parameter field key in file '{json_file.name}'. Skipping parameter value."
+                                                )
+                                                continue
+                                            # Mole fraction is represented on HAS_COMPOUND edges,
+                                            # not as an Experiment property.
+                                            param_str_lower = (
+                                                param_info.get("parameter_str", "").lower()
+                                            )
+                                            if "mole fraction" in param_str_lower:
+                                                continue
+                                            parameter_values[param_key] = param_value
                                             parameter_values[
-                                                f"param_{param_key}_uncertainty"
+                                                f"{param_key}_uncertainty"
                                             ] = param_val.get("uncertainty")
 
                                     # Handle method enum
@@ -965,6 +1094,8 @@ class FAIRFluidsNeo4jImporter:
                                         "fluid_index": fluid_index,
                                         "fluidID": fluid_id,  # Add fluidID (UUID) to experiment
                                     }
+                                    if sample_context:
+                                        experiment_props.update(sample_context)
 
                                     # Add property and parameter values
                                     experiment_props.update(property_values)
@@ -1306,7 +1437,7 @@ class FAIRFluidsNeo4jImporter:
 
                                     # Collect Experiment-Property relationships
                                     for prop_id, prop_info in property_map.items():
-                                        prop_key = f"prop_{prop_info['property_type']}"
+                                        prop_key = prop_info["property_type"]
                                         if prop_key in experiment_props:
                                             relationships_batch["HAS_PROPERTY"].append(
                                                 {
@@ -1328,10 +1459,7 @@ class FAIRFluidsNeo4jImporter:
                                         param_str_lower = param_info.get(
                                             "parameter_str", ""
                                         ).lower()
-                                        is_mole_fraction = (
-                                            "mole fraction" in param_str_lower
-                                            or "mole_fraction" in param_id.lower()
-                                        )
+                                        is_mole_fraction = "mole fraction" in param_str_lower
 
                                         if is_mole_fraction:
                                             continue
@@ -1342,10 +1470,9 @@ class FAIRFluidsNeo4jImporter:
                                         if not parameter_str:
                                             continue
 
-                                        param_key_base = param_id.replace(
-                                            "parameter_", ""
-                                        ).lower()
-                                        param_key = f"param_{param_key_base}"
+                                        param_key = param_info.get("parameter_field_key")
+                                        if not param_key:
+                                            continue
                                         if param_key in experiment_props:
                                             relationships_batch["HAS_PARAMETER"].append(
                                                 {
@@ -1511,10 +1638,10 @@ def run_example_queries(driver):
         result = session.run(
             """
             MATCH (e:Experiment)
-            WHERE e.param_temperature IS NOT NULL AND e.prop_viscosity IS NOT NULL
+            WHERE e.temperature IS NOT NULL AND e.viscosity IS NOT NULL
             RETURN e.experiment_id as experiment_id, 
-                   e.param_temperature as temperature, 
-                   e.prop_viscosity as viscosity,
+                   e.temperature as temperature, 
+                   e.viscosity as viscosity,
                    e.source_file as source_file
             ORDER BY temperature
             LIMIT 10
@@ -1728,10 +1855,10 @@ def run_example_queries(driver):
         result = session.run(
             """
             MATCH (e:Experiment)
-            WHERE e.param_temperature IS NOT NULL
-            RETURN min(e.param_temperature) as min_temp,
-                   max(e.param_temperature) as max_temp,
-                   avg(e.param_temperature) as avg_temp,
+            WHERE e.temperature IS NOT NULL
+            RETURN min(e.temperature) as min_temp,
+                   max(e.temperature) as max_temp,
+                   avg(e.temperature) as avg_temp,
                    count(e) as temp_experiments
             """
         )
@@ -1796,8 +1923,8 @@ def main():
     
     // 3. Temperature vs Viscosity experiments
     MATCH (e:Experiment)
-    WHERE e.param_temperature IS NOT NULL AND e.prop_viscosity IS NOT NULL
-    RETURN e.experiment_id, e.param_temperature as temperature, e.prop_viscosity as viscosity
+    WHERE e.temperature IS NOT NULL AND e.viscosity IS NOT NULL
+    RETURN e.experiment_id, e.temperature as temperature, e.viscosity as viscosity
     ORDER BY temperature
     LIMIT 50
     
@@ -1875,10 +2002,10 @@ def main():
     
     // 15. Temperature range analysis
     MATCH (e:Experiment)
-    WHERE e.param_temperature IS NOT NULL
-    RETURN min(e.param_temperature) as min_temp,
-           max(e.param_temperature) as max_temp,
-           avg(e.param_temperature) as avg_temp,
+    WHERE e.temperature IS NOT NULL
+    RETURN min(e.temperature) as min_temp,
+           max(e.temperature) as max_temp,
+           avg(e.temperature) as avg_temp,
            count(e) as experiments
     
     // 16. Experiments with uncertainty data

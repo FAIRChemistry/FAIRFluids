@@ -1,36 +1,51 @@
+# Conda environment aligned with reference env `xyz` (Python 3.13.9).
+# Create: conda env create -f environment.yml
+# Activate: conda activate fairfluids
+# Then (optional): pip install -r requirements-conda.txt
+
 name: fairfluids
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python>=3.8
+  - python=3.13
   - pip
-  # Core dependencies
-  - pydantic>=2.0.0
-  - pydantic-xml>=2.0.0
-  - lxml>=4.6.0
-  - numpy>=1.21.0
-  - pandas>=1.3.0
-  - requests>=2.25.0
-  # Jupyter environment
-  - jupyter
-  - ipykernel
-  # Development dependencies
-  - pytest>=7.0.0
-  - pytest-cov>=4.0.0
-  - black>=22.0.0
-  - isort>=5.0.0
-  - flake8>=5.0.0
-  - mypy>=1.0.0
-  # Documentation
-  - sphinx>=5.0.0
-  - sphinx-rtd-theme>=1.0.0
-  - myst-parser>=0.18.0
-  # Scientific computing
-  - matplotlib
-  - seaborn
-  - scipy
-  - rdkit
-  # Install the package in development mode
+
+  # Core
+  - pydantic>=2.11
+  - lxml>=5.3
+  - numpy>=2.2
+  - pandas>=2.2
+  - requests>=2.32
+
+  # Scientific computing and visualization
+  - matplotlib>=3.10
+  - scipy>=1.16
+  - seaborn>=0.13
+
+  # Jupyter / notebooks
+  - ipykernel>=6.29
+  - jupyter_client>=8.6
+  - nbconvert>=7.16
+  - nbformat>=5.10
+
+  # Testing
+  - pytest>=7.4
+
+  # Pip-only packages (versions from env `xyz`)
   - pip:
+      - pydantic-xml>=2.17.0
+      - neo4j>=5.14.1
+      - openpyxl>=3.1.5
+      - plotly>=5.17.0
+      - flask>=2.3.3
+      - pint>=0.25.2
+      - numpyro>=0.20.1
+      - jax>=0.7.2
+      - jaxlib>=0.7.2
+      - arviz>=0.22.0
+      - arviz-plots>=1.0.0
+      - arviz-base>=1.0.0
+      - arviz-stats>=1.0.0
+      - pytest-asyncio>=0.21.2
       - -e .

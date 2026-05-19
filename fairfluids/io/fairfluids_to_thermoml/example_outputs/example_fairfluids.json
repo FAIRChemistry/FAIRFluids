@@ -1,0 +1,99 @@
+{
+  "citation": {
+    "title": "Reverse conversion demo",
+    "doi": "10.1000/demo",
+    "pub_name": "Demo Journal",
+    "publication_year": "2026",
+    "author": [
+      {
+        "family_name": "Mustermann",
+        "given_name": "Max"
+      }
+    ],
+    "litType": "journal"
+  },
+  "compound": [
+    {
+      "compoundID": "compound_1",
+      "commonName": "water",
+      "standard_InChI": "InChI=1S/H2O/h1H2",
+      "standard_InChI_key": "XLYOFNOQVPJJNP-UHFFFAOYSA-N"
+    }
+  ],
+  "fluid": [
+    {
+      "fluidID": [
+        "fluid_1"
+      ],
+      "compounds": [
+        "compound_1"
+      ],
+      "property": [
+        {
+          "propertyID": "property_1",
+          "properties": "density",
+          "unit": {
+            "name": "kilogram per cubic meter"
+          }
+        }
+      ],
+      "parameter": [
+        {
+          "parameterID": "parameter_1",
+          "parameters": "Temperature",
+          "unit": {
+            "name": "kelvin"
+          }
+        },
+        {
+          "parameterID": "parameter_2",
+          "parameters": "Pressure",
+          "unit": {
+            "name": "kilopascal"
+          }
+        }
+      ],
+      "sample": {
+        "measurement": [
+          {
+            "propertyValue": [
+              {
+                "propertyID": "property_1",
+                "propValue": 997.1,
+                "uncertainty": 0.2
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameterID": "parameter_1",
+                "paramValue": 298.15
+              },
+              {
+                "parameterID": "parameter_2",
+                "paramValue": 101.325
+              }
+            ]
+          },
+          {
+            "propertyValue": [
+              {
+                "propertyID": "property_1",
+                "propValue": 995.6
+              }
+            ],
+            "parameterValue": [
+              {
+                "parameterID": "parameter_1",
+                "paramValue": 303.15
+              },
+              {
+                "parameterID": "parameter_2",
+                "paramValue": 101.325
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -62,7 +62,7 @@ classDiagram
 
     class Parameter {
         +parameterID?: string
-        +parameter?: Parameters
+        +parameters?: Parameters
         +unit?: UnitDefinition
         +associated_compounds[0..*]: string
     }
@@ -90,12 +90,14 @@ classDiagram
     }
 
     class PropertyValue {
+        +properties?: Properties
         +propertyID?: string
         +propValue?: float
         +uncertainty?: float
     }
 
     class ParameterValue {
+        +parameters?: Parameters
         +parameterID?: string
         +paramValue?: float
         +uncertainty?: float
@@ -116,11 +118,26 @@ classDiagram
 
     class Storage {
         +storage_type?: StorageType
+        +storage_conditions?: StorageConditions
+        +vessel?: Vessel
+        +time_prepared?: string
+        +time_used?: string
+    }
+
+    class StorageConditions {
         +Temperature?: float
-        +vessel?: string
         +Pressure?: float
-        +prepared?: string
-        +used?: string
+        +gassed?: boolean
+        +inert?: boolean
+        +light?: boolean
+    }
+
+    class Vessel {
+        +id?: string
+        +name?: string
+        +volume?: float
+        +unit?: UnitDefinition
+        +constant?: boolean
     }
 
     class Vendor_Chemical {
@@ -169,6 +186,7 @@ classDiagram
         CRITICAL_VOLUME
         DENSITY
         DIFFUSION_COEFFICIENT
+        ELECTRICAL_CONDUCTIVITY
         EXCESS_MOLAR_ENTHALPY
         EXCESS_MOLAR_ENTROPY
         EXCESS_MOLAR_GIBBS_FREE_ENERGY
@@ -184,11 +202,13 @@ classDiagram
         MELTING_POINT
         MOLAR_ENTHALPY
         MOLAR_ENTROPY
+        MOLAR_HEAT_CAPACITY
         MOLAR_VOLUME
         OSMOTIC_COEFFICIENT
         PH
         POLARITY
         REFRACTIVE_INDEX
+        SOLUBILITY
         SPECIFIC_HEAT_CAPACITY
         SPECIFIC_VOLUME
         SPEED_OF_SOUND
@@ -198,6 +218,7 @@ classDiagram
         TRIPLE_POINT_TEMPERATURE
         VAPOR_PRESSURE
         VISCOSITY
+        WATER_ACTIVITY
     }
 
     class Parameters {
@@ -252,6 +273,7 @@ classDiagram
     class StorageType {
         <<enumeration>>
         CLOSED
+        DESSICATOR
         FRESH
         FRIDGE
         OPEN
@@ -278,6 +300,11 @@ classDiagram
     Sample "1" <|-- "1" Storage
     Sample "1" <|-- "1" Preparation
     Sample "1" <|-- "1" Vendor_Chemical
+    PropertyValue "1" <|-- "1" Properties
+    ParameterValue "1" <|-- "1" Parameters
     UnitDefinition "1" <|-- "*" BaseUnit
     Storage "1" <|-- "1" StorageType
+    Storage "1" <|-- "1" StorageConditions
+    Storage "1" <|-- "1" Vessel
+    Vessel "1" <|-- "1" UnitDefinition
 ```

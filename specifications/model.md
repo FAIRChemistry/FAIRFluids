@@ -161,7 +161,7 @@ Categorizes the type of experimental or system variable that is being controlled
 - parameterID
   - Type: Identifier
   - Description: A unique identifier for this parameter within the dataset. Used for referencing in conjunction with numerical values.
-- parameter
+- parameters
   - Type: Parameters
   - Description: The type or name of the parameter being varied, such as temperature, pressure, or mole fraction. Indicates what was controlled or changed during the experiment.
 - unit
@@ -217,6 +217,8 @@ Description: Contains the numerical data values related to both properties and p
 ### PropertyValue
 
 Description: Represents a numerical value associated with a specific property measurement, including precision and uncertainty information.
+- properties
+  - Type: Properties
 - propertyID
   - Type: Identifier
   - Description: Identifier referencing the property to which this value corresponds.
@@ -231,6 +233,9 @@ Description: Represents a numerical value associated with a specific property me
 ### ParameterValue
 
 Description: Represents a numerical value for a parameter that was varied or controlled during the experiment, including precision and uncertainty details.
+- parameters
+  - Type: Parameters
+  - Description: The type or name of the parameter being varied, such as temperature, pressure, or mole fraction. Indicates what was controlled or changed during the experiment.
 - parameterID
   - Type: Identifier
   - Description: Identifier referencing the specific parameter this value corresponds to.
@@ -270,22 +275,54 @@ Description: Represents a numerical value for a parameter that was varied or con
 - storage_type
   - Type: StorageType
   - Description: One of: Fresh, Fridge, Open, Closed
-- Temperature
-  - Type: float
-  - Description: Temperature under which the sample is stored
+- storage_conditions
+  - Type: StorageConditions
+  - Description: What storage conditions have been used for the sample
 - vessel
-  - Type: string
+  - Type: Vessel
   - Description: Type of vessel used for storage
-- Pressure
-  - Type: float
-  - Description: Pressure under which the sample is stored
-- prepared
+- time_prepared
   - Type: string
   - Description: Date, of Sample preparation
-- used
+- time_used
   - Type: string
   - Description: Time when the sample has been used
 
+### StorageConditions
+- Temperature
+  - Type: float
+  - Description: Temperature under which the sample is stored
+- Pressure
+  - Type: float
+  - Description: Pressure under which the sample is stored
+- gassed
+  - Type: boolean
+  - Description: Wether the sample was degassed
+- inert
+  - Type: boolean
+  - Description: x
+- light
+  - Type: boolean
+  - Description: Wether the sample was under light
+
+### Vessel
+
+- id
+  - Type: string
+  - Description: Unique identifier of the vessel.
+- name
+  - Type: string
+  - Description:  Name of the used vessel.
+- volume
+  - Type: float
+  - Description:  Volumetric value of the vessel.
+- unit
+  - Type: UnitDefinition
+  - Description: Unit
+- constant
+  - Type: boolean
+  - Description: Whether the volume of the vessel is constant or not. Default is True.
+  - Default: true
 
 ### Vendor_Chemical
 - assciciated_compound
@@ -332,6 +369,7 @@ DENSITY = density
   # kg/m^3
 SPECIFIC_HEAT_CAPACITY = specificHeatCapacity
 MOLAR_HEAT_CAPACITY = molarHeatCapacity
+ELECTRICAL_CONDUCTIVITY = electricalConductivity
   # J/(kg*K)
 THERMAL_CONDUCTIVITY = thermalConductivity
   # W/(m*K)
@@ -350,8 +388,9 @@ KINEMATIC_VISCOSITY = kinematicViscosity
 PH = pH
   # dimensionless
 POLARITY = polarity
-  # dimensionless
-
+# dimensionless
+WATER_ACTIVITY = waterActivity
+SOLUBILITY = solubility
 #missingStuff
 # Transport Properties
 SURFACE_TENSION = surfaceTension
@@ -513,4 +552,5 @@ FRESH = Fresh
 FRIDGE = Fridge
 OPEN = Open
 CLOSED = Closed
+DESSICATOR = Dessicator
 ```

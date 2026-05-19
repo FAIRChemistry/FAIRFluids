@@ -1,21 +1,26 @@
-# Core dependencies (some may need to be installed via pip in conda)
-pydantic-xml>=2.0.0
+# Pip packages to install after `conda env create -f environment.yml`
+# Versions aligned with reference conda env `xyz` (Python 3.13.9).
 
-# Development dependencies
-pytest>=7.0.0
-pytest-cov>=4.0.0
-black>=22.0.0
-isort>=5.0.0
-flake8>=5.0.0
-mypy>=1.0.0
+# pydantic-xml is often installed via pip when using conda
+pydantic-xml>=2.17.0
 
-# Documentation
-sphinx>=5.0.0
-sphinx-rtd-theme>=1.0.0
-myst-parser>=0.18.0
+# Neo4j, workflows, and Bayesian stack (conda env uses pip for these)
+neo4j>=5.14.1
+openpyxl>=3.1.5
+plotly>=5.17.0
+flask>=2.3.3
+pint>=0.25.2
 
-# Scientific computing (if not available in conda)
-# rdkit-pypi>=2022.9.1
+numpyro>=0.20.1
+jax>=0.7.2
+jaxlib>=0.7.2
+arviz>=0.22.0
+arviz-plots>=1.0.0
+arviz-base>=1.0.0
+arviz-stats>=1.0.0
+
+# Testing
+pytest-asyncio>=0.21.2
 
 # Install the package in development mode
 -e .
