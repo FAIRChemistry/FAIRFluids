@@ -1,263 +1,258 @@
 # FAIRFluids
 
-A comprehensive framework for creating FAIR (Findable, Accessible, Interoperable, and Reusable) fluid data documents with standardized metadata and experimental data representation.
+A Python framework for creating **FAIR** (Findable, Accessible, Interoperable, Reusable) fluid property documents with standardized metadata and experimental data representation.
+
+Part of the [FAIRChemistry](https://github.com/FAIRChemistry) initiative.
 
 ## Overview
 
-FAIRFluids is a Python-based framework designed to standardize the representation and sharing of fluid property data. It provides a structured approach to document experimental and computational fluid data with comprehensive metadata, ensuring data is FAIR-compliant and easily accessible for research and analysis.
+FAIRFluids standardizes how experimental and literature fluid data are represented, converted, and shared. It provides:
+
+- A **Pydantic-based data model** for compounds, samples, properties, parameters, and measurements
+- **I/O pipelines** for CSV, CML XML, and ThermoML
+- **Analysis and visualization** helpers (Arrhenius/VFT fits, plots, DataFrames)
+- Optional **Bayesian inference** workflows (NumPyro / JAX / ArviZ)
+
+**Requirements:** Python ≥ 3.10 (reference environment: **3.13** via `environment.yml`).
 
 ## Features
 
-- **Structured Data Model**: Comprehensive schema for fluid properties, compounds, and experimental parameters
-- **Multiple Data Sources**: Support for CSV files, CML (Chemical Markup Language) XML, and ThermoML formats
-- **Standardized Metadata**: Includes citation information, compound identifiers (PubChem, InChI, IUPAC names), and experimental methods
-- **Flexible Property Support**: Handles various fluid properties including viscosity, density, thermal conductivity, and more
-- **Uncertainty Tracking**: Built-in support for measurement uncertainties and error margins
-- **Machine-Readable**: JSON-based output format for easy integration with analysis tools
+- Structured schema for fluids, compounds, properties, parameters, and uncertainties
+- Import from **CSV**, **CML**, and **ThermoML**; export to **JSON** and ThermoML
+- Bidirectional ThermoML conversion (`fairfluids.io.thermoml_to_fairfluids`, `fairfluids.io.fairfluids_to_thermoml`)
+- PubChem enrichment for compound metadata
+- Plotting and DataFrame extraction for workflow notebooks
+- Neo4j graph export (`neo4j/`) for querying document collections
+- CLI for common create / CSV / CML operations
 
-## Project Structure
+## Project structure
 
 ```
 FAIRFluids/
-├── fairfluids/          # Main package directory
-│   ├── __init__.py      # Package initialization
-│   ├── cli.py          # Command-line interface
-│   ├── core/           # Core functionality
-│   │   ├── __init__.py
-│   │   ├── extended_models.py
-│   │   ├── fluid_io.py      # CSV data import utilities
-│   │   ├── functionalities.py
-│   │   ├── lib.py           # Main data models
-│   │   └── visualization.py
-│   └── data/           # Example data files
-│       ├── cml_xml/    # Chemical Markup Language files
-│       │   ├── gygli/  # Gygli et al. dataset
-│       │   └── xu/     # Xu et al. dataset
-│       ├── csvs/       # CSV data files
-│       ├── pdf/        # Reference documents
-│       └── thermoml_xml/ # ThermoML format files
-├── baml_client/        # BAML (BoundaryML) client libraries
-├── baml_src/          # BAML schema definitions
-├── jinja/             # Template generation
-├── specifications/     # Model specifications
-├── test/              # Test files and examples
-├── schemes/           # Documentation and schemas
-├── pyproject.toml     # Modern Python packaging
-├── setup.py           # Traditional setup script
-├── environment.yml    # Conda environment
-└── requirements.txt   # Pip dependencies
+├── fairfluids/                 # Main package
+│   ├── core/                   # Data models (lib.py), analysis helpers, plot utils
+│   ├── io/                     # CSV/JSON I/O, CML, PubChem, ThermoML converters
+│   ├── operations/             # Compound/sample operations
+│   ├── visualization/          # Plotting and DataFrame APIs
+│   ├── analysis/               # Fits, activation energy, Bayesian hooks
+│   ├── inspection/             # Document inspection, CST export
+│   └── data/                   # Example CSV, CML, ThermoML files
+├── Workflows/                  # Jupyter notebooks (CSV → FF, CML, ThermoML, Bayesian, …)
+├── docs/                       # Migration guide, API inventory, model layers
+├── specifications/             # Model and ThermoML specifications
+├── neo4j/                      # Neo4j import and query scripts
+├── thin_layer/                 # Lightweight views / Arrhenius helpers
+├── test/                       # Pytest suite
+├── environment.yml             # Conda environment (Python 3.13)
+├── requirements.txt            # Pip dependencies
+├── requirements-conda.txt      # Extra pip packages after conda create
+└── pyproject.toml              # Package metadata and optional extras
 ```
+
+See [docs/MIGRATION.md](docs/MIGRATION.md) if you are updating code from an older package layout.
 
 ## Installation
 
-### Using Conda (Recommended)
+### Conda (recommended)
 
 ```bash
-# Clone the repository
 git clone https://github.com/FAIRChemistry/FAIRFluids.git
 cd FAIRFluids
 
-# Create and activate conda environment
 conda env create -f environment.yml
 conda activate fairfluids
 ```
 
-### Using pip
+The environment includes core scientific packages, Jupyter support, Neo4j client, and the Bayesian stack (NumPyro, JAX, ArviZ).
+
+### pip
 
 ```bash
-# Clone the repository
 git clone https://github.com/FAIRChemistry/FAIRFluids.git
 cd FAIRFluids
 
-# Create virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
-# Install core dependencies and the package
 pip install -r requirements.txt
 pip install -e .
+```
 
-# Or install everything (workflows, Neo4j, Bayesian inference)
+### Optional dependency groups
+
+Install only what you need via [optional dependencies](pyproject.toml):
+
+| Extra | Purpose |
+|-------|---------|
+| `viz` | Matplotlib, SciPy, Seaborn |
+| `neo4j` | Neo4j Python driver |
+| `workflows` | Notebooks (ipykernel, openpyxl, plotly, flask, pint, …) |
+| `bayesian` | NumPyro, JAX, ArviZ (+ arviz-plots) |
+| `dev` / `test` | pytest, pytest-asyncio |
+| `all` | All of the above |
+
+```bash
+pip install -e ".[viz]"
+pip install -e ".[bayesian]"
 pip install -e ".[all]"
 ```
 
-### Development Setup
-
-For development work, you can install additional development dependencies:
+After a minimal conda create, you can add pip-only packages with:
 
 ```bash
-# Using conda
-conda env create -f environment.yml
-
-# Using pip (after conda env create)
 pip install -r requirements-conda.txt
-
-# Optional extras: viz, neo4j, workflows, bayesian, dev, all
-pip install -e ".[bayesian]"
 ```
 
-### Testing the Installation
-
-After installation, you can test that everything works:
+### Verify installation
 
 ```bash
-# Test the CLI
 fairfluids --help
-
-# Test Python imports
-python -c "import fairfluids; print('FAIRFluids imported successfully!')"
-
-# Run comprehensive tests
-python test_installation.py
+python -c "import fairfluids; print(fairfluids.__version__)"
+python test/test_installation.py
+python test/test_conda_env.py
+pytest test/
 ```
 
-## Quick Start
+## Quick start
 
-### Creating a FAIRFluids Document
+### Create a document
 
 ```python
-import fairfluids
 from fairfluids import FAIRFluidsDocument, Version, Citation
 
-# Create a new document
-doc = FAIRFluidsDocument(
-    version=Version(versionMajor=1, versionMinor=0)
-)
-
-# Add citation information
+doc = FAIRFluidsDocument(version=Version(versionMajor=1, versionMinor=0))
 doc.citation = Citation(litType="journal")
-doc.citation.add_to_author(given_name="John", family_name="Doe")
+doc.citation.add_to_author(given_name="Jane", family_name="Doe")
 
-# Add compound information
 doc.add_to_compound(
     compoundID="1",
     pubChemID=962,
     commonName="Water",
     name_IUPAC="oxidane",
-    standard_InChI="InChI=1S/H2O/h1H2",
-    standard_InChI_key="XLYOFNOQVPJJNP-UHFFFAOYSA-N"
 )
 
-# Save to JSON
-with open('fairfluids_model.json', 'w') as f:
-    f.write(doc.model_dump_json(indent=2))
+doc.save_to_json("fairfluids_model.json")
 ```
 
-### Loading Data from CSV
+### Load CSV data
 
 ```python
-from fairfluids import FluidIO
+from fairfluids import FluidIO, FAIRFluidsDocument, Version
 
-# Load fluid data from CSV
+doc = FAIRFluidsDocument(version=Version(versionMajor=1, versionMinor=0))
 fluid = FluidIO()
-fluid.data_from_csv('path/to/your/data.csv')
-
-# Add to document
+fluid.data_from_csv("fairfluids/data/csvs/exp_glycerol.csv")
 doc.fluid.append(fluid)
 ```
 
-### Parsing CML Files
+### Parse CML
 
 ```python
-from fairfluids import FAIRFluidsCMLParser
+from fairfluids import FAIRFluidsDocument, Version, FAIRFluidsCMLParser
 
-# Parse CML XML file
-parser = FAIRFluidsCMLParser("path/to/file.xml", document=doc)
+doc = FAIRFluidsDocument(version=Version(versionMajor=1, versionMinor=0))
+parser = FAIRFluidsCMLParser("fairfluids/data/cml_xml/gygli/glycerol.xml", document=doc)
 doc = parser.parse()
 ```
 
-### Using the Command Line Interface
+### ThermoML → FAIRFluids
 
-FAIRFluids provides a CLI for common operations:
+```python
+from pathlib import Path
+from fairfluids.core.lib import FAIRFluidsDocument
+from fairfluids.io.thermoml_to_fairfluids import convert
+
+payload = convert(Path("fairfluids/data/thermoml_xml/j.jct.2013.05.041.xml"))
+doc = FAIRFluidsDocument.model_validate(payload)
+```
+
+### FAIRFluids → ThermoML
+
+```python
+from pathlib import Path
+from fairfluids.io.fairfluids_to_thermoml import convert
+
+xml_bytes = convert(Path("fairfluids_model.json"))
+Path("output.thermoml.xml").write_bytes(xml_bytes)
+```
+
+CLI modules:
 
 ```bash
-# Create a new document
+python -m fairfluids.io.thermoml_to_fairfluids.main --help
+python -m fairfluids.io.fairfluids_to_thermoml.main --help
+```
+
+### Command-line interface
+
+```bash
 fairfluids create --output document.json
-
-# Load data from CSV
-fairfluids csv data.csv --output document.json
-
-# Parse CML file
-fairfluids cml data.xml --output document.json
-
-# Get help
+fairfluids csv fairfluids/data/csvs/exp_glycerol.csv --output document.json
+fairfluids cml fairfluids/data/cml_xml/gygli/glycerol.xml --output document.json
 fairfluids --help
 ```
 
-## Data Model
+## Workflows
 
-The FAIRFluids framework is built around several key components:
+Example Jupyter notebooks live in [`Workflows/`](Workflows/):
 
-### FAIRFluidsDocument
-The root container that holds:
-- **Version**: Document version information
-- **Citation**: Publication and author metadata
-- **Compound**: Chemical compound information with identifiers
-- **Fluid**: Experimental data and measurements
+| Notebook | Description |
+|----------|-------------|
+| `0_Basic_FF_Creation.ipynb` | Create and populate a FAIRFluids document |
+| `1_CSV_to_FAIRFluids_Example.ipynb` | Import tabular data via `FluidIO` |
+| `2_CML_to_FF.ipynb` | Parse CML and visualize viscosity data |
+| `3_ThermoML_to_FF.ipynb` | Convert ThermoML files to FAIRFluids JSON |
+| `4_query_and_visualize.ipynb` | Query and plot document collections |
+| `BaysianInference.ipynb` | Bayesian Arrhenius / VFT fitting (requires `[bayesian]`) |
 
-### Compound
-Represents chemical compounds with:
-- PubChem ID
-- IUPAC names
-- InChI identifiers
-- SELFIES molecular representations
+Start Jupyter after installing `[workflows]` or using `environment.yml`:
 
-### Fluid
-Contains experimental data including:
-- **Property**: Measured properties (viscosity, density, etc.)
-- **Parameter**: Experimental conditions (temperature, pressure, composition)
-- **Measurement**: Actual data values with uncertainties
+```bash
+jupyter notebook Workflows/
+```
 
-### Supported Properties
-- Density
-- Viscosity
-- Thermal conductivity
-- Specific heat capacity
-- Melting/boiling points
-- Vapor pressure
-- pH
-- And more...
+## Data model (summary)
 
-## Data Formats
+| Component | Role |
+|-----------|------|
+| `FAIRFluidsDocument` | Root container (version, citation, compounds, fluids) |
+| `Compound` | Chemical identity (PubChem, InChI, IUPAC, …) |
+| `Fluid` / `Sample` | Experimental context and measurements |
+| `Property` / `Parameter` | Measured quantities and conditions |
+| `Measurement` | Values with uncertainties |
 
-### Input Formats
-- **CSV**: Tabular data with standardized column headers
-- **CML**: Chemical Markup Language XML files
-- **ThermoML**: Thermodynamic data format
+Full schema details: [`specifications/model.md`](specifications/model.md), [`specifications/ThermoML.md`](specifications/ThermoML.md).
 
-### Output Format
-- **JSON**: Structured data with full metadata
+## Migration from older layouts
 
-## Example Data
+If your code used `fairfluids.core.fluid_io`, `fairfluids.ThermoMLMapping`, or top-level ThermoML shims, see **[docs/MIGRATION.md](docs/MIGRATION.md)** for the new import paths.
 
-The repository includes example datasets:
-- **Gygli Dataset**: Ionic liquid mixtures and their properties
-- **Xu Dataset**: Experimental and simulation data
-- **Various CSV files**: Formatted experimental data
+## Development
+
+```bash
+conda activate fairfluids   # or your venv
+pip install -e ".[dev,test]"
+pytest test/ -v
+```
+
+Branch **`testing`** carries the current development line; open PRs against `main` when ready.
 
 ## Contributing
 
-We welcome contributions! Please:
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch from `testing` or `main`
+3. Make changes and add tests where applicable
+4. Open a pull request on [GitHub](https://github.com/FAIRChemistry/FAIRFluids)
 
 ## License
 
-[Add your license information here]
+MIT License — see [pyproject.toml](pyproject.toml).
 
 ## Citation
 
-If you use FAIRFluids in your research, please cite:
-
-[Add citation information here]
+If you use FAIRFluids in your research, please cite the FAIRChemistry project and the relevant dataset publications. *(Citation block to be added.)*
 
 ## Contact
 
-For questions or support, please open an issue on GitHub or contact the development team.
-
-## Acknowledgments
-
-This project is part of the FAIRChemistry initiative, promoting Findable, Accessible, Interoperable, and Reusable chemical data standards.
+- Issues: [github.com/FAIRChemistry/FAIRFluids/issues](https://github.com/FAIRChemistry/FAIRFluids/issues)
+- FAIRChemistry: [github.com/FAIRChemistry](https://github.com/FAIRChemistry)
