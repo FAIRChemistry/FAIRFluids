@@ -949,7 +949,16 @@ class FluidIO(Fluid):
     def _normalize_unit(self, unit: Any) -> str:
         if unit is None:
             return ""
-        return str(unit).strip().replace("·", "*").lower()
+        normalized = str(unit).strip().replace("·", "*").lower()
+        # Accept common spreadsheet/SI spellings (e.g. template hint "Pa.s")
+        unit_aliases = {
+            "pa.s": "pa*s",
+            "pa s": "pa*s",
+            "pas": "pa*s",
+            "mpa.s": "mpa*s",
+            "mpa s": "mpa*s",
+        }
+        return unit_aliases.get(normalized, normalized)
 
     def _convert_temperature_to_kelvin(
         self, value: float, unit: str
