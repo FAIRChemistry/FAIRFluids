@@ -1,46 +1,19 @@
-# Pinned to versions from reference conda env `xyz` (Python 3.13.9).
-# Install: pip install -r requirements.txt && pip install -e .
+# Core runtime dependencies (mirrors pyproject.toml [project.dependencies]).
+#
+# Prefer installing the package with optional extras instead of this file alone:
+#   pip install -e ".[all]"          # full dev / notebook / Bayesian stack
+#   pip install -e ".[workflows]"    # notebooks only
+#   uv sync --extra all              # same, using uv
+#
+# Legacy one-liner (core only):
+#   pip install -r requirements.txt && pip install -e .
 
-# Core
-pydantic>=2.11.7
+pydantic>=2.11.0
 pydantic-xml>=2.17.0
 lxml>=5.3.0
-numpy>=2.2.5
-pandas>=2.2.3
-requests>=2.32.4
-
-# Visualization and scientific computing
-matplotlib>=3.10.0
-scipy>=1.16.1
-seaborn>=0.13.2
-
-# Neo4j graph database (neo4j/)
-neo4j>=5.14.1
-
-# Notebook / workflow support
-ipykernel>=6.29.5
-jupyter-client>=8.6.3
-openpyxl>=3.1.5
-
-# Web visualization (optional)
-# plotly>=5.17.0
-# flask>=2.3.3
-
-# Units
-# pint>=0.25.2
-
-# Bayesian inference (Workflows/BaysianInference.ipynb)
-# numpyro>=0.20.1
-# jax>=0.7.2
-# jaxlib>=0.7.2
-# arviz>=0.22.0
-# arviz-plots>=1.0.0
-# arviz-base>=1.0.0
-# arviz-stats>=1.0.0
-
-# Development (uncomment for development)
-# pytest>=7.4.4
-# pytest-asyncio>=0.21.2
-
-# Or install optional groups from pyproject.toml:
-# pip install -e ".[viz,neo4j,workflows,bayesian,dev]"
+numpy>=2.2.0
+pandas>=2.2.0
+requests>=2.32.0
+marimo>=0.23.10
+anthropic>=0.111.0
+sympy>=1.13

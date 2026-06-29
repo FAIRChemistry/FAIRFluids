@@ -3,17 +3,7 @@ include LICENSE
 include requirements.txt
 include requirements-conda.txt
 include pyproject.toml
-include setup.py
 include environment.yml
-
-# Include data files
-recursive-include data *.csv
-recursive-include data *.xml
-recursive-include data *.xsd
-recursive-include data *.pdf
-
-# Include BAML files
-recursive-include baml_src *.baml
 
 # Include specifications
 recursive-include specifications *.md
