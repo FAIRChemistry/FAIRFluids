@@ -1,5 +1,5 @@
 """
-This file contains Pydantic XML model definitions for data validation.
+This file contains Pydantic model definitions for data validation.
 
 Pydantic is a data validation library that uses Python type annotations.
 It allows you to define data models with type hints that are validated
@@ -23,58 +23,214 @@ except ValidationError as e:
 ```
 
 For more information see:
-https://pydantic-xml.readthedocs.io/en/latest/
+https://docs.pydantic.dev/
 
 WARNING: This is an auto-generated file.
 Do not edit directly - any changes will be overwritten.
 """
 
+
 ## This is a generated file. Do not modify it manually!
 
-
 from __future__ import annotations
-from typing import Dict, List, Optional, Union
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional, Generic, TypeVar, Union
+from enum import Enum
 from uuid import uuid4
 from datetime import date, datetime
-from xml.dom import minidom
-from enum import Enum
 
-from lxml.etree import _Element
-from pydantic import PrivateAttr, model_validator
-from pydantic_xml import attr, wrapped, element, BaseXmlModel
+# Filter Wrapper definition used to filter a list of objects
+# based on their attributes
+Cls = TypeVar("Cls")
+
+class FilterWrapper(Generic[Cls]):
+    """Wrapper class to filter a list of objects based on their attributes"""
+
+    def __init__(self, collection: list[Cls], **kwargs):
+        self.collection = collection
+        self.kwargs = kwargs
+
+    def filter(self) -> list[Cls]:
+        for key, value in self.kwargs.items():
+            self.collection = [
+                item for item in self.collection if self._fetch_attr(key, item) == value
+            ]
+        return self.collection
+
+    def _fetch_attr(self, name: str, item: Cls):
+        try:
+            return getattr(item, name)
+        except AttributeError:
+            raise AttributeError(f"{item} does not have attribute {name}")
 
 
-class FAIRFluidsDocument(
-    BaseXmlModel,
-    search_mode="unordered",
-):
+# JSON-LD Helper Functions
+def add_namespace(obj, prefix: str | None, iri: str | None):
+    """Adds a namespace to the JSON-LD context
+
+    Args:
+        prefix (str): The prefix to add
+        iri (str): The IRI to add
     """
-    ----Description
+    if prefix is None and iri is None:
+        return
+    elif prefix and iri is None:
+        raise ValueError("If prefix is provided, iri must also be provided")
+    elif iri and prefix is None:
+        raise ValueError("If iri is provided, prefix must also be provided")
+
+    obj.ld_context[prefix] = iri # type: ignore
+
+def validate_prefix(term: str | dict, prefix: str):
+    """Validates that a term is prefixed with a given prefix
+
+    Args:
+        term (str): The term to validate
+        prefix (str): The prefix to validate against
+
+    Returns:
+        bool: True if the term is prefixed with the prefix, False otherwise
     """
-    version: Optional[Version] = element(
-        default= None,
-        tag="version",
+
+    if isinstance(term, dict) and not term["@id"].startswith(prefix + ":"):
+        raise ValueError(f"Term {term} is not prefixed with {prefix}")
+    elif isinstance(term, str) and not term.startswith(prefix + ":"):
+        raise ValueError(f"Term {term} is not prefixed with {prefix}")
+
+# Model Definitions
+
+class FAIRFluidsDocument(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    version: Optional[Version] = Field(
+        default=None,
         description="""Version of the FAIRFluidsDocument""",
-        json_schema_extra=dict(),
     )
-    citation: Optional[Citation] = element(
-        default= None,
-        tag="citation",
+    citation: Optional[Citation] = Field(
+        default=None,
         description="""Add information about the datareport""",
-        json_schema_extra=dict(),
     )
-    compound: list[Compound] = element(
+    compound: list[Compound] = Field(
         default_factory=list,
-        tag="compound",
         description="""What Compounds are in the fluid""",
-        json_schema_extra=dict(),
     )
-    fluid: list[Fluid] = element(
+    fluid: list[Fluid] = Field(
         default_factory=list,
-        tag="fluid",
-        description="""Specifcations of the Fluid. There can be multible Fluids in one document""",
-        json_schema_extra=dict(),
+        description="""Specifcations of the Fluid. There can be multible
+        Fluids in one document""",
     )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:FAIRFluidsDocument/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:FAIRFluidsDocument",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
+    )
+
+    def filter_compound(self, **kwargs) -> list[Compound]:
+        """Filters the compound attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[Compound]: The filtered list of Compound objects
+        """
+
+        return FilterWrapper[Compound](self.compound, **kwargs).filter()
+
+    def filter_fluid(self, **kwargs) -> list[Fluid]:
+        """Filters the fluid attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[Fluid]: The filtered list of Fluid objects
+        """
+
+        return FilterWrapper[Fluid](self.fluid, **kwargs).filter()
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
     def add_to_compound(
@@ -91,7 +247,6 @@ class FAIRFluidsDocument(
         sigma_profile: Optional[int]= None,
         **kwargs,
     ):
-        """Helper method to add a new Compound to the compound list."""
         params = {
             "compoundID": compoundID,
             "pubChemID": pubChemID,
@@ -105,11 +260,15 @@ class FAIRFluidsDocument(
             "sigma_profile": sigma_profile
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.compound.append(
             Compound(**params)
         )
 
         return self.compound[-1]
+
 
     def add_to_fluid(
         self,
@@ -118,144 +277,286 @@ class FAIRFluidsDocument(
         property: list[Property]= [],
         parameter: list[Parameter]= [],
         sample: Optional[Sample]= None,
+        fitted_model: list[FittedModel]= [],
         **kwargs,
     ):
-        """Helper method to add a new Fluid to the fluid list."""
         params = {
             "fluidID": fluidID,
             "compounds": compounds,
             "property": property,
             "parameter": parameter,
-            "sample": sample
+            "sample": sample,
+            "fitted_model": fitted_model
         }
+
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
 
         self.fluid.append(
             Fluid(**params)
         )
 
         return self.fluid[-1]
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
 
-        Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+class Version(BaseModel):
 
-        Returns:
-            str | bytes: The XML representation of the object
-        """
-        if encoding == "bytes":
-            return self.to_xml()
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
-
-
-class Version(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    versionMajor: Optional[int] = element(
-        default= None,
-        tag="versionMajor",
+    versionMajor: Optional[int] = Field(
+        default=None,
         description="""Add the major version number to your datareport""",
-        json_schema_extra=dict(),
     )
-    versionMinor: Optional[int] = element(
-        default= None,
-        tag="versionMinor",
+    versionMinor: Optional[int] = Field(
+        default=None,
         description="""Add the minor version number to your datareport""",
-        json_schema_extra=dict(),
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Version/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Version",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+class Citation(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    litType: Optional[LitType] = Field(
+        default=None,
+        description="""Specifies the type of literature or source
+        document. Accepted values include:
+        book, journal, report, patent, thesis,
+        conference proceedings, archived document,
+        personal correspondence, published
+        translation, or unspecified.""",
+    )
+    author: list[Author] = Field(
+        default_factory=list,
+        description="""A list of authors who contributed to the
+        publication. Each entry should include
+        structured information such as full name
+        and optionally additional metadata like
+        affiliation or identifier.""",
+    )
+    doi: Optional[str] = Field(
+        default=None,
+        description="""Digital Object Identifier (DOI) for the
+        publication. A unique alphanumeric string
+        used to identify and provide a permanent
+        link to the document online.""",
+    )
+    page: Optional[str] = Field(
+        default=None,
+        description="""The page range in which the publication appears,
+        typically formatted as a string (e.g.,
+        '123–135').""",
+    )
+    pub_name: Optional[str] = Field(
+        default=None,
+        description="""The name of the publication source, such as the
+        journal title, book title, or conference
+        name.""",
+    )
+    title: Optional[str] = Field(
+        default=None,
+        description="""The title of the cited work or publication.""",
+    )
+    lit_volume_num: Optional[str] = Field(
+        default=None,
+        description="""The volume number of the source publication, if
+        applicable (e.g., journal volume).""",
+    )
+    url_citation: Optional[str] = Field(
+        default=None,
+        description="""A direct URL link to the publication or citation
+        landing page.""",
+    )
+    publication_year: Optional[str] = Field(
+        default=None,
+        description="""The year in which the publication was officially
+        released or published.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Citation/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Citation",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
+    )
+
+    def filter_author(self, **kwargs) -> list[Author]:
+        """Filters the author attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
 
         Returns:
-            str | bytes: The XML representation of the object
+            list[Author]: The filtered list of Author objects
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        return FilterWrapper[Author](self.author, **kwargs).filter()
 
 
-class Citation(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    litType: Optional[LitType] = element(
-        default= None,
-        tag="litType",
-        description="""Specifies the type of literature or source document. Accepted values include:
-            book, journal, report, patent, thesis, conference proceedings,
-            archived document, personal correspondence, published translation,
-            or unspecified.""",
-        json_schema_extra=dict(),
-    )
-    author: list[Author] = element(
-        default_factory=list,
-        tag="author",
-        description="""A list of authors who contributed to the publication. Each entry should include
-            structured information such as full name and optionally additional
-            metadata like affiliation or identifier.""",
-        json_schema_extra=dict(),
-    )
-    doi: Optional[str] = element(
-        default= None,
-        tag="doi",
-        description="""Digital Object Identifier (DOI) for the publication. A unique alphanumeric
-            string used to identify and provide a permanent link to the document
-            online.""",
-        json_schema_extra=dict(),
-    )
-    page: Optional[str] = element(
-        default= None,
-        tag="page",
-        description="""The page range in which the publication appears, typically formatted as a string
-            (e.g., '123–135').""",
-        json_schema_extra=dict(),
-    )
-    pub_name: Optional[str] = element(
-        default= None,
-        tag="pub_name",
-        description="""The name of the publication source, such as the journal title, book title, or
-            conference name.""",
-        json_schema_extra=dict(),
-    )
-    title: Optional[str] = element(
-        default= None,
-        tag="title",
-        description="""The title of the cited work or publication.""",
-        json_schema_extra=dict(),
-    )
-    lit_volume_num: Optional[str] = element(
-        default= None,
-        tag="lit_volume_num",
-        description="""The volume number of the source publication, if applicable (e.g., journal
-            volume).""",
-        json_schema_extra=dict(),
-    )
-    url_citation: Optional[str] = element(
-        default= None,
-        tag="url_citation",
-        description="""A direct URL link to the publication or citation landing page.""",
-        json_schema_extra=dict(),
-    )
-    publication_year: Optional[str] = element(
-        default= None,
-        tag="publication_year",
-        description="""The year in which the publication was officially released or published.""",
-        json_schema_extra=dict(),
-    )
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
     def add_to_author(
@@ -267,7 +568,6 @@ class Citation(
         affiliation: Optional[str]= None,
         **kwargs,
     ):
-        """Helper method to add a new Author to the author list."""
         params = {
             "given_name": given_name,
             "family_name": family_name,
@@ -276,236 +576,470 @@ class Citation(
             "affiliation": affiliation
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.author.append(
             Author(**params)
         )
 
         return self.author[-1]
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+
+
+class Author(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    given_name: Optional[str] = Field(
+        default=None,
+        description="""The given name (first name or personal name) of
+        the author or contributor.""",
+    )
+    family_name: Optional[str] = Field(
+        default=None,
+        description="""The family name (surname or last name) of the
+        author or contributor.""",
+    )
+    email: Optional[str] = Field(
+        default=None,
+        description="""The email address of the author, if available.
+        Used for contact or identification
+        purposes.""",
+    )
+    orcid: Optional[str] = Field(
+        default=None,
+        description="""The ORCID iD of the author, a unique, persistent
+        identifier used to distinguish researchers
+        (e.g., '0000-0002-1825-0097').""",
+    )
+    affiliation: Optional[str] = Field(
+        default=None,
+        description="""The name of the institution or organization the
+        author is affiliated with at the time of
+        publication.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Author/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Author",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
+    )
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
 
+        if prefix:
+            validate_prefix(term, prefix)
 
-class Author(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Represents an individual contributor or creator of the cited
-    work. Each author entry includes identifying details such as name, contact
-    information, unique identifiers, and institutional affiliation.
-    """
-    given_name: Optional[str] = element(
-        default= None,
-        tag="given_name",
-        description="""The given name (first name or personal name) of the author or contributor.""",
-        json_schema_extra=dict(),
-    )
-    family_name: Optional[str] = element(
-        default= None,
-        tag="family_name",
-        description="""The family name (surname or last name) of the author or contributor.""",
-        json_schema_extra=dict(),
-    )
-    email: Optional[str] = element(
-        default= None,
-        tag="email",
-        description="""The email address of the author, if available. Used for contact or
-            identification purposes.""",
-        json_schema_extra=dict(),
-    )
-    orcid: Optional[str] = element(
-        default= None,
-        tag="orcid",
-        description="""The ORCID iD of the author, a unique, persistent identifier used to distinguish
-            researchers (e.g., '0000-0002-1825-0097').""",
-        json_schema_extra=dict(),
-    )
-    affiliation: Optional[str] = element(
-        default= None,
-        tag="affiliation",
-        description="""The name of the institution or organization the author is affiliated with at the
-            time of publication.""",
-        json_schema_extra=dict(),
-    )
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
 
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class Compound(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Contains metadata for a chemical compound, including identifiers,
-    names, and structural representations. Each entry describes one unique
-    compound referenced in the data report.
-    """
-    compoundID: Optional[str] = element(
-        default= None,
-        tag="compoundID",
-        description="""A unique identifier assigned to the compound within the scope of this specific
-            data report or dataset. Used for internal tracking.""",
-        json_schema_extra=dict(),
+class Compound(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    compoundID: Optional[str] = Field(
+        default=None,
+        description="""A unique identifier assigned to the compound
+        within the scope of this specific data
+        report or dataset. Used for internal
+        tracking.""",
     )
-    pubChemID: Optional[int] = element(
-        default= None,
-        tag="pubChemID",
-        description="""The PubChem Compound Identifier (CID), a unique numeric ID assigned by the
-            PubChem database to this compound.""",
-        json_schema_extra=dict(),
+    pubChemID: Optional[int] = Field(
+        default=None,
+        description="""The PubChem Compound Identifier (CID), a unique
+        numeric ID assigned by the PubChem
+        database to this compound.""",
     )
-    commonName: Optional[str] = element(
-        default= None,
-        tag="commonName",
-        description="""The common or generic name of the compound, such as 'Water' for H₂O.""",
-        json_schema_extra=dict(),
+    commonName: Optional[str] = Field(
+        default=None,
+        description="""The common or generic name of the compound, such
+        as 'Water' for H₂O.""",
     )
-    SELFIE: Optional[str] = element(
-        default= None,
-        tag="SELFIE",
-        description="""The SELFIES (Self-referencing Embedded Strings) representation of the compound’s
-            molecular structure. A robust, machine-readable encoding for
-            molecules.""",
-        json_schema_extra=dict(),
+    SELFIE: Optional[str] = Field(
+        default=None,
+        description="""The SELFIES (Self-referencing Embedded Strings)
+        representation of the compound’s molecular
+        structure. A robust, machine-readable
+        encoding for molecules.""",
     )
-    name_IUPAC: Optional[str] = element(
-        default= None,
-        tag="name_IUPAC",
-        description="""The full IUPAC (International Union of Pure and Applied Chemistry) name of the
-            compound, representing its standardized chemical nomenclature.""",
-        json_schema_extra=dict(),
+    name_IUPAC: Optional[str] = Field(
+        default=None,
+        description="""The full IUPAC (International Union of Pure and
+        Applied Chemistry) name of the compound,
+        representing its standardized chemical
+        nomenclature.""",
     )
-    standard_InChI: Optional[str] = element(
-        default= None,
-        tag="standard_InChI",
-        description="""The Standard International Chemical Identifier (InChI) string that uniquely
-            represents the compound’s molecular structure.""",
-        json_schema_extra=dict(),
+    standard_InChI: Optional[str] = Field(
+        default=None,
+        description="""The Standard International Chemical Identifier
+        (InChI) string that uniquely represents
+        the compound’s molecular structure.""",
     )
-    standard_InChI_key: Optional[str] = element(
-        default= None,
-        tag="standard_InChI_key",
-        description="""The hashed version of the InChI string, known as the InChIKey. It is a fixed-
-            length, easier-to-search identifier for databases and indexing.""",
-        json_schema_extra=dict(),
+    standard_InChI_key: Optional[str] = Field(
+        default=None,
+        description="""The hashed version of the InChI string, known
+        as the InChIKey. It is a fixed-length,
+        easier-to-search identifier for databases
+        and indexing.""",
     )
-    molar_weigth: Optional[float] = element(
-        default= None,
-        tag="molar_weigth",
+    molar_weigth: Optional[float] = Field(
+        default=None,
         description="""The Molar weight in g/mol""",
-        json_schema_extra=dict(),
     )
-    smiles_code: Optional[str] = element(
-        default= None,
-        tag="smiles_code",
-        json_schema_extra=dict(),
+    smiles_code: Optional[str] = Field(
+        default=None,
+        description="""""",
     )
-    sigma_profile: Optional[int] = element(
-        default= None,
-        tag="sigma_profile",
+    sigma_profile: Optional[int] = Field(
+        default=None,
         description="""The sigma profil""",
-        json_schema_extra=dict(),
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Compound/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Compound",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "compoundID": {
+                "@type": "@id",
+            },
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+class Fluid(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    fluidID: list[str] = Field(
+        default_factory=list,
+        description="""""",
+    )
+    compounds: list[str] = Field(
+        default_factory=list,
+        description="""A list of unique identifiers referencing the
+        compounds present in the fluid system.
+        Multiple identifiers indicate a mixture;
+        single entries indicate a pure substance.v""",
+    )
+    property: list[Property] = Field(
+        default_factory=list,
+        description="""A list of physical or thermodynamic properties
+        that were measured or calculated for the
+        fluid. Each property is associated with
+        a method identifier (propertyID) that
+        defines both the property type (e.g.,
+        viscosity, thermal conductivity) and the
+        experimental or computational method used.""",
+    )
+    parameter: list[Parameter] = Field(
+        default_factory=list,
+        description="""A list of experimental parameters. Parameters
+        may vary across data points (e.g.,
+        temperature, pressure, composition) or
+        serve as constraints that remain fixed
+        across the dataset (e.g., constant
+        pressure or fixed mole ratio). These
+        define the input conditions under which
+        properties are observed or measured.""",
+    )
+    sample: Optional[Sample] = Field(
+        default=None,
+        description="""Sample""",
+    )
+    fitted_model: list[FittedModel] = Field(
+        default_factory=list,
+        description="""Models fitted to subsets of this fluid's
+        measurements (e.g. Arrhenius/VFT
+        regression or Bayesian posteriors).
+        Each entry stores the derived parameters
+        together with their uncertainties
+        expressed according to the GUM (Guide
+        to the Expression of Uncertainty in
+        Measurement).""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Fluid/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Fluid",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "fluidID": {
+                "@type": "@id",
+            },
+            "compounds": {
+                "@type": "@id",
+            },
+        }
+    )
+
+    def filter_property(self, **kwargs) -> list[Property]:
+        """Filters the property attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
 
         Returns:
-            str | bytes: The XML representation of the object
+            list[Property]: The filtered list of Property objects
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        return FilterWrapper[Property](self.property, **kwargs).filter()
+
+    def filter_parameter(self, **kwargs) -> list[Parameter]:
+        """Filters the parameter attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[Parameter]: The filtered list of Parameter objects
+        """
+
+        return FilterWrapper[Parameter](self.parameter, **kwargs).filter()
+
+    def filter_fitted_model(self, **kwargs) -> list[FittedModel]:
+        """Filters the fitted_model attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[FittedModel]: The filtered list of FittedModel objects
+        """
+
+        return FilterWrapper[FittedModel](self.fitted_model, **kwargs).filter()
 
 
-class Fluid(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Contains metadata and experimental context for a dataset related
-    to a fluid system. This includes the chemical composition (pure substance
-    or mixture), source of the data, properties measured varying experimental
-    parameters, and the corresponding numerical results. There can exist
-    multible fluids in one document.
-    """
-    fluidID: list[str] = element(
-        default_factory=list,
-        tag="fluidID",
-        json_schema_extra=dict(),
-    )
-    compounds: list[str] = element(
-        default_factory=list,
-        tag="compounds",
-        description="""A list of unique identifiers referencing the compounds present in the fluid
-            system. Multiple identifiers indicate a mixture; single entries
-            indicate a pure substance.v""",
-        json_schema_extra=dict(),
-    )
-    property: list[Property] = element(
-        default_factory=list,
-        tag="property",
-        description="""A list of physical or thermodynamic properties that were measured or calculated
-            for the fluid. Each property is associated with a method identifier
-            (propertyID) that defines both the property type (e.g., viscosity,
-            thermal conductivity) and the experimental or computational method
-            used.""",
-        json_schema_extra=dict(),
-    )
-    parameter: list[Parameter] = element(
-        default_factory=list,
-        tag="parameter",
-        description="""A list of experimental parameters. Parameters may vary across data points
-            (e.g., temperature, pressure, composition) or serve as constraints
-            that remain fixed across the dataset (e.g., constant pressure or
-            fixed mole ratio). These define the input conditions under which
-            properties are observed or measured.""",
-        json_schema_extra=dict(),
-    )
-    sample: Optional[Sample] = element(
-        default= None,
-        tag="sample",
-        description="""Sample""",
-        json_schema_extra=dict(),
-    )
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
     def add_to_property(
@@ -515,18 +1049,21 @@ class Fluid(
         unit: Optional[UnitDefinition]= None,
         **kwargs,
     ):
-        """Helper method to add a new Property to the property list."""
         params = {
             "propertyID": propertyID,
             "properties": properties,
             "unit": unit
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.property.append(
             Property(**params)
         )
 
         return self.property[-1]
+
 
     def add_to_parameter(
         self,
@@ -536,7 +1073,6 @@ class Fluid(
         associated_compounds: list[str]= [],
         **kwargs,
     ):
-        """Helper method to add a new Parameter to the parameter list."""
         params = {
             "parameterID": parameterID,
             "parameters": parameters,
@@ -544,193 +1080,455 @@ class Fluid(
             "associated_compounds": associated_compounds
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.parameter.append(
             Parameter(**params)
         )
 
         return self.parameter[-1]
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+
+
+    def add_to_fitted_model(
+        self,
+        modelID: Optional[str]= None,
+        model_name: Optional[str]= None,
+        model_equation: Optional[str]= None,
+        method: Optional[FitMethod]= None,
+        method_description: Optional[str]= None,
+        fitted_property: Optional[Properties]= None,
+        parameter: list[FittedParameter]= [],
+        covariance: list[float]= [],
+        r_squared: Optional[float]= None,
+        n_points: Optional[int]= None,
+        temperature_lower: Optional[float]= None,
+        temperature_upper: Optional[float]= None,
+        applied_parameters: list[ParameterValue]= [],
+        source_measurement_ids: list[str]= [],
+        **kwargs,
+    ):
+        params = {
+            "modelID": modelID,
+            "model_name": model_name,
+            "model_equation": model_equation,
+            "method": method,
+            "method_description": method_description,
+            "fitted_property": fitted_property,
+            "parameter": parameter,
+            "covariance": covariance,
+            "r_squared": r_squared,
+            "n_points": n_points,
+            "temperature_lower": temperature_lower,
+            "temperature_upper": temperature_upper,
+            "applied_parameters": applied_parameters,
+            "source_measurement_ids": source_measurement_ids
+        }
+
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
+        self.fitted_model.append(
+            FittedModel(**params)
+        )
+
+        return self.fitted_model[-1]
+
+class Property(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    propertyID: Optional[str] = Field(
+        default=None,
+        description="""A unique identifier for the specific property
+        being reported (e.g., viscosity, density,
+        heat capacity).""",
+    )
+    properties: Optional[Properties] = Field(
+        default=None,
+        description="""Indicates the broader category or group to which
+        the property belongs (e.g., thermodynamic,
+        transport, phase behavior). Used to
+        organize related properties.""",
+    )
+    unit: Optional[UnitDefinition] = Field(
+        default=None,
+        description="""""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Property/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Property",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "propertyID": {
+                "@type": "@id",
+            },
+        }
+    )
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
 
+        if prefix:
+            validate_prefix(term, prefix)
 
-class Property(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Defines the primary quantity being measured calculated, or
-    otherwise reported for a fluid system. Each property includes its
-    identifier, grouping, and methodological context.
-    """
-    propertyID: Optional[str] = element(
-        default= None,
-        tag="propertyID",
-        description="""A unique identifier for the specific property being reported (e.g., viscosity,
-            density, heat capacity).""",
-        json_schema_extra=dict(),
-    )
-    properties: Optional[Properties] = element(
-        default= None,
-        tag="properties",
-        description="""Indicates the broader category or group to which the property belongs (e.g.,
-            thermodynamic, transport, phase behavior). Used to organize related
-            properties.""",
-        json_schema_extra=dict(),
-    )
-    unit: Optional[UnitDefinition] = element(
-        default= None,
-        tag="unit",
-        json_schema_extra=dict(),
-    )
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
 
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class Parameter(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Represents an independent variable or experimental input that was
-    varied during data collection to observe its effect on a reported property.
-    Parameters can apply globally to the system or specifically to one component
-    in a mixture. Categorizes the type of experimental or system variable
-    that is being controlled or varied during data collection. Each category
-    represents a specific kind of parameter relevant to fluid or chemical
-    systems.
-    """
-    parameterID: Optional[str] = element(
-        default= None,
-        tag="parameterID",
-        description="""A unique identifier for this parameter within the dataset. Used for referencing
-            in conjunction with numerical values.""",
-        json_schema_extra=dict(),
+class Parameter(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    parameterID: Optional[str] = Field(
+        default=None,
+        description="""A unique identifier for this parameter within
+        the dataset. Used for referencing in
+        conjunction with numerical values.""",
     )
-    parameters: Optional[Parameters] = element(
-        default= None,
-        tag="parameters",
-        description="""The type or name of the parameter being varied, such as temperature, pressure,
-            or mole fraction. Indicates what was controlled or changed during
-            the experiment.""",
-        json_schema_extra=dict(),
+    parameters: Optional[Parameters] = Field(
+        default=None,
+        description="""The type or name of the parameter being varied,
+        such as temperature, pressure, or mole
+        fraction. Indicates what was controlled or
+        changed during the experiment.""",
     )
-    unit: Optional[UnitDefinition] = element(
-        default= None,
-        tag="unit",
-        json_schema_extra=dict(),
+    unit: Optional[UnitDefinition] = Field(
+        default=None,
+        description="""""",
     )
-    associated_compounds: list[str] = element(
+    associated_compounds: list[str] = Field(
         default_factory=list,
-        tag="associated_compounds",
-        description="""Identifies the specific compound (by its index or ID) to which this parameter
-            applies. Useful in multicomponent systems where a parameter (e.g.,
-            mole fraction) pertains to a specific compound.""",
-        json_schema_extra=dict(),
+        description="""Identifies the specific compound (by its index
+        or ID) to which this parameter applies.
+        Useful in multicomponent systems where a
+        parameter (e.g., mole fraction) pertains
+        to a specific compound.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Parameter/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Parameter",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "parameterID": {
+                "@type": "@id",
+            },
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+class Measurement(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    measurement_id: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+    source_doi: Optional[str] = Field(
+        default=None,
+        description="""The Digital Object Identifier (DOI) of the source
+        publication or dataset from which the
+        fluid data was obtained.""",
+    )
+    propertyValue: list[PropertyValue] = Field(
+        default_factory=list,
+        description="""An array of numerical values corresponding to the
+        measured or calculated properties (e.g.,
+        density, viscosity). Each entry should
+        include the value, units, and possibly
+        uncertainty or error margins.""",
+    )
+    parameterValue: list[ParameterValue] = Field(
+        default_factory=list,
+        description="""An array of numerical values corresponding to
+        the parameters that were varied or held
+        constant during the experiment (e.g.,
+        temperature, pressure). Each entry should
+        specify the value, units, and related
+        parameter identifier.3""",
+    )
+    method: Optional[Method] = Field(
+        default=None,
+        description="""Describes how the property value was obtained.
+        Accepted values may include: , , , ,
+        or . This field helps distinguish between
+        experimental and non-experimental data
+        sources.""",
+    )
+    method_description: Optional[str] = Field(
+        default=None,
+        description="""A free-text description providing additional
+        detail about the method used to generate
+        the data (e.g., specific experimental
+        setup, calculation model, simulation type,
+        or literature source details).""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Measurement/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Measurement",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "measurement_id": {
+                "@type": "@id",
+            },
+        }
+    )
+
+    def filter_propertyValue(self, **kwargs) -> list[PropertyValue]:
+        """Filters the propertyValue attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
 
         Returns:
-            str | bytes: The XML representation of the object
+            list[PropertyValue]: The filtered list of PropertyValue objects
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        return FilterWrapper[PropertyValue](self.propertyValue, **kwargs).filter()
+
+    def filter_parameterValue(self, **kwargs) -> list[ParameterValue]:
+        """Filters the parameterValue attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[ParameterValue]: The filtered list of ParameterValue objects
+        """
+
+        return FilterWrapper[ParameterValue](self.parameterValue, **kwargs).filter()
 
 
-class Measurement(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Contains the numerical data values related to both properties and
-    parameters. These values represent the measured or calculated quantities
-    recorded in the experiment or dataset.
-    """
-    measurement_id: Optional[str] = element(
-        default= None,
-        tag="measurement_id",
-        json_schema_extra=dict(),
-    )
-    source_doi: Optional[str] = element(
-        default= None,
-        tag="source_doi",
-        description="""The Digital Object Identifier (DOI) of the source publication or dataset from
-            which the fluid data was obtained.""",
-        json_schema_extra=dict(),
-    )
-    propertyValue: list[PropertyValue] = element(
-        default_factory=list,
-        tag="propertyValue",
-        description="""An array of numerical values corresponding to the measured or calculated
-            properties (e.g., density, viscosity). Each entry should include the
-            value, units, and possibly uncertainty or error margins.""",
-        json_schema_extra=dict(),
-    )
-    parameterValue: list[ParameterValue] = element(
-        default_factory=list,
-        tag="parameterValue",
-        description="""An array of numerical values corresponding to the parameters that were varied or
-            held constant during the experiment (e.g., temperature, pressure).
-            Each entry should specify the value, units, and related parameter
-            identifier.3""",
-        json_schema_extra=dict(),
-    )
-    method: Optional[Method] = element(
-        default= None,
-        tag="method",
-        description="""Describes how the property value was obtained. Accepted values may
-            include: , , , , or . This field helps distinguish between
-            experimental and non-experimental data sources.""",
-        json_schema_extra=dict(),
-    )
-    method_description: Optional[str] = element(
-        default= None,
-        tag="method_description",
-        description="""A free-text description providing additional detail about the method used to
-            generate the data (e.g., specific experimental setup, calculation
-            model, simulation type, or literature source details).""",
-        json_schema_extra=dict(),
-    )
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
     def add_to_propertyValue(
@@ -741,7 +1539,6 @@ class Measurement(
         uncertainty: Optional[float]= None,
         **kwargs,
     ):
-        """Helper method to add a new PropertyValue to the propertyValue list."""
         params = {
             "properties": properties,
             "propertyID": propertyID,
@@ -749,11 +1546,15 @@ class Measurement(
             "uncertainty": uncertainty
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.propertyValue.append(
             PropertyValue(**params)
         )
 
         return self.propertyValue[-1]
+
 
     def add_to_parameterValue(
         self,
@@ -763,7 +1564,6 @@ class Measurement(
         uncertainty: Optional[float]= None,
         **kwargs,
     ):
-        """Helper method to add a new ParameterValue to the parameterValue list."""
         params = {
             "parameters": parameters,
             "parameterID": parameterID,
@@ -771,65 +1571,148 @@ class Measurement(
             "uncertainty": uncertainty
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.parameterValue.append(
             ParameterValue(**params)
         )
 
         return self.parameterValue[-1]
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+
+
+class Sample(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    sample_id: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+    associated_compounds: list[str] = Field(
+        default_factory=list,
+        description="""""",
+    )
+    measurement: list[Measurement] = Field(
+        default_factory=list,
+        description="""A collection of measured or calculated numerical
+        data points associated with the specified
+        properties and experimental parameters.""",
+    )
+    storage: Optional[Storage] = Field(
+        default=None,
+        description="""""",
+    )
+    preparation: Optional[Preparation] = Field(
+        default=None,
+        description="""""",
+    )
+    vendor_chemical: Optional[Vendor_Chemical] = Field(
+        default=None,
+        description="""""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Sample/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Sample",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "sample_id": {
+                "@type": "@id",
+            },
+        }
+    )
+
+    def filter_measurement(self, **kwargs) -> list[Measurement]:
+        """Filters the measurement attribute based on the given kwargs
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            **kwargs: The attributes to filter by.
 
         Returns:
-            str | bytes: The XML representation of the object
+            list[Measurement]: The filtered list of Measurement objects
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        return FilterWrapper[Measurement](self.measurement, **kwargs).filter()
 
 
-class Sample(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    sample_id: Optional[str] = element(
-        default= None,
-        tag="sample_id",
-        json_schema_extra=dict(),
-    )
-    associated_compounds: list[str] = element(
-        default_factory=list,
-        tag="associated_compounds",
-        json_schema_extra=dict(),
-    )
-    measurement: list[Measurement] = element(
-        default_factory=list,
-        tag="measurement",
-        description="""A collection of measured or calculated numerical data points associated with the
-            specified properties and experimental parameters.""",
-        json_schema_extra=dict(),
-    )
-    storage: Optional[Storage] = element(
-        default= None,
-        tag="storage",
-        json_schema_extra=dict(),
-    )
-    preparation: Optional[Preparation] = element(
-        default= None,
-        tag="preparation",
-        json_schema_extra=dict(),
-    )
-    vendor_chemical: Optional[Vendor_Chemical] = element(
-        default= None,
-        tag="vendor_chemical",
-        json_schema_extra=dict(),
-    )
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
     def add_to_measurement(
@@ -842,7 +1725,6 @@ class Sample(
         method_description: Optional[str]= None,
         **kwargs,
     ):
-        """Helper method to add a new Measurement to the measurement list."""
         params = {
             "measurement_id": measurement_id,
             "source_doi": source_doi,
@@ -852,189 +1734,908 @@ class Sample(
             "method_description": method_description
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.measurement.append(
             Measurement(**params)
         )
 
         return self.measurement[-1]
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
-
-        Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
-
-        Returns:
-            str | bytes: The XML representation of the object
-        """
-        if encoding == "bytes":
-            return self.to_xml()
-
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
 
 
-class Preparation(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    prepMethod: Optional[str] = element(
-        default= None,
-        tag="prepMethod",
+class Preparation(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    prepMethod: Optional[str] = Field(
+        default=None,
         description="""The description on how it was prepared""",
-        json_schema_extra=dict(),
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Preparation/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Preparation",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
 
+        if prefix:
+            validate_prefix(term, prefix)
 
-class PropertyValue(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Represents a numerical value associated with a specific property
-    measurement, including precision and uncertainty information.
-    """
-    properties: Optional[Properties] = element(
-        default= None,
-        tag="properties",
-        json_schema_extra=dict(),
-    )
-    propertyID: Optional[str] = element(
-        default= None,
-        tag="propertyID",
-        description="""Identifier referencing the property to which this value corresponds.""",
-        json_schema_extra=dict(),
-    )
-    propValue: Optional[float] = element(
-        default= None,
-        tag="propValue",
-        description="""The actual measured or calculated numerical value of the property.""",
-        json_schema_extra=dict(),
-    )
-    uncertainty: Optional[float] = element(
-        default= None,
-        tag="uncertainty",
-        description="""The estimated uncertainty or error margin associated with the property value,
-            typically representing standard deviation or confidence interval.""",
-        json_schema_extra=dict(),
-    )
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
 
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class ParameterValue(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    """
-    Description: Represents a numerical value for a parameter that was varied
-    or controlled during the experiment, including precision and uncertainty
-    details.
-    """
-    parameters: Optional[Parameters] = element(
-        default= None,
-        tag="parameters",
-        description="""The type or name of the parameter being varied, such as temperature, pressure,
-            or mole fraction. Indicates what was controlled or changed during
-            the experiment.""",
-        json_schema_extra=dict(),
+class PropertyValue(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    properties: Optional[Properties] = Field(
+        default=None,
+        description="""""",
     )
-    parameterID: Optional[str] = element(
-        default= None,
-        tag="parameterID",
-        description="""Identifier referencing the specific parameter this value corresponds to.""",
-        json_schema_extra=dict(),
+    propertyID: Optional[str] = Field(
+        default=None,
+        description="""Identifier referencing the property to which this
+        value corresponds.""",
     )
-    paramValue: Optional[float] = element(
-        default= None,
-        tag="paramValue",
-        description="""The actual measured or set numerical value of the parameter.""",
-        json_schema_extra=dict(),
+    propValue: Optional[float] = Field(
+        default=None,
+        description="""The actual measured or calculated numerical value
+        of the property.""",
     )
-    uncertainty: Optional[float] = element(
-        default= None,
-        tag="uncertainty",
-        description="""The estimated uncertainty or error margin associated with the parameter value.""",
-        json_schema_extra=dict(),
+    uncertainty: Optional[float] = Field(
+        default=None,
+        description="""The estimated uncertainty or error margin
+        associated with the property value,
+        typically representing standard deviation
+        or confidence interval.""",
     )
 
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:PropertyValue/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:PropertyValue",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "propertyID": {
+                "@type": "@id",
+            },
+        }
+    )
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class UnitDefinition(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    unitID: Optional[str] = element(
-        default= None,
-        tag="unitID",
-        description="""Unique identifier for the unit definition, used for referencing in data fields.""",
-        json_schema_extra=dict(),
+class ParameterValue(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    parameters: Optional[Parameters] = Field(
+        default=None,
+        description="""The type or name of the parameter being varied,
+        such as temperature, pressure, or mole
+        fraction. Indicates what was controlled or
+        changed during the experiment.""",
     )
-    name: Optional[str] = element(
-        default= None,
-        tag="name",
-        description="""Human-readable name of the unit (e.g., 'kilogram per cubic meter').""",
-        json_schema_extra=dict(),
+    parameterID: Optional[str] = Field(
+        default=None,
+        description="""Identifier referencing the specific parameter this
+        value corresponds to.""",
     )
-    base_units: list[BaseUnit] = element(
+    paramValue: Optional[float] = Field(
+        default=None,
+        description="""The actual measured or set numerical value of
+        the parameter.""",
+    )
+    uncertainty: Optional[float] = Field(
+        default=None,
+        description="""The estimated uncertainty or error margin
+        associated with the parameter value.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:ParameterValue/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:ParameterValue",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "parameterID": {
+                "@type": "@id",
+            },
+        }
+    )
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+class FittedModel(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    modelID: Optional[str] = Field(
+        default=None,
+        description="""A unique identifier for this fitted model within
+        the dataset.""",
+    )
+    model_name: Optional[str] = Field(
+        default=None,
+        description="""Short machine-readable name of the model, e.g.
+        'arrhenius', 'extended_arrhenius' or
+        'vft'.""",
+    )
+    model_equation: Optional[str] = Field(
+        default=None,
+        description="""Human-readable form of the fitted equation,
+        e.g. 'ln(eta) = ln(As) + Ea / (R * T)'.
+        Documents what the parameters mean.""",
+    )
+    method: Optional[FitMethod] = Field(
+        default=None,
+        description="""How the parameters were obtained (e.g. ordinary
+        least squares regression or Bayesian
+        Markov chain Monte Carlo).""",
+    )
+    method_description: Optional[str] = Field(
+        default=None,
+        description="""Free-text provenance about the fit, such
+        as software name and version, prior
+        distributions, sampler settings,
+        weighting, or any non-default options.""",
+    )
+    fitted_property: Optional[Properties] = Field(
+        default=None,
+        description="""The physical property that the model describes
+        (e.g. viscosity), linking the fit to the
+        standardized property vocabulary.""",
+    )
+    parameter: list[FittedParameter] = Field(
         default_factory=list,
-        tag="base_units",
-        description="""A list of base unit components that, together with exponents, scale, and
-            multipliers, define the full derived unit.""",
-        json_schema_extra=dict(),
+        description="""The derived parameters of the model, each with its
+        value, unit and GUM-style uncertainty.""",
     )
+    covariance: list[float] = Field(
+        default_factory=list,
+        description="""Optional parameter covariance matrix. Row and
+        column order follow the order of the
+        parameter list. Required to correctly
+        propagate correlated parameters into
+        predicted quantities.""",
+    )
+    r_squared: Optional[float] = Field(
+        default=None,
+        description="""Optional coefficient of determination of the fit,
+        as a quick goodness-of-fit indicator.""",
+    )
+    n_points: Optional[int] = Field(
+        default=None,
+        description="""Optional number of measurement points used in
+        the fit.""",
+    )
+    temperature_lower: Optional[float] = Field(
+        default=None,
+        description="""Optional lower bound of the temperature range over
+        which the fit is valid, in Kelvin.""",
+    )
+    temperature_upper: Optional[float] = Field(
+        default=None,
+        description="""Optional upper bound of the temperature range over
+        which the fit is valid, in Kelvin.""",
+    )
+    applied_parameters: list[ParameterValue] = Field(
+        default_factory=list,
+        description="""Optional fixed conditions this fit applies
+        to, such as the mole fractions of the
+        composition. Pins the fit to a specific
+        subset of the fluid's data.""",
+    )
+    source_measurement_ids: list[str] = Field(
+        default_factory=list,
+        description="""Optional list of measurement identifiers that
+        were used in the fit, for provenance and
+        traceability.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:FittedModel/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:FittedModel",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "modelID": {
+                "@type": "@id",
+            },
+        }
+    )
+
+    def filter_parameter(self, **kwargs) -> list[FittedParameter]:
+        """Filters the parameter attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[FittedParameter]: The filtered list of FittedParameter objects
+        """
+
+        return FilterWrapper[FittedParameter](self.parameter, **kwargs).filter()
+
+    def filter_applied_parameters(self, **kwargs) -> list[ParameterValue]:
+        """Filters the applied_parameters attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[ParameterValue]: The filtered list of ParameterValue objects
+        """
+
+        return FilterWrapper[ParameterValue](self.applied_parameters, **kwargs).filter()
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+    def add_to_parameter(
+        self,
+        name: Optional[str]= None,
+        value: Optional[float]= None,
+        unit: Optional[UnitDefinition]= None,
+        standard_uncertainty: Optional[float]= None,
+        uncertainty_evaluation: Optional[UncertaintyEvaluation]= None,
+        coverage_factor: Optional[float]= None,
+        expanded_uncertainty: Optional[float]= None,
+        coverage_probability: Optional[float]= None,
+        degrees_of_freedom: Optional[float]= None,
+        distribution: Optional[DistributionType]= None,
+        interval_low: Optional[float]= None,
+        interval_high: Optional[float]= None,
+        properties: Optional[Properties]= None,
+        **kwargs,
+    ):
+        params = {
+            "name": name,
+            "value": value,
+            "unit": unit,
+            "standard_uncertainty": standard_uncertainty,
+            "uncertainty_evaluation": uncertainty_evaluation,
+            "coverage_factor": coverage_factor,
+            "expanded_uncertainty": expanded_uncertainty,
+            "coverage_probability": coverage_probability,
+            "degrees_of_freedom": degrees_of_freedom,
+            "distribution": distribution,
+            "interval_low": interval_low,
+            "interval_high": interval_high,
+            "properties": properties
+        }
+
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
+        self.parameter.append(
+            FittedParameter(**params)
+        )
+
+        return self.parameter[-1]
+
+
+    def add_to_applied_parameters(
+        self,
+        parameters: Optional[Parameters]= None,
+        parameterID: Optional[str]= None,
+        paramValue: Optional[float]= None,
+        uncertainty: Optional[float]= None,
+        **kwargs,
+    ):
+        params = {
+            "parameters": parameters,
+            "parameterID": parameterID,
+            "paramValue": paramValue,
+            "uncertainty": uncertainty
+        }
+
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
+        self.applied_parameters.append(
+            ParameterValue(**params)
+        )
+
+        return self.applied_parameters[-1]
+
+
+class FittedParameter(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    name: Optional[str] = Field(
+        default=None,
+        description="""Name of the parameter, e.g. 'Ea', 'lnAs', 'B'
+        or 'T0'.""",
+    )
+    value: Optional[float] = Field(
+        default=None,
+        description="""Best estimate of the parameter. For regression
+        this is the fitted coefficient; for
+        Bayesian inference it is the posterior
+        mean or median.""",
+    )
+    unit: Optional[UnitDefinition] = Field(
+        default=None,
+        description="""The unit of the parameter value.""",
+    )
+    standard_uncertainty: Optional[float] = Field(
+        default=None,
+        description="""The standard uncertainty u(x) of the parameter,
+        i.e. the estimated standard deviation.
+        For regression this is the standard error;
+        for Bayesian inference it is the posterior
+        standard deviation.""",
+    )
+    uncertainty_evaluation: Optional[UncertaintyEvaluation] = Field(
+        default=None,
+        description="""How the standard uncertainty was evaluated,
+        named explicitly so that no specialized
+        background is required to interpret it.""",
+    )
+    coverage_factor: Optional[float] = Field(
+        default=None,
+        description="""The factor k by which the standard uncertainty
+        is multiplied to obtain the expanded
+        uncertainty (e.g. k = 2).""",
+    )
+    expanded_uncertainty: Optional[float] = Field(
+        default=None,
+        description="""The expanded uncertainty U = k * u, defining a
+        symmetric coverage interval value +/- U.""",
+    )
+    coverage_probability: Optional[float] = Field(
+        default=None,
+        description="""The probability that the coverage interval
+        contains the value, e.g. 0.95.""",
+    )
+    degrees_of_freedom: Optional[float] = Field(
+        default=None,
+        description="""Effective number of degrees of freedom behind the
+        uncertainty (e.g. number of points minus
+        number of fitted parameters), needed to
+        interpret the coverage factor for small
+        samples.""",
+    )
+    distribution: Optional[DistributionType] = Field(
+        default=None,
+        description="""The distribution assumed or sampled for the
+        parameter, which gives meaning to the
+        coverage interval.""",
+    )
+    interval_low: Optional[float] = Field(
+        default=None,
+        description="""Lower bound of the coverage interval (confidence
+        interval for regression, credible interval
+        for Bayesian inference).""",
+    )
+    interval_high: Optional[float] = Field(
+        default=None,
+        description="""Upper bound of the coverage interval.""",
+    )
+    properties: Optional[Properties] = Field(
+        default=None,
+        description="""Optional link to a standardized quantity when
+        the parameter corresponds to one (e.g.
+        activationEnergy), so that derived
+        quantities remain discoverable through the
+        property vocabulary.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:FittedParameter/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:FittedParameter",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
+    )
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+class UnitDefinition(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    unitID: Optional[str] = Field(
+        default=None,
+        description="""Unique identifier for the unit definition, used
+        for referencing in data fields.""",
+    )
+    name: Optional[str] = Field(
+        default=None,
+        description="""Human-readable name of the unit (e.g., 'kilogram
+        per cubic meter').""",
+    )
+    base_units: list[BaseUnit] = Field(
+        default_factory=list,
+        description="""A list of base unit components that, together with
+        exponents, scale, and multipliers, define
+        the full derived unit.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:UnitDefinition/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:UnitDefinition",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
+    )
+
+    def filter_base_units(self, **kwargs) -> list[BaseUnit]:
+        """Filters the base_units attribute based on the given kwargs
+
+        Args:
+            **kwargs: The attributes to filter by.
+
+        Returns:
+            list[BaseUnit]: The filtered list of BaseUnit objects
+        """
+
+        return FilterWrapper[BaseUnit](self.base_units, **kwargs).filter()
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
     def add_to_base_units(
@@ -1045,7 +2646,6 @@ class UnitDefinition(
         scale: Optional[float]= None,
         **kwargs,
     ):
-        """Helper method to add a new BaseUnit to the base_units list."""
         params = {
             "kind": kind,
             "exponent": exponent,
@@ -1053,293 +2653,588 @@ class UnitDefinition(
             "scale": scale
         }
 
+        if "id" in kwargs:
+            params["id"] = kwargs["id"]
+
         self.base_units.append(
             BaseUnit(**params)
         )
 
         return self.base_units[-1]
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+
+class BaseUnit(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    kind: Optional[str] = Field(
+        default=None,
+        description="""The physical quantity represented by the unit
+        (e.g., mass, length, time, temperature).""",
+    )
+    exponent: Optional[int] = Field(
+        default=None,
+        description="""Exponent applied to the base unit (e.g., m² has
+        exponent 2 for 'length').""",
+    )
+    multiplier: Optional[float] = Field(
+        default=None,
+        description="""Numerical multiplier applied to the base unit
+        (e.g., 1000 for gram when converting to
+        kilogram).""",
+    )
+    scale: Optional[float] = Field(
+        default=None,
+        description="""Power-of-ten scale factor applied to the unit
+        (e.g., 3 for kilo, -6 for micro). Applied
+        as 10^scale.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:BaseUnit/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:BaseUnit",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
+    )
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
 
+        if prefix:
+            validate_prefix(term, prefix)
 
-class BaseUnit(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    kind: Optional[str] = element(
-        default= None,
-        tag="kind",
-        description="""The physical quantity represented by the unit (e.g., mass, length, time,
-            temperature).""",
-        json_schema_extra=dict(),
-    )
-    exponent: Optional[int] = element(
-        default= None,
-        tag="exponent",
-        description="""Exponent applied to the base unit (e.g., m² has exponent 2 for 'length').""",
-        json_schema_extra=dict(),
-    )
-    multiplier: Optional[float] = element(
-        default= None,
-        tag="multiplier",
-        description="""Numerical multiplier applied to the base unit (e.g., 1000 for gram when
-            converting to kilogram).""",
-        json_schema_extra=dict(),
-    )
-    scale: Optional[float] = element(
-        default= None,
-        tag="scale",
-        description="""Power-of-ten scale factor applied to the unit (e.g., 3 for kilo, -6 for micro).
-            Applied as 10^scale.""",
-        json_schema_extra=dict(),
-    )
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
 
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class Storage(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    storage_type: Optional[StorageType] = element(
-        default= None,
-        tag="storage_type",
+class Storage(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    storage_type: Optional[StorageType] = Field(
+        default=None,
         description="""One of: Fresh, Fridge, Open, Closed""",
-        json_schema_extra=dict(),
     )
-    storage_conditions: Optional[StorageConditions] = element(
-        default= None,
-        tag="storage_conditions",
-        description="""What storage conditions have been used for the sample""",
-        json_schema_extra=dict(),
+    storage_conditions: Optional[StorageConditions] = Field(
+        default=None,
+        description="""What storage conditions have been used for the
+        sample""",
     )
-    vessel: Optional[Vessel] = element(
-        default= None,
-        tag="vessel",
+    vessel: Optional[Vessel] = Field(
+        default=None,
         description="""Type of vessel used for storage""",
-        json_schema_extra=dict(),
     )
-    time_prepared: Optional[str] = element(
-        default= None,
-        tag="time_prepared",
+    time_prepared: Optional[str] = Field(
+        default=None,
         description="""Date, of Sample preparation""",
-        json_schema_extra=dict(),
     )
-    time_used: Optional[str] = element(
-        default= None,
-        tag="time_used",
+    time_used: Optional[str] = Field(
+        default=None,
         description="""Time when the sample has been used""",
-        json_schema_extra=dict(),
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Storage/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Storage",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class StorageConditions(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    Temperature: Optional[float] = element(
-        default= None,
-        tag="Temperature",
+class StorageConditions(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    Temperature: Optional[float] = Field(
+        default=None,
         description="""Temperature under which the sample is stored""",
-        json_schema_extra=dict(),
     )
-    Pressure: Optional[float] = element(
-        default= None,
-        tag="Pressure",
+    Pressure: Optional[float] = Field(
+        default=None,
         description="""Pressure under which the sample is stored""",
-        json_schema_extra=dict(),
     )
-    gassed: Optional[bool] = element(
-        default= None,
-        tag="gassed",
+    gassed: Optional[bool] = Field(
+        default=None,
         description="""Wether the sample was degassed""",
-        json_schema_extra=dict(),
     )
-    inert: Optional[bool] = element(
-        default= None,
-        tag="inert",
+    inert: Optional[bool] = Field(
+        default=None,
         description="""x""",
-        json_schema_extra=dict(),
     )
-    light: Optional[bool] = element(
-        default= None,
-        tag="light",
+    light: Optional[bool] = Field(
+        default=None,
         description="""Wether the sample was under light""",
-        json_schema_extra=dict(),
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:StorageConditions/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:StorageConditions",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
-class Vessel(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    id: Optional[str] = element(
-        default= None,
-        tag="id",
+class Vessel(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    id: Optional[str] = Field(
+        default=None,
         description="""Unique identifier of the vessel.""",
-        json_schema_extra=dict(),
     )
-    name: Optional[str] = element(
-        default= None,
-        tag="name",
+    name: Optional[str] = Field(
+        default=None,
         description="""Name of the used vessel.""",
-        json_schema_extra=dict(),
     )
-    volume: Optional[float] = element(
-        default= None,
-        tag="volume",
+    volume: Optional[float] = Field(
+        default=None,
         description="""Volumetric value of the vessel.""",
-        json_schema_extra=dict(),
     )
-    unit: Optional[UnitDefinition] = element(
-        default= None,
-        tag="unit",
+    unit: Optional[UnitDefinition] = Field(
+        default=None,
         description="""Unit""",
-        json_schema_extra=dict(),
     )
-    constant: Optional[bool] = element(
+    constant: Optional[bool] = Field(
         default= True,
-        tag="constant",
-        description="""Whether the volume of the vessel is constant or not. Default is True.""",
-        json_schema_extra=dict(),
+        description="""Whether the volume of the vessel is constant or
+        not. Default is True.""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Vessel/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Vessel",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+        }
     )
 
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            AssertionError: If the attribute is not found in the model
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
 
+        if prefix:
+            validate_prefix(term, prefix)
 
-class Vendor_Chemical(
-    BaseXmlModel,
-    search_mode="unordered",
-):
-    assciciated_compound: Optional[str] = element(
-        default= None,
-        tag="assciciated_compound",
-        json_schema_extra=dict(),
-    )
-    CAS: Optional[str] = element(
-        default= None,
-        tag="CAS",
-        json_schema_extra=dict(),
-    )
-    purity: Optional[str] = element(
-        default= None,
-        tag="purity",
-        json_schema_extra=dict(),
-    )
-    Vendor: Optional[str] = element(
-        default= None,
-        tag="Vendor",
-        json_schema_extra=dict(),
-    )
-    LOT: Optional[str] = element(
-        default= None,
-        tag="LOT",
-        json_schema_extra=dict(),
-    )
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
 
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
 
-    def xml(self, encoding: str = "unicode") -> str | bytes:
-        """Converts the object to an XML string
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
 
         Args:
-            encoding (str, optional): The encoding to use. If set to "bytes", will return a bytes string.
-                                      Defaults to "unicode".
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
 
-        Returns:
-            str | bytes: The XML representation of the object
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
         """
-        if encoding == "bytes":
-            return self.to_xml()
 
-        raw_xml = self.to_xml(encoding=None)
-        parsed_xml = minidom.parseString(raw_xml)
-        return parsed_xml.toprettyxml(indent="  ")
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
+
+
+class Vendor_Chemical(BaseModel):
+
+    model_config: ConfigDict = ConfigDict( # type: ignore
+        validate_assignment = True,
+    ) # type: ignore
+
+    assciciated_compound: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+    CAS: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+    purity: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+    Vendor: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+    LOT: Optional[str] = Field(
+        default=None,
+        description="""""",
+    )
+
+    # JSON-LD fields
+    ld_id: str = Field(
+        serialization_alias="@id",
+        default_factory=lambda: "fairfluids:Vendor_Chemical/" + str(uuid4())
+    )
+    ld_type: list[str] = Field(
+        serialization_alias="@type",
+        default_factory = lambda: [
+            "fairfluids:Vendor_Chemical",
+        ],
+    )
+    ld_context: dict[str, str | dict] = Field(
+        serialization_alias="@context",
+        default_factory = lambda: {
+            "fairfluids": "https://github.com/FAIRChemistry/FAIRFluids",
+            "assciciated_compound": {
+                "@type": "@id",
+            },
+        }
+    )
+
+
+    def set_attr_term(
+        self,
+        attr: str,
+        term: str | dict,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Sets the term for a given attribute in the JSON-LD object
+
+        Example:
+            # Using an IRI term
+            >> obj.set_attr_term("name", "http://schema.org/givenName")
+
+            # Using a prefix and term
+            >> obj.set_attr_term("name", "schema:givenName", "schema", "http://schema.org")
+
+            # Usinng a dictionary term
+            >> obj.set_attr_term("name", {"@id": "http://schema.org/givenName", "@type": "@id"})
+
+        Args:
+            attr (str): The attribute to set the term for
+            term (str | dict): The term to set for the attribute
+
+        Raises:
+            AssertionError: If the attribute is not found in the model
+        """
+
+        assert attr in self.model_fields, f"Attribute {attr} not found in {self.__class__.__name__}"
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_context[attr] = term
+
+    def add_type_term(
+        self,
+        term: str,
+        prefix: str | None = None,
+        iri: str | None = None
+    ):
+        """Adds a term to the @type field of the JSON-LD object
+
+        Example:
+            # Using a term
+            >> obj.add_type_term("https://schema.org/Person")
+
+            # Using a prefixed term
+            >> obj.add_type_term("schema:Person", "schema", "https://schema.org/Person")
+
+        Args:
+            term (str): The term to add to the @type field
+            prefix (str, optional): The prefix to use for the term. Defaults to None.
+            iri (str, optional): The IRI to use for the term prefix. Defaults to None.
+
+        Raises:
+            ValueError: If prefix is provided but iri is not
+            ValueError: If iri is provided but prefix is not
+        """
+
+        if prefix:
+            validate_prefix(term, prefix)
+
+        add_namespace(self, prefix, iri)
+        self.ld_type.append(term)
 
 
 class LitType(Enum):
-    """Enumeration for LitType values"""
     ARCHIVEDDOCUMENT = "archivedDocument"
     BOOK = "book"
     CONFERENCEPROCEEDINGS = "conferenceProceedings"
@@ -1352,14 +3247,12 @@ class LitType(Enum):
     UNSPECIFIED = "unspecified"
 
 class Method(Enum):
-    """Enumeration for Method values"""
     CALCULATED = "calculated"
     LITERATURE = "literature"
     MEASURED = "measured"
     SIMULATED = "simulated"
 
 class Properties(Enum):
-    """Enumeration for Properties values"""
     ACTIVATION_ENERGY = "activationEnergy"
     ACTIVITY = "activity"
     ACTIVITY_COEFFICIENT = "activityCoefficient"
@@ -1408,7 +3301,6 @@ class Properties(Enum):
     WATER_ACTIVITY = "waterActivity"
 
 class Parameters(Enum):
-    """Enumeration for Parameters values"""
     ACTIVITY_COEFFICIENT = "Activity coefficient"
     AMOUNT_CONCENTRATION_MOLARITY = "Amount concentration (molarity)"
     AMOUNT_DENSITY = "Amount density"
@@ -1456,9 +3348,27 @@ class Parameters(Enum):
     WAVELENGTH = "Wavelength"
 
 class StorageType(Enum):
-    """Enumeration for StorageType values"""
     CLOSED = "Closed"
     DESSICATOR = "Dessicator"
     FRESH = "Fresh"
     FRIDGE = "Fridge"
     OPEN = "Open"
+
+class FitMethod(Enum):
+    BAYESIAN_MCMC = "bayesianMCMC"
+    LITERATURE = "literature"
+    REGRESSION_NLS = "regressionNLS"
+    REGRESSION_OLS = "regressionOLS"
+
+class UncertaintyEvaluation(Enum):
+    COMBINED = "combined"
+    NON_STATISTICAL = "nonStatistical"
+    POSTERIOR = "posterior"
+    STATISTICAL = "statistical"
+
+class DistributionType(Enum):
+    LOGNORMAL = "lognormal"
+    NORMAL = "normal"
+    POSTERIOR = "posterior"
+    STUDENT_T = "studentT"
+    UNIFORM = "uniform"

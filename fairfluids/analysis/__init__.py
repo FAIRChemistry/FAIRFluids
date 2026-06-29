@@ -12,13 +12,18 @@ import importlib
 from types import ModuleType
 from typing import Any
 
+from fairfluids.analysis import fluids
 from fairfluids.core.functionalities import (
-    calculate_activationEnergy,
     extract_property_dataframe,
-    fit_arrhenius,
-    fit_extended_arrhenius,
-    fit_vft,
     group_and_filter_measurements,
+)
+from fairfluids.analysis.regression import (
+    ParameterStack,
+    fit_arrhenius,
+    fit_documents,
+    fit_extended_arrhenius,
+    fit_model,
+    fit_vft,
 )
 
 
@@ -42,11 +47,14 @@ def __getattr__(name: str) -> Any:
 
 
 __all__ = [
-    "calculate_activationEnergy",
     "extract_property_dataframe",
     "fit_arrhenius",
     "fit_extended_arrhenius",
     "fit_vft",
+    "fit_model",
+    "fit_documents",
+    "ParameterStack",
     "group_and_filter_measurements",
     "get_bayesian",
+    "fluids",
 ]

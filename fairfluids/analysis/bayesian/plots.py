@@ -10,7 +10,7 @@ look is consistent with the rest of the package.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ from fairfluids.visualization.core_plots import get_marker_styles
 
 from .comparison import ModelComparison, posterior_summary
 from .data import BayesianDataset, BayesianGroup
-from .inference import BayesianFit
+from .inference import BayesianFit, GroupFit
 from .priors import sample_prior
 
 if TYPE_CHECKING:
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
     from .models import BayesianModel
+    from .priors import PriorSet
 
 
 _WATER_CMAP_STOPS: tuple[tuple[float, str], ...] = (
@@ -86,6 +87,35 @@ def _resolve_composition(
         return None
 
 
+def _predictive_feature_arrays(
+    model: "BayesianModel",
+    group: BayesianGroup,
+    feature: str,
+    f_grid: np.ndarray,
+) -> dict[str, Any]:
+    """Build feature arrays for predictive plots, including optional model extras."""
+    import jax.numpy as jnp
+
+    features_jax: dict[str, Any] = {}
+    for fname in model.feature_names:
+        if fname == feature:
+            features_jax[fname] = jnp.asarray(f_grid)
+        else:
+            features_jax[fname] = jnp.asarray(group.features[fname])
+    return features_jax
+
+
+def _predictive_sample_array(
+    samples: dict[str, Any],
+    *,
+    model: "BayesianModel | None" = None,
+) -> np.ndarray:
+    """Prefer deterministic ``mu`` over noisy ``obs`` for band plots (likelihood scale)."""
+    if "mu" in samples:
+        return np.asarray(samples["mu"])
+    return np.asarray(samples["obs"])
+
+
 def _posterior_predictive_bands(
     model: "BayesianModel",
     fit: BayesianFit,
@@ -95,6 +125,7 @@ def _posterior_predictive_bands(
     n_grid: int = 120,
     quantiles: tuple[float, float] = (0.05, 0.95),
     seed: int = 0,
+    plot_scale: str | None = None,
 ) -> dict[str, np.ndarray]:
     """Predict the model's observation distribution on a dense feature grid."""
     import jax.numpy as jnp
@@ -102,32 +133,85 @@ def _posterior_predictive_bands(
     from numpyro.infer import Predictive
 
     gfit = fit.get(model.name, group.group_id)
+    from .models import get_model
+
+    run_model = (
+        get_model(model.name, **gfit.model_kwargs) if gfit.model_kwargs else model
+    )
+
     f_arr = group.features[feature]
     f_grid = np.linspace(float(np.min(f_arr)), float(np.max(f_arr)), n_grid)
+    features_jax = _predictive_feature_arrays(run_model, group, feature, f_grid)
 
-    features_jax: dict[str, Any] = {}
-    for fname in model.feature_names:
-        if fname == feature:
-            features_jax[fname] = jnp.asarray(f_grid)
-        else:
-            features_jax[fname] = jnp.asarray(group.features[fname])
-
-    predictive = Predictive(model.numpyro_model, gfit.mcmc.get_samples())
+    predictive = Predictive(run_model.numpyro_model, gfit.mcmc.get_samples())
     key = random.fold_in(random.PRNGKey(seed), abs(hash(group.group_id)) % (2**31))
     samples = predictive(
         key,
         features=features_jax,
         observation=None,
         observation_uncertainty=None,
-        preset_name=gfit.preset,
+        priors=gfit.priors,
     )
-    obs = np.asarray(samples["obs"])
+    pred = _predictive_sample_array(samples, model=run_model)
+    if run_model.resolve_plot_scale(plot_scale) == "property" and run_model.log_observation:
+        pred = run_model.transform_mean_for_display(pred, plot_scale=plot_scale)
     return {
         "grid": f_grid,
-        "mean": obs.mean(axis=0),
-        "lo": np.quantile(obs, quantiles[0], axis=0),
-        "hi": np.quantile(obs, quantiles[1], axis=0),
+        "mean": pred.mean(axis=0),
+        "lo": np.quantile(pred, quantiles[0], axis=0),
+        "hi": np.quantile(pred, quantiles[1], axis=0),
     }
+
+
+def _resolve_feature_x_axis(
+    feature_values: np.ndarray,
+    *,
+    feature: str,
+    x_axis: str | Callable[[np.ndarray], np.ndarray],
+    xlabel: str | None = None,
+) -> tuple[np.ndarray, str]:
+    """Map raw feature values to plot x-coordinates and an axis label.
+
+    Built-in ``x_axis`` presets (``feature`` name must match when required):
+
+    * ``"feature"`` — use the feature array as-is (e.g. ``T`` in K).
+    * ``"inverse_temperature"`` — ``1000 / (R * T)`` with ``feature="temperature"``.
+    """
+    from .bridge import R_GAS
+
+    arr = np.asarray(feature_values, dtype=float)
+
+    if callable(x_axis):
+        return np.asarray(x_axis(arr), dtype=float), xlabel or feature
+
+    preset = x_axis.lower().replace(" ", "_")
+    if preset == "feature":
+        return arr, xlabel or feature
+
+    if preset in {"inverse_temperature", "inv_temperature", "1000/(rt)", "1000/rt"}:
+        if feature != "temperature":
+            raise ValueError(
+                f"x_axis={x_axis!r} requires feature='temperature', got {feature!r}."
+            )
+        return (
+            1000.0 / (R_GAS * arr),
+            xlabel or r"$(RT)^{-1}$ / mol kJ$^{-1}$",
+        )
+
+    raise ValueError(
+        f"Unknown x_axis={x_axis!r}. Use 'feature', 'inverse_temperature', "
+        "or pass a callable ``f(feature_array) -> x_array``."
+    )
+
+
+def _default_posterior_predictive_x_axis(
+    feature: str,
+    *,
+    inverse_temperature_axis: bool,
+) -> str | Callable[[np.ndarray], np.ndarray]:
+    if inverse_temperature_axis and feature == "temperature":
+        return "inverse_temperature"
+    return "feature"
 
 
 def plot_posterior_predictive(
@@ -136,32 +220,49 @@ def plot_posterior_predictive(
     *,
     group_id: Any = None,
     feature: str = "temperature",
+    x_axis: str | Callable[[np.ndarray], np.ndarray] | None = None,
+    xlabel: str | None = None,
     composition_field: str | None = "mole_fraction_water",
     doi_field: str = "source_doi",
     inverse_temperature_axis: bool = True,
     figsize: tuple[float, float] = (10.0, 7.0),
     title: str | None = None,
     doi_styles: Mapping[str, dict[str, str]] | None = None,
+    plot_scale: str | None = None,
 ) -> tuple["Figure", "Axes"]:
-    """Posterior predictive plot in log-property vs. ``1/(R*T)`` space (default).
+    """Posterior predictive curves with flexible x-axis scaling.
 
-    Marker per DOI, color per composition value (using the same blue gradient as
-    the legacy notebook). Set ``inverse_temperature_axis=False`` to plot directly
-    against the feature.
+    Marker per DOI, colour per composition. By default, when ``feature`` is
+    ``"temperature"``, the x-axis uses ``1000/(R*T)`` (Arrhenius-style). Pass
+    ``x_axis="feature"`` to plot against raw temperature in K, or supply a
+    callable ``f(T_array) -> x_array`` for custom scaling.
 
     ``group_id`` accepts the same flexible selectors as :func:`plot_posterior`
     (``None`` = all fitted groups, ``int`` index, label substring, metadata
     dict, raw ``group_id`` tuple, or :class:`BayesianGroup`).
+
+    Args:
+        x_axis: ``"feature"``, ``"inverse_temperature"``, or a callable. When
+            ``None``, falls back to ``inverse_temperature_axis`` (legacy flag).
+        xlabel: Optional axis label; preset labels are used when omitted.
+        inverse_temperature_axis: Legacy toggle used only when ``x_axis`` is
+            ``None``. Prefer explicit ``x_axis=...`` in new code.
     """
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
-
-    from .models_builtin import R_GAS
 
     if feature not in model.feature_names:
         raise KeyError(
             f"feature={feature!r} not in model {model.name!r} features {model.feature_names}."
         )
+
+    resolved_x_axis = (
+        x_axis
+        if x_axis is not None
+        else _default_posterior_predictive_x_axis(
+            feature, inverse_temperature_axis=inverse_temperature_axis
+        )
+    )
 
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -184,6 +285,7 @@ def plot_posterior_predictive(
     cmap = _composition_cmap(len(compositions) or 2)
     comp_to_idx = {c: i for i, c in enumerate(compositions)}
 
+    axis_label: str | None = None
     for group in bayesian_groups:
         doi = _resolve_doi(group, doi_field)
         comp = _resolve_composition(group, composition_field)
@@ -194,23 +296,23 @@ def plot_posterior_predictive(
             color = _doi_color(doi, doi_styles)
         marker = _doi_marker(doi, doi_order)
 
-        bands = _posterior_predictive_bands(model, fit, group, feature=feature)
+        bands = _posterior_predictive_bands(
+            model, fit, group, feature=feature, plot_scale=plot_scale
+        )
         f_grid = bands["grid"]
         f_obs = group.features[feature]
-        if inverse_temperature_axis and feature == "temperature":
-            x_grid = 1000.0 / (R_GAS * f_grid)
-            x_obs = 1000.0 / (R_GAS * f_obs)
-            xlabel = r"$(RT)^{-1}$ / mol kJ$^{-1}$"
-        else:
-            x_grid = f_grid
-            x_obs = f_obs
-            xlabel = feature
+        x_grid, axis_label = _resolve_feature_x_axis(
+            f_grid, feature=feature, x_axis=resolved_x_axis, xlabel=xlabel
+        )
+        x_obs, _ = _resolve_feature_x_axis(
+            f_obs, feature=feature, x_axis=resolved_x_axis, xlabel=xlabel
+        )
 
         ax.plot(x_grid, bands["mean"], color=color, lw=2, alpha=0.9, zorder=1)
         ax.fill_between(x_grid, bands["lo"], bands["hi"], color=color, alpha=0.2, zorder=1)
         ax.scatter(
             x_obs,
-            group.observation,
+            model.observation_for_display(group, plot_scale=plot_scale),
             color=color,
             marker=marker,
             s=55,
@@ -219,11 +321,8 @@ def plot_posterior_predictive(
             alpha=0.9,
         )
 
-    ax.set_xlabel(xlabel, fontsize=14)
-    if model.log_observation:
-        ax.set_ylabel(r"$\ln(\eta\,/\,\mathrm{Pa\cdot s})$", fontsize=14)
-    else:
-        ax.set_ylabel("observation", fontsize=14)
+    ax.set_xlabel(axis_label or feature, fontsize=14)
+    ax.set_ylabel(model.observation_axis_label(plot_scale=plot_scale), fontsize=14)
     ax.set_title(title or f"{model.name} posterior predictive", fontsize=15)
 
     legend_handles: list[Line2D] = []
@@ -270,11 +369,12 @@ def plot_prior_predictive(
     model: "BayesianModel",
     group: BayesianGroup,
     *,
-    preset: str = "balanced",
+    priors: "PriorSet",
     feature: str = "temperature",
     n_samples: int = 2000,
     quantiles: tuple[float, ...] = (0.05, 0.5, 0.95),
     figsize: tuple[float, float] = (8.0, 5.0),
+    plot_scale: str | None = None,
 ) -> tuple["Figure", "Axes"]:
     """Plot prior predictive median + interval bands on the group's feature range."""
     import jax.numpy as jnp
@@ -285,9 +385,7 @@ def plot_prior_predictive(
     f_arr = group.features[feature]
     grid = np.linspace(float(np.min(f_arr)), float(np.max(f_arr)), 200)
 
-    features_jax: dict[str, Any] = {}
-    for fname in model.feature_names:
-        features_jax[fname] = jnp.asarray(grid if fname == feature else group.features[fname])
+    features_jax = _predictive_feature_arrays(model, group, feature, grid)
 
     predictive = Predictive(model.numpyro_model, num_samples=n_samples)
     key = random.PRNGKey(0)
@@ -296,13 +394,15 @@ def plot_prior_predictive(
         features=features_jax,
         observation=None,
         observation_uncertainty=None,
-        preset_name=preset,
+        priors=priors,
     )
-    obs = np.asarray(samples["obs"])
-    q_arrays = {q: np.quantile(obs, q, axis=0) for q in quantiles}
+    pred = _predictive_sample_array(samples, model=model)
+    if model.resolve_plot_scale(plot_scale) == "property" and model.log_observation:
+        pred = model.transform_mean_for_display(pred, plot_scale=plot_scale)
+    q_arrays = {q: np.quantile(pred, q, axis=0) for q in quantiles}
 
     fig, ax = plt.subplots(figsize=figsize)
-    median = q_arrays.get(0.5, np.quantile(obs, 0.5, axis=0))
+    median = q_arrays.get(0.5, np.quantile(pred, 0.5, axis=0))
     ax.plot(grid, median, color="#1f5aa6", lw=2, label="prior median")
     lo = min(quantiles)
     hi = max(quantiles)
@@ -315,10 +415,11 @@ def plot_prior_predictive(
             alpha=0.2,
             label=f"prior {int(lo*100)}-{int(hi*100)}%",
         )
-    ax.scatter(f_arr, group.observation, color="black", s=40, marker="o", label="observed")
+    y_obs = model.observation_for_display(group, plot_scale=plot_scale)
+    ax.scatter(f_arr, y_obs, color="black", s=40, marker="o", label="observed")
     ax.set_xlabel(feature, fontsize=13)
-    ax.set_ylabel("ln(observation)" if model.log_observation else "observation", fontsize=13)
-    ax.set_title(f"{model.name} prior predictive ({preset}) — {group.group_label}", fontsize=12)
+    ax.set_ylabel(model.observation_axis_label(plot_scale=plot_scale), fontsize=13)
+    ax.set_title(f"{model.name} prior predictive — {group.group_label}", fontsize=12)
     ax.legend(loc="best", fontsize=10)
     fig.tight_layout()
     return fig, ax
@@ -428,6 +529,7 @@ def plot_residuals_and_pareto_k(
     feature: str = "temperature",
     doi_field: str = "source_doi",
     figsize: tuple[float, float] = (12.0, 4.0),
+    plot_scale: str | None = None,
 ) -> tuple["Figure", "np.ndarray"]:
     """One row per model: residual scatter (left) + Pareto-k scatter (right)."""
     import arviz as az
@@ -461,18 +563,23 @@ def plot_residuals_and_pareto_k(
             from numpyro.infer import Predictive
             import jax.random as random
 
+            model = _get_model_for(m_name, gfit)
             features_jax = {f: jnp.asarray(gfit.group.features[f]) for f in gfit.group.features}
-            pred = Predictive(_get_model_for(m_name).numpyro_model, samples)
+            pred = Predictive(model.numpyro_model, samples)
             key = random.fold_in(random.PRNGKey(123), abs(hash(gid)) % (2**31))
             pp = pred(
                 key,
                 features=features_jax,
                 observation=None,
                 observation_uncertainty=None,
-                preset_name=gfit.preset,
+                priors=gfit.priors,
             )
-            mean_pred = np.asarray(pp["obs"]).mean(axis=0)
-            resid = np.asarray(gfit.group.observation) - mean_pred
+            mean_on_likelihood = _predictive_sample_array(pp, model=model).mean(axis=0)
+            mean_pred = model.transform_mean_for_display(
+                mean_on_likelihood, plot_scale=plot_scale
+            )
+            y_obs = model.observation_for_display(gfit.group, plot_scale=plot_scale)
+            resid = y_obs - mean_pred
             x = gfit.group.features[feature]
             ax_res.scatter(x, resid, color=color, marker=marker, s=45, edgecolor="black", alpha=0.85)
             if k.size:
@@ -482,7 +589,10 @@ def plot_residuals_and_pareto_k(
         ax_k.axhline(0.7, color="gray", linestyle="--")
         ax_k.axhline(1.0, color="gray", linestyle=":")
         ax_res.set_xlabel(feature, fontsize=11)
-        ax_res.set_ylabel("residual", fontsize=11)
+        sample_gid = next(g for g in fit.group_ids if (m_name, g) in fit.fits)
+        row_model = _get_model_for(m_name, fit.get(m_name, sample_gid))
+        obs_lbl = row_model.observation_axis_label(plot_scale=plot_scale)
+        ax_res.set_ylabel(f"residual {obs_lbl}", fontsize=11)
         ax_res.set_title(f"{m_name} residuals", fontsize=12)
         ax_k.set_xlabel(feature, fontsize=11)
         ax_k.set_ylabel("Pareto-k", fontsize=11)
@@ -499,9 +609,11 @@ def _pareto_k_safe(loo: Any) -> np.ndarray:
     return np.asarray(v)
 
 
-def _get_model_for(model_name: str) -> "BayesianModel":
+def _get_model_for(model_name: str, gfit: GroupFit | None = None) -> "BayesianModel":
     from .models import get_model
 
+    if gfit is not None and gfit.model_kwargs:
+        return get_model(model_name, **gfit.model_kwargs)
     return get_model(model_name)
 
 
@@ -678,10 +790,10 @@ def _figure_from_axes(ax_obj: Any) -> "Figure":
 
 
 def _default_var_names(model_name: str, include_sigma: bool = True) -> list[str]:
-    from .models import get_model
+    from .models import ModelRegistry
 
-    m = get_model(model_name)
-    names = list(m.param_names)
+    m_cls = ModelRegistry.get(model_name)
+    names = list(m_cls.param_names)
     if include_sigma:
         names.append("model_sigma")
     return names
@@ -882,7 +994,7 @@ def plot_prior_vs_posterior(
     *,
     model: "BayesianModel",
     parameter: str,
-    preset_name: str,
+    priors: "PriorSet",
     group_id: Any = None,
     n_prior_samples: int = 4000,
     n_bins: int = 60,
@@ -909,13 +1021,12 @@ def plot_prior_vs_posterior(
         )
     posterior = np.asarray(samples[parameter]).reshape(-1)
 
-    preset = model.get_preset(preset_name)
-    if parameter in preset.parameters:
+    if parameter in priors.parameters:
         prior_samples = sample_prior(
-            preset.parameters[parameter], n_samples=n_prior_samples, seed=seed
+            priors.parameters[parameter], n_samples=n_prior_samples, seed=seed
         )
         prior_label = (
-            f"prior: {preset.parameters[parameter].describe()}"
+            f"prior: {priors.parameters[parameter].describe()}"
         )
     elif parameter == "model_sigma":
         import jax.random as random
@@ -923,12 +1034,12 @@ def plot_prior_vs_posterior(
 
         key = random.PRNGKey(seed)
         prior_samples = np.asarray(
-            dist.HalfNormal(preset.sigma_scale).sample(key, sample_shape=(n_prior_samples,))
+            dist.HalfNormal(priors.sigma_scale).sample(key, sample_shape=(n_prior_samples,))
         )
-        prior_label = f"prior: HalfNormal(scale={preset.sigma_scale})"
+        prior_label = f"prior: HalfNormal(scale={priors.sigma_scale})"
     else:
         raise KeyError(
-            f"Cannot draw a prior for {parameter!r}: not in preset {preset.name!r}."
+            f"Cannot draw a prior for {parameter!r}: not in the supplied PriorSet."
         )
 
     fig, ax = plt.subplots(figsize=figsize)

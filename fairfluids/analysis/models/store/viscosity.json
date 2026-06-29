@@ -1,0 +1,97 @@
+{
+  "models": [
+    {
+      "name": "arrhenius",
+      "property": "viscosity",
+      "expr": "exp(logA + Ea/(R*T))",
+      "features": ["T"],
+      "constants": {"R": 8.314462618},
+      "log_observation": true,
+      "p0": {"logA": -10.0, "Ea": 15000.0},
+      "param_units": {"logA": null, "Ea": "J/mol"},
+      "derived": {
+        "lnAs": "logA",
+        "As": "exp(logA)",
+        "Ea_J_mol": "Ea",
+        "Ea_kJ_mol": "Ea/1000"
+      },
+      "derived_units": {"lnAs": null, "As": "Pa*s", "Ea_J_mol": "J/mol", "Ea_kJ_mol": "kJ/mol"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "linear", "n_fitted": 2},
+        "display_labels": {"As": "A_s", "Ea_kJ_mol": "E_a"}
+      },
+      "description": "Arrhenius viscosity model: ln(eta) = logA + Ea/(R*T). logA = ln(As) is the high-temperature limit, Ea the activation energy [J/mol]."
+    },
+    {
+      "name": "extended_arrhenius",
+      "property": "viscosity",
+      "expr": "exp(lnB + n*log(T) + Ea/(R*T))",
+      "features": ["T"],
+      "constants": {"R": 8.314462618},
+      "log_observation": true,
+      "p0": {"lnB": 0.0, "n": 0.0, "Ea": 15000.0},
+      "param_units": {"lnB": null, "n": null, "Ea": "J/mol"},
+      "derived": {
+        "B": "exp(lnB)",
+        "Ea_J_mol": "Ea",
+        "Ea_kJ_mol": "Ea/1000"
+      },
+      "derived_units": {"B": null, "Ea_J_mol": "J/mol", "Ea_kJ_mol": "kJ/mol"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "linear", "n_fitted": 3}
+      },
+      "description": "Extended Arrhenius model: eta = B*T^n*exp(Ea/(R*T)), linearised as ln(eta) = lnB + n*ln(T) + Ea/(R*T)."
+    },
+    {
+      "name": "vft",
+      "property": "viscosity",
+      "expr": "exp(ln_eta0 + B/(T - T0))",
+      "features": ["T"],
+      "log_observation": true,
+      "p0": {"ln_eta0": -5.0, "B": 700.0, "T0": 150.0},
+      "param_units": {"ln_eta0": null, "B": "K", "T0": "K"},
+      "derived": {"eta0": "exp(ln_eta0)"},
+      "derived_units": {"eta0": "Pa*s"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 3},
+        "lsq": {
+          "p0": {"ln_eta0": "min(y)", "B": 1000.0, "T0": "min(T) - 50.0"},
+          "bounds": {"B": {"lower": 0.0}, "T0": {"upper": "min(T) - 1e-6"}}
+        },
+        "feature_dependent_bounds": {"T0": {"upper_expr": "min(T) - 5.0", "lower_margin": 1.0}}
+      },
+      "description": "Vogel-Fulcher-Tammann model: ln(eta) = ln_eta0 + B/(T - T0). T0 is constrained below the minimum observed temperature for numerical stability."
+    },
+    {
+      "name": "litovitz",
+      "property": "viscosity",
+      "expr": "exp(a + b*T**(-3))",
+      "features": ["T"],
+      "log_observation": true,
+      "p0": {"a": -5.0, "b": 10000000.0},
+      "param_units": {"a": null, "b": "K^3"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "linear", "n_fitted": 2}
+      },
+      "description": "Litovitz model: ln(eta) = a + b*T^-3."
+    },
+    {
+      "name": "litovitz_extended",
+      "property": "viscosity",
+      "expr": "exp(a + b*T**(-n))",
+      "features": ["T"],
+      "log_observation": true,
+      "p0": {"a": -5.0, "b": 10000000.0, "n": 3.0},
+      "param_units": {"a": null, "b": null, "n": null},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 3}
+      },
+      "description": "Extended Litovitz model with floating temperature exponent: ln(eta) = a + b*T^-n."
+    }
+  ]
+}

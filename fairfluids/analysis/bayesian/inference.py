@@ -9,6 +9,7 @@ as an :class:`arviz.InferenceData` (for diagnostics and comparison).
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Iterable, Mapping
 
@@ -16,7 +17,8 @@ import numpy as np
 import pandas as pd
 
 from .data import BayesianDataset, BayesianGroup
-from .priors import PriorPreset
+from .priors import PriorSet
+from .progress import total_mcmc_steps, unified_mcmc_progress
 
 if TYPE_CHECKING:
     import arviz as az
@@ -31,17 +33,23 @@ class GroupFit:
 
     Posterior draws are accessible via ``samples`` (raw dict from NumPyro) or
     via ``inference_data`` (ArviZ wrapper used for diagnostics/comparison).
+
+    ``model_kwargs`` holds any extra arguments needed to reconstruct the exact
+    :class:`~fairfluids.analysis.bayesian.models.BayesianModel` instance used for
+    this fit (e.g. data-anchored reference temperature and density).
     """
 
     model_name: str
     group: BayesianGroup
-    preset: str
+    priors: PriorSet
     mcmc: "MCMC"
     inference_data: "az.InferenceData"
     rhat: dict[str, float]
     ess_bulk: dict[str, float]
     ess_tail: dict[str, float]
     num_divergences: int
+    # Extra kwargs for get_model(...) to rebuild the fitted model (group anchors).
+    model_kwargs: dict[str, Any] = field(default_factory=dict)
 
     @property
     def group_id(self) -> tuple[Any, ...]:
@@ -144,19 +152,77 @@ class BayesianFit:
                 rows.append(row)
         return pd.DataFrame(rows)
 
+    def to_fitted_models(
+        self,
+        *,
+        coverage_probability: float = 0.95,
+        point_estimate: str = "median",
+        include_model_sigma: bool = True,
+    ) -> list[Any]:
+        """Map every ``(model, group)`` fit onto a ``fairfluids.core.lib.FittedModel``.
+
+        Parameters carry the posterior point estimate, posterior standard
+        deviation (standard uncertainty) and an equal-tailed credible interval at
+        ``coverage_probability``. See
+        :func:`fairfluids.analysis.bayesian.writeback.fit_to_fitted_models`.
+        """
+        from .writeback import fit_to_fitted_models
+
+        return fit_to_fitted_models(
+            self,
+            coverage_probability=coverage_probability,
+            point_estimate=point_estimate,  # type: ignore[arg-type]
+            include_model_sigma=include_model_sigma,
+        )
+
+    def to_fairfluids_document(
+        self,
+        document: Any,
+        *,
+        fluid_index: int = 0,
+        coverage_probability: float = 0.95,
+        point_estimate: str = "median",
+        include_model_sigma: bool = True,
+    ) -> Any:
+        """Append the posterior summaries to ``document.fluid[fluid_index].fitted_model``.
+
+        Returns the (mutated) ``document`` for chaining. See
+        :func:`fairfluids.analysis.bayesian.writeback.fit_to_fairfluids_document`.
+        """
+        from .writeback import fit_to_fairfluids_document
+
+        return fit_to_fairfluids_document(
+            self,
+            document,
+            fluid_index=fluid_index,
+            coverage_probability=coverage_probability,
+            point_estimate=point_estimate,  # type: ignore[arg-type]
+            include_model_sigma=include_model_sigma,
+        )
+
+
+def _scalar_diagnostic_dict(diag: "Any") -> dict[str, float]:
+    """Extract per-variable diagnostics that are scalars (skip vector deterministics)."""
+    out: dict[str, float] = {}
+    for var in diag.data_vars:
+        values = np.asarray(diag[var].values)
+        if values.ndim == 0:
+            out[str(var)] = float(values)
+    return out
+
 
 def _ess_dict(idata: "az.InferenceData", method: str) -> dict[str, float]:
     import arviz as az
 
     ess = az.ess(idata, method=method)
-    return {str(var): float(ess[var].values) for var in ess.data_vars}
+    return _scalar_diagnostic_dict(ess)
 
 
 def _rhat_dict(idata: "az.InferenceData") -> dict[str, float]:
     import arviz as az
 
     rhat = az.rhat(idata)
-    return {str(var): float(rhat[var].values) for var in rhat.data_vars}
+    return _scalar_diagnostic_dict(rhat)
 
 
 def _count_divergences(idata: "az.InferenceData") -> int:
@@ -166,47 +232,50 @@ def _count_divergences(idata: "az.InferenceData") -> int:
     return int(np.asarray(sample_stats["diverging"]).sum())
 
 
-PresetSpec = "str | PriorPreset | Mapping[str, str | PriorPreset]"
+def _densify_inference_data(idata: "az.InferenceData") -> "az.InferenceData":
+    """Materialise every group's arrays as NumPy in place.
 
-
-def _resolve_preset_for(
-    models: list["BayesianModel"],
-    preset: "str | PriorPreset | Mapping[str, str | PriorPreset]",
-) -> dict[str, str]:
-    """Normalize the ``preset`` argument to a ``{model_name: preset_name}`` mapping.
-
-    Any :class:`PriorPreset` objects encountered are auto-registered on the
-    corresponding model class (with ``overwrite=True``) so subsequent calls can
-    reference them by name. This is what enables the ``prior_preset=my_preset``
-    convenience syntax in the workflow.
+    ``az.from_numpyro`` keeps the ``posterior`` / ``log_likelihood`` values as
+    JAX arrays. ArviZ's PSIS-LOO numerics (``arviz_stats``) operate via in-place
+    NumPy assignment, which raises ``TypeError`` on immutable JAX arrays. Copying
+    each variable to NumPy up front is lossless (these are already-sampled draws)
+    and lets LOO/WAIC/compare run regardless of which array backend NumPyro used.
     """
-    if isinstance(preset, PriorPreset):
-        resolved: dict[str, str] = {}
-        for m in models:
-            type(m).register_prior_preset(preset, overwrite=True)
-            resolved[m.name] = preset.name
-        return resolved
-    if isinstance(preset, str):
-        return {m.name: preset for m in models}
+    groups = idata.groups
+    if callable(groups):  # arviz < 1.x exposes groups() as a method
+        groups = groups()
+    for group_name in groups:
+        ds = idata[group_name]
+        for var_name, da in ds.data_vars.items():
+            data = da.data
+            if not isinstance(data, np.ndarray):
+                ds[var_name] = da.copy(data=np.asarray(data))
+    return idata
 
-    # Per-model mapping; values can be either str or PriorPreset.
-    missing = [m.name for m in models if m.name not in preset]
-    if missing:
-        raise KeyError(
-            f"preset mapping is missing entries for models: {missing}. "
-            f"Provided keys: {sorted(preset)}"
-        )
-    resolved = {}
-    by_name = {m.name: m for m in models}
-    for model_name, spec in preset.items():
-        if model_name not in by_name:
-            continue
-        model = by_name[model_name]
-        if isinstance(spec, PriorPreset):
-            type(model).register_prior_preset(spec, overwrite=True)
-            resolved[model_name] = spec.name
-        else:
-            resolved[model_name] = str(spec)
+
+def _resolve_priors_for(
+    models: list["BayesianModel"],
+    priors: "PriorSet | Mapping[str, PriorSet]",
+) -> dict[str, PriorSet]:
+    """Normalize the ``priors`` argument to a ``{model_name: PriorSet}`` mapping.
+
+    Accepts either a single :class:`PriorSet` (applied to every model) or a
+    per-model mapping. Each resolved :class:`PriorSet` is validated against the
+    model's ``param_names`` so missing priors fail fast.
+    """
+    if isinstance(priors, PriorSet):
+        resolved = {m.name: priors for m in models}
+    else:
+        missing = [m.name for m in models if m.name not in priors]
+        if missing:
+            raise KeyError(
+                f"priors mapping is missing entries for models: {missing}. "
+                f"Provided keys: {sorted(priors)}"
+            )
+        resolved = {m.name: priors[m.name] for m in models}
+
+    for model in models:
+        model.validate_priors(resolved[model.name])
     return resolved
 
 
@@ -214,7 +283,7 @@ def fit_groups(
     dataset: BayesianDataset,
     models: Iterable["BayesianModel"],
     *,
-    preset: "str | PriorPreset | Mapping[str, str | PriorPreset]" = "balanced",
+    priors: "PriorSet | Mapping[str, PriorSet]",
     num_warmup: int = 2000,
     num_samples: int = 2000,
     num_chains: int = 4,
@@ -227,13 +296,13 @@ def fit_groups(
     Args:
         dataset: Prepared :class:`BayesianDataset`.
         models: Iterable of :class:`BayesianModel` instances to fit.
-        preset: Prior preset selector. Accepts any of
-            (1) a string referring to a registered preset (applied to every model),
-            (2) a :class:`PriorPreset` object (auto-registered on every model),
-            (3) a mapping ``{model_name: str | PriorPreset}`` for per-model overrides.
+        priors: Either a single :class:`PriorSet` applied to every model, or a
+            mapping ``{model_name: PriorSet}`` for per-model priors. Each set must
+            cover every parameter of the corresponding model.
         num_warmup, num_samples, num_chains, target_accept_prob: Standard NUTS knobs.
         seed: PRNG seed (each ``(model, group)`` gets a distinct fold-in).
-        progress_bar: Forwarded to the NumPyro ``MCMC`` constructor.
+        progress_bar: Show one unified tqdm bar across all ``(model, group)`` fits.
+            Updates run on the main thread once per completed group (Jupyter-safe).
 
     Returns:
         :class:`BayesianFit` with one :class:`GroupFit` per model and group.
@@ -246,51 +315,79 @@ def fit_groups(
     model_names = tuple(m.name for m in model_list)
     group_ids = tuple(grp.group_id for grp in dataset.groups)
 
-    preset_for = _resolve_preset_for(model_list, preset)
+    priors_for = _resolve_priors_for(model_list, priors)
 
     base_key = random.PRNGKey(seed)
     fit = BayesianFit(model_names=model_names, group_ids=group_ids)
 
-    for m_idx, model in enumerate(model_list):
-        preset_name = preset_for[model.name]
-        for g_idx, group in enumerate(dataset.groups):
-            run_key = random.fold_in(random.fold_in(base_key, m_idx + 1), g_idx + 1)
-            kernel = NUTS(model.numpyro_model, target_accept_prob=target_accept_prob)
-            mcmc = MCMC(
-                kernel,
-                num_warmup=num_warmup,
-                num_samples=num_samples,
-                num_chains=num_chains,
-                progress_bar=progress_bar,
-            )
-            mcmc.run(
-                run_key,
-                features=group.features_jax(),
-                observation=group.observation_jax(),
-                observation_uncertainty=group.observation_uncertainty_jax(),
-                preset_name=preset_name,
-                extra_fields=("energy",),
-            )
+    n_jobs = len(model_list) * len(dataset.groups)
+    total_steps = total_mcmc_steps(
+        num_jobs=n_jobs,
+        num_warmup=num_warmup,
+        num_samples=num_samples,
+        num_chains=num_chains,
+    )
+    steps_per_job = num_chains * (num_warmup + num_samples)
+    progress_ctx = (
+        unified_mcmc_progress(total_steps=total_steps, description="MCMC fit")
+        if progress_bar
+        else nullcontext()
+    )
 
-            # ``log_likelihood=True`` is required so ArviZ can later compute LOO/WAIC.
-            idata = az.from_numpyro(mcmc, log_likelihood=True)
-            rhat = _rhat_dict(idata)
-            ess_bulk = _ess_dict(idata, method="bulk")
-            ess_tail = _ess_dict(idata, method="tail")
-            divergences = _count_divergences(idata)
+    with progress_ctx as progress:
+        if progress_bar and progress is not None:
+            progress.configure_job(steps_per_job=steps_per_job)
+        for m_idx, model in enumerate(model_list):
+            run_priors = priors_for[model.name]
+            for g_idx, group in enumerate(dataset.groups):
+                run_model = model.bind_group(group)
+                run_key = random.fold_in(random.fold_in(base_key, m_idx + 1), g_idx + 1)
+                kernel = NUTS(
+                    run_model.numpyro_model,
+                    **run_model.nuts_kernel_kwargs(target_accept_prob=target_accept_prob),
+                )
+                mcmc = MCMC(
+                    kernel,
+                    num_warmup=num_warmup,
+                    num_samples=num_samples,
+                    num_chains=num_chains,
+                    progress_bar=False,
+                )
+                mcmc.run(
+                    run_key,
+                    features=group.features_jax(),
+                    observation=group.observation_jax(),
+                    observation_uncertainty=group.observation_uncertainty_jax(),
+                    priors=run_priors,
+                    extra_fields=("energy",),
+                )
 
-            gfit = GroupFit(
-                model_name=model.name,
-                group=group,
-                preset=preset_name,
-                mcmc=mcmc,
-                inference_data=idata,
-                rhat=rhat,
-                ess_bulk=ess_bulk,
-                ess_tail=ess_tail,
-                num_divergences=divergences,
-            )
-            fit.fits[(model.name, group.group_id)] = gfit
+                # ``log_likelihood=True`` is required so ArviZ can later compute LOO/WAIC.
+                idata = _densify_inference_data(az.from_numpyro(mcmc, log_likelihood=True))
+                rhat = _rhat_dict(idata)
+                ess_bulk = _ess_dict(idata, method="bulk")
+                ess_tail = _ess_dict(idata, method="tail")
+                divergences = _count_divergences(idata)
+
+                gfit = GroupFit(
+                    model_name=model.name,
+                    group=group,
+                    priors=run_priors,
+                    mcmc=mcmc,
+                    inference_data=idata,
+                    rhat=rhat,
+                    ess_bulk=ess_bulk,
+                    ess_tail=ess_tail,
+                    num_divergences=divergences,
+                    model_kwargs=run_model.reconstruction_kwargs(),
+                )
+                fit.fits[(model.name, group.group_id)] = gfit
+
+                if progress_bar and progress is not None:
+                    progress.complete_job(
+                        model=model.name,
+                        group=str(group.group_label)[:48],
+                    )
 
     return fit
 
@@ -337,7 +434,7 @@ def predict(
 
     gid = fit.resolve_group(model_name, group_id)
     gfit = fit.get(model_name, gid)
-    model = get_model(model_name)
+    model = get_model(model_name, **gfit.model_kwargs)
 
     n_points: int | None = None
     features_jax: dict[str, Any] = {}
@@ -365,7 +462,7 @@ def predict(
         features=features_jax,
         observation=None,
         observation_uncertainty=obs_unc,
-        preset_name=gfit.preset,
+        priors=gfit.priors,
     )
     obs = np.asarray(pp["obs"])
 
@@ -373,7 +470,6 @@ def predict(
         "model": model_name,
         "group_id": gid,
         "group_label": gfit.group.group_label,
-        "preset": gfit.preset,
         "mean": obs.mean(axis=0),
     }
     for q in quantiles:

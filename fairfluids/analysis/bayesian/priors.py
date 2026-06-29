@@ -1,9 +1,10 @@
-"""Prior specification primitives for Bayesian viscosity models.
+"""Prior specification primitives for Bayesian property models.
 
-A :class:`PriorPreset` bundles per-parameter prior specifications together with
-the scale of the model-level Gaussian noise (``model_sigma``). Models expose a
-dictionary of presets (e.g. ``"conservative"``, ``"balanced"``, ``"flexible"``)
-which the workflow can switch between for prior exploration and final fitting.
+A :class:`PriorSet` bundles the per-parameter prior specifications together with
+the scale of the model-level Gaussian noise (``model_sigma``) and the
+observation likelihood configuration. It is supplied explicitly at fit time
+(there are no built-in presets): the caller defines the priors for every model
+parameter when calling :func:`fairfluids.analysis.bayesian.fit_groups`.
 
 Each prior specification is a small Pydantic model exposing a ``to_numpyro()``
 factory that returns a ``numpyro.distributions.Distribution``. The supported
@@ -11,7 +12,7 @@ families are :class:`UniformPriorSpec`, :class:`NormalPriorSpec`,
 :class:`HalfNormalPriorSpec`, :class:`LogNormalPriorSpec` and
 :class:`TruncatedNormalPriorSpec`. The :data:`PriorSpec` type alias is a
 discriminated union over these, keyed by the ``kind`` field — Pydantic uses it
-to deserialize ``PriorPreset`` instances from JSON without ambiguity.
+to deserialize ``PriorSet`` instances from JSON without ambiguity.
 """
 
 from __future__ import annotations
@@ -190,15 +191,18 @@ PriorSpec = Annotated[
 
 
 # ---------------------------------------------------------------------------
-# Presets
+# Prior sets (supplied at fit time)
 # ---------------------------------------------------------------------------
 
 
-class PriorPreset(BaseModel):
-    """A named set of priors plus the observation-likelihood configuration.
+class PriorSet(BaseModel):
+    """A set of per-parameter priors plus the observation-likelihood configuration.
+
+    A :class:`PriorSet` is passed explicitly when fitting a model; there are no
+    named, pre-registered presets. The caller is responsible for covering every
+    sampling parameter of the model in :attr:`parameters`.
 
     Attributes:
-        name: Identifier of the preset (e.g. ``"balanced"``).
         parameters: Mapping ``parameter_name -> PriorSpec`` covering every
             sampling parameter of the model except ``model_sigma``.
         sigma_scale: Scale of the ``HalfNormal`` prior placed on ``model_sigma``.
@@ -213,7 +217,6 @@ class PriorPreset(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    name: str
     parameters: dict[str, PriorSpec]
     sigma_scale: float = Field(0.1, gt=0.0)
     likelihood: Literal["normal", "student_t"] = "normal"
@@ -228,7 +231,7 @@ class PriorPreset(BaseModel):
         spec = self.parameters.get(parameter)
         if spec is None:
             raise KeyError(
-                f"Prior preset {self.name!r} has no entry for parameter {parameter!r}. "
+                f"PriorSet has no entry for parameter {parameter!r}. "
                 f"Available: {sorted(self.parameters)}"
             )
         return spec.support()
@@ -238,7 +241,7 @@ def prior_predictive_quantiles(
     model: "BayesianModel",
     features: Mapping[str, np.ndarray],
     *,
-    preset: str = "balanced",
+    priors: "PriorSet",
     n_samples: int = 3000,
     quantiles: tuple[float, ...] = (0.01, 0.05, 0.5, 0.95, 0.99),
     observation_uncertainty: np.ndarray | None = None,
@@ -249,7 +252,7 @@ def prior_predictive_quantiles(
     Args:
         model: A registered :class:`BayesianModel` instance.
         features: Feature arrays indexed by feature name (matching ``model.feature_names``).
-        preset: Prior preset to use.
+        priors: The :class:`PriorSet` to draw from.
         n_samples: Number of prior predictive draws.
         quantiles: Quantile levels to summarize.
         observation_uncertainty: Optional per-point observation sigma (already on
@@ -282,14 +285,13 @@ def prior_predictive_quantiles(
         features=feature_arrays,
         observation=None,
         observation_uncertainty=obs_unc,
-        preset_name=preset,
+        priors=priors,
     )
     obs = np.asarray(samples["obs"])
     flat = obs.reshape(-1)
     q = {f"q{int(q_ * 100):02d}": float(np.quantile(flat, q_)) for q_ in quantiles}
     return {
         "model": model.name,
-        "preset": preset,
         "n_samples": n_samples,
         "n_points": int(obs.shape[-1]),
         **q,
@@ -324,7 +326,7 @@ __all__ = [
     "LogNormalPriorSpec",
     "TruncatedNormalPriorSpec",
     "PriorSpec",
-    "PriorPreset",
+    "PriorSet",
     "prior_predictive_quantiles",
     "sample_prior",
 ]

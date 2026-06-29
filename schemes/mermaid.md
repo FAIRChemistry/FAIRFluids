@@ -52,6 +52,7 @@ classDiagram
         +property[0..*]: Property
         +parameter[0..*]: Parameter
         +sample?: Sample
+        +fitted_model[0..*]: FittedModel
     }
 
     class Property {
@@ -101,6 +102,39 @@ classDiagram
         +parameterID?: string
         +paramValue?: float
         +uncertainty?: float
+    }
+
+    class FittedModel {
+        +modelID?: string
+        +model_name?: string
+        +model_equation?: string
+        +method?: FitMethod
+        +method_description?: string
+        +fitted_property?: Properties
+        +parameter[0..*]: FittedParameter
+        +covariance[0..*]: float
+        +r_squared?: float
+        +n_points?: integer
+        +temperature_lower?: float
+        +temperature_upper?: float
+        +applied_parameters[0..*]: ParameterValue
+        +source_measurement_ids[0..*]: string
+    }
+
+    class FittedParameter {
+        +name?: string
+        +value?: float
+        +unit?: UnitDefinition
+        +standard_uncertainty?: float
+        +uncertainty_evaluation?: UncertaintyEvaluation
+        +coverage_factor?: float
+        +expanded_uncertainty?: float
+        +coverage_probability?: float
+        +degrees_of_freedom?: float
+        +distribution?: DistributionType
+        +interval_low?: float
+        +interval_high?: float
+        +properties?: Properties
     }
 
     class UnitDefinition {
@@ -279,6 +313,31 @@ classDiagram
         OPEN
     }
 
+    class FitMethod {
+        <<enumeration>>
+        BAYESIAN_MCMC
+        LITERATURE
+        REGRESSION_NLS
+        REGRESSION_OLS
+    }
+
+    class UncertaintyEvaluation {
+        <<enumeration>>
+        COMBINED
+        NON_STATISTICAL
+        POSTERIOR
+        STATISTICAL
+    }
+
+    class DistributionType {
+        <<enumeration>>
+        LOGNORMAL
+        NORMAL
+        POSTERIOR
+        STUDENT_T
+        UNIFORM
+    }
+
     %% Relationships
     FAIRFluidsDocument "1" <|-- "1" Version
     FAIRFluidsDocument "1" <|-- "1" Citation
@@ -289,6 +348,7 @@ classDiagram
     Fluid "1" <|-- "*" Property
     Fluid "1" <|-- "*" Parameter
     Fluid "1" <|-- "1" Sample
+    Fluid "1" <|-- "*" FittedModel
     Property "1" <|-- "1" Properties
     Property "1" <|-- "1" UnitDefinition
     Parameter "1" <|-- "1" Parameters
@@ -302,6 +362,14 @@ classDiagram
     Sample "1" <|-- "1" Vendor_Chemical
     PropertyValue "1" <|-- "1" Properties
     ParameterValue "1" <|-- "1" Parameters
+    FittedModel "1" <|-- "1" FitMethod
+    FittedModel "1" <|-- "1" Properties
+    FittedModel "1" <|-- "*" FittedParameter
+    FittedModel "1" <|-- "*" ParameterValue
+    FittedParameter "1" <|-- "1" UnitDefinition
+    FittedParameter "1" <|-- "1" UncertaintyEvaluation
+    FittedParameter "1" <|-- "1" DistributionType
+    FittedParameter "1" <|-- "1" Properties
     UnitDefinition "1" <|-- "*" BaseUnit
     Storage "1" <|-- "1" StorageType
     Storage "1" <|-- "1" StorageConditions

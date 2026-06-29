@@ -2,7 +2,7 @@
 
 :class:`BayesianWorkflow` wires together the four canonical phases:
 
-1. **Prior setting** — choose presets and inspect prior predictive quantiles.
+1. **Prior setting** — supply priors and inspect prior predictive quantiles.
 2. **Exploration** — visualize prior bands against group data.
 3. **Model fitting / evaluation** — NUTS sampling and diagnostics.
 4. **Comparison** — LOO with Pareto-k diagnostics and posterior summaries.
@@ -15,7 +15,7 @@ can be called repeatedly without re-running MCMC.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ from .priors import (
     HalfNormalPriorSpec,
     LogNormalPriorSpec,
     NormalPriorSpec,
-    PriorPreset,
+    PriorSet,
     PriorSpec,
     TruncatedNormalPriorSpec,
     UniformPriorSpec,
@@ -44,17 +44,17 @@ if TYPE_CHECKING:
 class BayesianWorkflow:
     """Top-level facade orchestrating prior exploration, MCMC fitting and model comparison.
 
-    Construct with a :class:`BayesianDataset` and an iterable of models (instances
-    or registered names). The workflow keeps the latest :class:`BayesianFit` and
+    Construct with a :class:`BayesianDataset`, an iterable of models (instances
+    or registered names) and the :class:`PriorSet` (or per-model mapping) to use.
+    The workflow keeps the latest :class:`BayesianFit` and
     :class:`ModelComparison` for downstream plotting.
     """
 
     dataset: BayesianDataset
     models: list[BayesianModel]
-    prior_preset: str | PriorPreset | dict[str, str | PriorPreset] = "balanced"
+    priors: PriorSet | dict[str, PriorSet]
     fit_result: BayesianFit | None = None
     comparison_result: ModelComparison | None = None
-    hierarchical_fit: Any = None  # type: HierarchicalFit | None, kept loose for cyclic-import reasons
 
     @classmethod
     def from_names(
@@ -62,56 +62,18 @@ class BayesianWorkflow:
         dataset: BayesianDataset,
         model_names: Iterable[str],
         *,
-        prior_preset: str | PriorPreset | dict[str, str | PriorPreset] = "balanced",
+        priors: PriorSet | dict[str, PriorSet],
     ) -> "BayesianWorkflow":
         instances = [get_model(n) for n in model_names]
-        return cls(dataset=dataset, models=instances, prior_preset=prior_preset)
+        return cls(dataset=dataset, models=instances, priors=priors)
 
     # -- Phase 1: Prior setting -------------------------------------------------
 
-    def set_prior_preset(
-        self,
-        preset: str | PriorPreset | Mapping[str, str | PriorPreset],
-    ) -> None:
-        if isinstance(preset, (str, PriorPreset)):
-            self.prior_preset = preset
+    def set_priors(self, priors: PriorSet | Mapping[str, PriorSet]) -> None:
+        if isinstance(priors, PriorSet):
+            self.priors = priors
         else:
-            self.prior_preset = dict(preset)
-
-    def register_prior_preset(
-        self,
-        model_name: str,
-        preset: PriorPreset,
-        *,
-        overwrite: bool = False,
-    ) -> None:
-        """Attach a user-defined preset to one of the workflow's models.
-
-        Equivalent to ``type(model).register_prior_preset(preset, overwrite=overwrite)``
-        but routed through the workflow so it can validate that the target model is
-        actually part of this run.
-        """
-        model = self._model_by_name(model_name)
-        type(model).register_prior_preset(preset, overwrite=overwrite)
-
-    def available_presets(self) -> pd.DataFrame:
-        """List which presets are registered per model and which one is active.
-
-        ``active`` is the preset that ``self.fit()`` would currently use. Useful
-        before calling :meth:`explore_priors` to decide which presets to
-        evaluate.
-        """
-        rows: list[dict[str, Any]] = []
-        for model in self.models:
-            active = self._preset_for(model.name)
-            for preset_name in model.prior_presets:
-                rows.append({
-                    "model": model.name,
-                    "preset": preset_name,
-                    "active": preset_name == active,
-                    "sigma_scale": model.prior_presets[preset_name].sigma_scale,
-                })
-        return pd.DataFrame(rows)
+            self.priors = dict(priors)
 
     def explore_priors(
         self,
@@ -120,55 +82,42 @@ class BayesianWorkflow:
         n_samples: int = 3000,
         seed: int = 0,
         quantiles: tuple[float, ...] = (0.01, 0.05, 0.5, 0.95, 0.99),
-        presets: str | Iterable[str] | None = None,
+        priors: PriorSet | Mapping[str, PriorSet] | None = None,
     ) -> pd.DataFrame:
-        """Return a DataFrame of prior predictive quantiles per (model, preset).
+        """Return a DataFrame of prior predictive quantiles per model.
 
         Args:
             group: Reference feature grid (defaults to the first dataset group).
-            n_samples: Number of prior predictive draws per (model, preset).
+            n_samples: Number of prior predictive draws per model.
             seed: PRNG seed.
             quantiles: Quantile levels to summarize.
-            presets: Which presets to evaluate.
-                * ``None`` (default) — evaluate only the **active** preset per
-                  model, i.e. whatever ``self.fit()`` would use.
-                * ``"all"`` — every preset registered on each model
-                  (built-ins + custom).
-                * ``str`` — that single preset for every model.
-                * ``Iterable[str]`` — the explicit list of preset names; each
-                  model only contributes rows for presets that are registered
-                  on it.
+            priors: Optional override of the priors to evaluate (a single
+                :class:`PriorSet` for every model, or a per-model mapping).
+                Defaults to the workflow's configured priors.
         """
         ref_group = group or self.dataset.groups[0]
         features = {name: ref_group.features[name] for name in ref_group.features}
 
         rows: list[dict[str, Any]] = []
         for model in self.models:
-            if presets is None:
-                preset_iter: list[str] = [self._preset_for(model.name)]
-            elif isinstance(presets, str) and presets == "all":
-                preset_iter = list(model.prior_presets)
-            elif isinstance(presets, str):
-                preset_iter = [presets]
-            else:
-                preset_iter = [p for p in presets if p in model.prior_presets]
-
-            for preset_name in preset_iter:
-                summary = prior_predictive_quantiles(
-                    model,
-                    features=features,
-                    preset=preset_name,
-                    n_samples=n_samples,
-                    quantiles=quantiles,
-                    observation_uncertainty=ref_group.observation_uncertainty,
-                    seed=seed,
-                )
-                summary.pop("samples", None)
-                rows.append({
+            bound_model = model.bind_group(ref_group)
+            model_priors = self._priors_for(model.name, override=priors)
+            summary = prior_predictive_quantiles(
+                bound_model,
+                features=features,
+                priors=model_priors,
+                n_samples=n_samples,
+                quantiles=quantiles,
+                observation_uncertainty=ref_group.observation_uncertainty,
+                seed=seed,
+            )
+            summary.pop("samples", None)
+            rows.append(
+                {
                     "reference_group": ref_group.group_label,
-                    "active": preset_name == self._preset_for(model.name),
                     **summary,
-                })
+                }
+            )
         return pd.DataFrame(rows)
 
     # -- Phase 2: Exploration ---------------------------------------------------
@@ -178,16 +127,22 @@ class BayesianWorkflow:
         model_name: str,
         *,
         group: BayesianGroup | None = None,
-        preset: str | None = None,
+        priors: PriorSet | None = None,
         feature: str = "temperature",
+        plot_scale: str | None = None,
     ) -> tuple["Figure", "Axes"]:
         from . import plots
 
         model = self._model_by_name(model_name)
-        used_preset = preset or self._preset_for(model.name)
+        used_priors = priors or self._priors_for(model.name)
         ref_group = group or self.dataset.groups[0]
+        bound_model = model.bind_group(ref_group)
         return plots.plot_prior_predictive(
-            model, ref_group, preset=used_preset, feature=feature
+            bound_model,
+            ref_group,
+            priors=used_priors,
+            feature=feature,
+            plot_scale=plot_scale,
         )
 
     def plot_dataset_overview(self, **kwargs: Any) -> tuple["Figure", "Axes"]:
@@ -207,10 +162,14 @@ class BayesianWorkflow:
         seed: int = 0,
         progress_bar: bool = False,
     ) -> BayesianFit:
+        """Fit all ``(model, group)`` pairs.
+
+        Set ``progress_bar=True`` for one unified tqdm bar across the full run.
+        """
         self.fit_result = fit_groups(
             self.dataset,
             self.models,
-            preset=self.prior_preset,
+            priors=self.priors,
             num_warmup=num_warmup,
             num_samples=num_samples,
             num_chains=num_chains,
@@ -226,9 +185,34 @@ class BayesianWorkflow:
     def posterior_summary(self) -> pd.DataFrame:
         return posterior_summary(self._require_fit())
 
+    def to_fairfluids_document(
+        self,
+        document: Any,
+        *,
+        fluid_index: int = 0,
+        coverage_probability: float = 0.95,
+        point_estimate: str = "median",
+        include_model_sigma: bool = True,
+    ) -> Any:
+        """Write the posterior summaries of the current fit back into ``document``.
+
+        Convenience wrapper around
+        :meth:`fairfluids.analysis.bayesian.inference.BayesianFit.to_fairfluids_document`
+        using the workflow's latest fit. Returns the (mutated) ``document``.
+        """
+        return self._require_fit().to_fairfluids_document(
+            document,
+            fluid_index=fluid_index,
+            coverage_probability=coverage_probability,
+            point_estimate=point_estimate,
+            include_model_sigma=include_model_sigma,
+        )
+
     # -- Posterior inspection (raw access) -------------------------------------
 
-    def list_fitted_groups(self, model_name: str | None = None) -> list[tuple[Any, ...]]:
+    def list_fitted_groups(
+        self, model_name: str | None = None
+    ) -> list[tuple[Any, ...]]:
         """Return the group IDs available for the given model (defaults to first model)."""
         fit = self._require_fit()
         target = model_name or self.models[0].name
@@ -365,14 +349,16 @@ class BayesianWorkflow:
         rows: list[dict[str, Any]] = []
         for (m_name, gid), gfit in fit.fits.items():
             ebfmi = _compute_ebfmi(gfit.inference_data, gfit.mcmc)
-            rows.append({
-                "model": m_name,
-                "group_label": gfit.group.group_label,
-                "group_id": gid,
-                "ebfmi": ebfmi,
-                "num_divergences": gfit.num_divergences,
-                "warning": (not np.isnan(ebfmi)) and ebfmi < warn_threshold,
-            })
+            rows.append(
+                {
+                    "model": m_name,
+                    "group_label": gfit.group.group_label,
+                    "group_id": gid,
+                    "ebfmi": ebfmi,
+                    "num_divergences": gfit.num_divergences,
+                    "warning": (not np.isnan(ebfmi)) and ebfmi < warn_threshold,
+                }
+            )
         return pd.DataFrame(rows)
 
     def bayesian_p_values(
@@ -407,8 +393,18 @@ class BayesianWorkflow:
         requested = list(statistics)
         rows: list[dict[str, Any]] = []
         for (m_name, gid), gfit in fit.fits.items():
-            model = self._model_by_name(m_name) if any(m.name == m_name for m in self.models) else get_model(m_name)
-            features_jax = {f: jnp.asarray(gfit.group.features[f]) for f in gfit.group.features}
+            if any(m.name == m_name for m in self.models):
+                proto = self._model_by_name(m_name)
+                model = (
+                    get_model(m_name, **gfit.model_kwargs)
+                    if gfit.model_kwargs
+                    else proto
+                )
+            else:
+                model = get_model(m_name, **gfit.model_kwargs)
+            features_jax = {
+                f: jnp.asarray(gfit.group.features[f]) for f in gfit.group.features
+            }
             obs_unc = (
                 jnp.asarray(gfit.group.observation_uncertainty)
                 if gfit.group.observation_uncertainty is not None
@@ -419,13 +415,15 @@ class BayesianWorkflow:
             n_use = min(n_replicates, n_avail)
             sliced = {k: v[:n_use] for k, v in mcmc_samples.items()}
             predictive = Predictive(model.numpyro_model, sliced)
-            key = random.fold_in(random.PRNGKey(seed), abs(hash((m_name, gid))) % (2**31))
+            key = random.fold_in(
+                random.PRNGKey(seed), abs(hash((m_name, gid))) % (2**31)
+            )
             pp = predictive(
                 key,
                 features=features_jax,
                 observation=None,
                 observation_uncertainty=obs_unc,
-                preset_name=gfit.preset,
+                priors=gfit.priors,
             )
             y_rep = np.asarray(pp["obs"])  # (n_use, n_points)
             y_obs = np.asarray(gfit.group.observation)
@@ -448,14 +446,16 @@ class BayesianWorkflow:
                         f"{sorted(set(stat_fns) | {'rmse'})}"
                     )
                 p_value = float(np.mean(t_rep > t_obs))
-                rows.append({
-                    **base_row,
-                    "statistic": stat,
-                    "T_observed": t_obs,
-                    "T_replicated_mean": float(t_rep.mean()),
-                    "p_value": p_value,
-                    "well_calibrated": 0.05 < p_value < 0.95,
-                })
+                rows.append(
+                    {
+                        **base_row,
+                        "statistic": stat,
+                        "T_observed": t_obs,
+                        "T_replicated_mean": float(t_rep.mean()),
+                        "p_value": p_value,
+                        "well_calibrated": 0.05 < p_value < 0.95,
+                    }
+                )
         return pd.DataFrame(rows)
 
     # -- Prior sensitivity -----------------------------------------------------
@@ -472,8 +472,8 @@ class BayesianWorkflow:
     ) -> pd.DataFrame:
         """Refit with priors scaled by each factor and return posterior summaries.
 
-        For each ``scale`` in ``scales``, every prior spec in the active preset
-        is widened (or narrowed) and the workflow is refit on the same data.
+        For each ``scale`` in ``scales``, every prior spec in the configured
+        priors is widened (or narrowed) and the workflow is refit on the same data.
         The result is a DataFrame indexed by ``(scale, model, group, parameter)``
         with the posterior median and 5/95 % quantiles — flat curves vs ``scale``
         indicate the data dominates the prior; large shifts mean the prior is
@@ -489,17 +489,16 @@ class BayesianWorkflow:
         """
         fit_baseline = self.fit_result
         comparison_baseline = self.comparison_result
-        original_preset = self.prior_preset
+        original_priors = self.priors
 
         try:
             rows: list[dict[str, Any]] = []
             for s in scales:
-                scaled_presets: dict[str, PriorPreset] = {}
+                scaled_priors: dict[str, PriorSet] = {}
                 for model in self.models:
-                    base_name = self._preset_for(model.name)
-                    base = model.get_preset(base_name)
-                    scaled_presets[model.name] = _scale_preset(base, s)
-                self.prior_preset = scaled_presets
+                    base = self._priors_for(model.name)
+                    scaled_priors[model.name] = _scale_priors(base, s)
+                self.priors = scaled_priors
 
                 self.fit_result = None
                 self.fit(
@@ -511,66 +510,24 @@ class BayesianWorkflow:
                 )
                 summary = self.posterior_summary()
                 for _, row in summary.iterrows():
-                    rows.append({
-                        "scale": s,
-                        "model": row["model"],
-                        "group_id": row["group_id"],
-                        "group_label": row["group_label"],
-                        "parameter": row["parameter"],
-                        "median": row["median"],
-                        "q05": row["q05"],
-                        "q95": row["q95"],
-                    })
+                    rows.append(
+                        {
+                            "scale": s,
+                            "model": row["model"],
+                            "group_id": row["group_id"],
+                            "group_label": row["group_label"],
+                            "parameter": row["parameter"],
+                            "median": row["median"],
+                            "q05": row["q05"],
+                            "q95": row["q95"],
+                        }
+                    )
         finally:
-            self.prior_preset = original_preset
+            self.priors = original_priors
             self.fit_result = fit_baseline
             self.comparison_result = comparison_baseline
 
         return pd.DataFrame(rows)
-
-    # -- Hierarchical fit (partial pooling across groups) ----------------------
-
-    def fit_hierarchical(
-        self,
-        model_name: str = "hierarchical_arrhenius",
-        *,
-        preset: str | PriorPreset = "balanced",
-        num_warmup: int = 2000,
-        num_samples: int = 2000,
-        num_chains: int = 4,
-        target_accept_prob: float = 0.95,
-        seed: int = 0,
-        progress_bar: bool = False,
-    ) -> "HierarchicalFit":
-        """Fit a hierarchical (partial-pooling) model across every dataset group at once.
-
-        Unlike :meth:`fit`, this runs a single MCMC that ties all groups
-        together through population-level hyperparameters. The result is a
-        :class:`HierarchicalFit` (different shape from
-        :class:`BayesianFit` — it carries one MCMC and per-group slices).
-        ``model_name`` must reference a registered hierarchical model
-        (see :func:`list_hierarchical_models`).
-        """
-        from .hierarchical import (
-            HierarchicalFit,
-            fit_hierarchical,
-            get_hierarchical_model,
-        )
-
-        model = get_hierarchical_model(model_name)
-        result = fit_hierarchical(
-            self.dataset,
-            model,
-            preset=preset,
-            num_warmup=num_warmup,
-            num_samples=num_samples,
-            num_chains=num_chains,
-            target_accept_prob=target_accept_prob,
-            seed=seed,
-            progress_bar=progress_bar,
-        )
-        self.hierarchical_fit = result
-        return result
 
     # -- Influence diagnostics / reloo-light -----------------------------------
 
@@ -634,7 +591,13 @@ class BayesianWorkflow:
         influential = self.influential_points(k_threshold=k_threshold)
         if influential.empty:
             return BayesianFit(model_names=(), group_ids=()), pd.DataFrame(
-                columns=["model", "group_id", "group_label", "n_dropped", "n_remaining"],
+                columns=[
+                    "model",
+                    "group_id",
+                    "group_label",
+                    "n_dropped",
+                    "n_remaining",
+                ],
             )
 
         fit = self._require_fit()
@@ -671,7 +634,11 @@ class BayesianWorkflow:
                 if grp.raw_observation_uncertainty is not None
                 else None
             )
-            new_df = grp.dataframe.iloc[keep].reset_index(drop=True) if grp.dataframe is not None else None
+            new_df = (
+                grp.dataframe.iloc[keep].reset_index(drop=True)
+                if grp.dataframe is not None
+                else None
+            )
             cleaned = BayesianGroup(
                 group_id=grp.group_id,
                 group_label=grp.group_label + " (reloo)",
@@ -686,13 +653,15 @@ class BayesianWorkflow:
             )
             new_groups.append(cleaned)
             models_to_fit.setdefault(m_name, []).append(cleaned)
-            summary_rows.append({
-                "model": m_name,
-                "group_id": gid,
-                "group_label": grp.group_label,
-                "n_dropped": int(len(point_indices)),
-                "n_remaining": int(new_features[next(iter(new_features))].shape[0]),
-            })
+            summary_rows.append(
+                {
+                    "model": m_name,
+                    "group_id": gid,
+                    "group_label": grp.group_label,
+                    "n_dropped": int(len(point_indices)),
+                    "n_remaining": int(new_features[next(iter(new_features))].shape[0]),
+                }
+            )
 
         # Run an isolated fit per affected (model, group) to avoid touching self.fit_result.
         cleaned_dataset = BayesianDataset(
@@ -703,11 +672,13 @@ class BayesianWorkflow:
             groups=new_groups,
         )
         models_in_order = [m for m in self.models if m.name in models_to_fit]
-        preset_arg: Any = {m.name: self._preset_for(m.name) for m in models_in_order}
+        priors_arg: dict[str, PriorSet] = {
+            m.name: self._priors_for(m.name) for m in models_in_order
+        }
         new_fit = fit_groups(
             cleaned_dataset,
             models_in_order,
-            preset=preset_arg,
+            priors=priors_arg,
             num_warmup=nw,
             num_samples=ns,
             num_chains=nc,
@@ -739,8 +710,22 @@ class BayesianWorkflow:
         model_name: str,
         *,
         group_id: Any = None,
+        feature: str = "temperature",
+        x_axis: str | Callable[[np.ndarray], np.ndarray] | None = None,
+        xlabel: str | None = None,
+        inverse_temperature_axis: bool = True,
+        plot_scale: str | None = None,
         **kwargs: Any,
     ) -> tuple["Figure", "Axes"]:
+        """Posterior predictive plot.
+
+        Set ``x_axis="feature"`` for raw temperature (K), ``x_axis="inverse_temperature"``
+        for ``1000/(R*T)``, or pass a callable ``f(T) -> x``. When ``x_axis`` is
+        omitted, ``inverse_temperature_axis`` controls the legacy default.
+
+        ``plot_scale`` defaults to linear SI units (``property``) for log-likelihood
+        models; pass ``"likelihood"`` to plot on the transformed observation scale.
+        """
         from . import plots
 
         model = self._model_by_name(model_name)
@@ -748,6 +733,11 @@ class BayesianWorkflow:
             self._require_fit(),
             model,
             group_id=group_id,
+            feature=feature,
+            x_axis=x_axis,
+            xlabel=xlabel,
+            inverse_temperature_axis=inverse_temperature_axis,
+            plot_scale=plot_scale,
             **kwargs,
         )
 
@@ -769,7 +759,9 @@ class BayesianWorkflow:
             **kwargs,
         )
 
-    def plot_residuals_and_pareto_k(self, **kwargs: Any) -> tuple["Figure", "np.ndarray"]:
+    def plot_residuals_and_pareto_k(
+        self, **kwargs: Any
+    ) -> tuple["Figure", "np.ndarray"]:
         from . import plots
 
         return plots.plot_residuals_and_pareto_k(self._require_fit(), **kwargs)
@@ -853,7 +845,7 @@ class BayesianWorkflow:
         parameter: str,
         *,
         group_id: Any = None,
-        preset: str | None = None,
+        priors: PriorSet | None = None,
         n_prior_samples: int = 4000,
         seed: int = 0,
         **kwargs: Any,
@@ -862,18 +854,18 @@ class BayesianWorkflow:
 
         ``group_id`` accepts an integer index, a ``group_label`` string, a
         ``{group_by_key: value}`` dict, the raw tuple or a :class:`BayesianGroup`
-        — same semantics as :meth:`plot_posterior`. ``preset`` defaults to the
-        active preset for ``model_name``.
+        — same semantics as :meth:`plot_posterior`. ``priors`` defaults to the
+        workflow's configured priors for ``model_name``.
         """
         from . import plots
 
         model = self._model_by_name(model_name)
-        used_preset = preset or self._preset_for(model_name)
+        used_priors = priors or self._priors_for(model_name)
         return plots.plot_prior_vs_posterior(
             self._require_fit(),
             model=model,
             parameter=parameter,
-            preset_name=used_preset,
+            priors=used_priors,
             group_id=group_id,
             n_prior_samples=n_prior_samples,
             seed=seed,
@@ -899,18 +891,22 @@ class BayesianWorkflow:
             f"Available: {[m.name for m in self.models]}"
         )
 
-    def _preset_for(self, model_name: str) -> str:
-        spec: Any = self.prior_preset
-        if isinstance(spec, PriorPreset):
-            type(self._model_by_name(model_name)).register_prior_preset(spec, overwrite=True)
-            return spec.name
-        if isinstance(spec, str):
-            return spec
-        value = spec[model_name]
-        if isinstance(value, PriorPreset):
-            type(self._model_by_name(model_name)).register_prior_preset(value, overwrite=True)
-            return value.name
-        return str(value)
+    def _priors_for(
+        self,
+        model_name: str,
+        *,
+        override: PriorSet | Mapping[str, PriorSet] | None = None,
+    ) -> PriorSet:
+        source: Any = override if override is not None else self.priors
+        if isinstance(source, PriorSet):
+            return source
+        try:
+            return source[model_name]
+        except KeyError as exc:
+            raise KeyError(
+                f"No PriorSet configured for model {model_name!r}. "
+                f"Provided keys: {sorted(source)}"
+            ) from exc
 
     def _require_fit(self) -> BayesianFit:
         if self.fit_result is None:
@@ -954,8 +950,8 @@ def _compute_ebfmi(idata: Any, mcmc: Any) -> float:
     return float(np.mean(bfmis)) if bfmis else float("nan")
 
 
-def _scale_preset(preset: PriorPreset, scale: float) -> PriorPreset:
-    """Return a new ``PriorPreset`` with every prior widened/narrowed by ``scale``.
+def _scale_priors(priors: PriorSet, scale: float) -> PriorSet:
+    """Return a new ``PriorSet`` with every prior widened/narrowed by ``scale``.
 
     * ``UniformPriorSpec`` — bounds widened around the midpoint by ``scale``.
     * ``Normal``/``HalfNormal``/``LogNormal``/``TruncatedNormal`` — the
@@ -966,7 +962,7 @@ def _scale_preset(preset: PriorPreset, scale: float) -> PriorPreset:
     if scale <= 0.0:
         raise ValueError(f"prior_sensitivity scale must be > 0, got {scale}")
     new_params: dict[str, PriorSpec] = {}
-    for name, spec in preset.parameters.items():
+    for name, spec in priors.parameters.items():
         if isinstance(spec, UniformPriorSpec):
             mid = 0.5 * (spec.low + spec.high)
             half = 0.5 * (spec.high - spec.low) * scale
@@ -976,7 +972,9 @@ def _scale_preset(preset: PriorPreset, scale: float) -> PriorPreset:
         elif isinstance(spec, HalfNormalPriorSpec):
             new_params[name] = HalfNormalPriorSpec(scale=spec.scale * scale)
         elif isinstance(spec, LogNormalPriorSpec):
-            new_params[name] = LogNormalPriorSpec(loc=spec.loc, scale=spec.scale * scale)
+            new_params[name] = LogNormalPriorSpec(
+                loc=spec.loc, scale=spec.scale * scale
+            )
         elif isinstance(spec, TruncatedNormalPriorSpec):
             new_params[name] = TruncatedNormalPriorSpec(
                 loc=spec.loc,
@@ -986,12 +984,11 @@ def _scale_preset(preset: PriorPreset, scale: float) -> PriorPreset:
             )
         else:
             new_params[name] = spec
-    return PriorPreset(
-        name=f"{preset.name}@x{scale:g}",
+    return PriorSet(
         parameters=new_params,
-        sigma_scale=preset.sigma_scale * scale,
-        likelihood=preset.likelihood,
-        student_t_df=preset.student_t_df,
+        sigma_scale=priors.sigma_scale * scale,
+        likelihood=priors.likelihood,
+        student_t_df=priors.student_t_df,
     )
 
 

@@ -12,7 +12,7 @@ Two public entry points:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterable
 
 import numpy as np
 import pandas as pd
@@ -166,6 +166,17 @@ def _summarize(samples: np.ndarray) -> dict[str, float]:
     }
 
 
+_NON_PARAMETER_SITES = frozenset({"mu", "obs"})
+
+
+def _posterior_parameters(model_name: str, sample_keys: Iterable[str]) -> list[str]:
+    """Keep only inferential scalars (``param_names`` + ``model_sigma``)."""
+    from .models import ModelRegistry
+
+    allowed = set(ModelRegistry.get(model_name).param_names) | {"model_sigma"}
+    return [name for name in sample_keys if name in allowed and name not in _NON_PARAMETER_SITES]
+
+
 def posterior_summary(fit: BayesianFit) -> pd.DataFrame:
     """Return a tidy DataFrame ``[model, group_label, parameter, median, q05, q95, ...]``.
 
@@ -174,7 +185,8 @@ def posterior_summary(fit: BayesianFit) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for (model_name, group_id), gfit in fit.fits.items():
         samples = gfit.samples()
-        for param, arr in samples.items():
+        for param in _posterior_parameters(model_name, samples):
+            arr = samples[param]
             stats = _summarize(arr)
             row: dict[str, Any] = {
                 "model": model_name,

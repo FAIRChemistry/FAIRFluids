@@ -36,6 +36,11 @@ from .canonical_model import (
     RawCitation,
     RawThermoML,
 )
+from .composition import (
+    complete_composition_values,
+    ensure_mass_fraction_parameters,
+    ensure_mole_fraction_parameters,
+)
 from .id_registry import IDRegistry
 from .mappers import ParameterMapper, PropertyMapper, UnitMapper
 from .pubchem import enrich_compound_from_pubchem
@@ -171,7 +176,7 @@ def _map_method(raw: Optional[str]) -> Optional[Method]:
 def build_fairfluids(
     raw: RawThermoML,
     canonical_datasets: List[CanonicalDataset],
-    fetch_from_pubchem: bool = False,
+    fetch_from_pubchem: bool = True,
 ) -> Dict[str, Any]:
     """Build a FAIRFluidsDocument dict from canonical datasets + raw meta."""
     registry = IDRegistry()
@@ -183,7 +188,14 @@ def build_fairfluids(
 
     fluids: List[Dict[str, Any]] = []
     for cds in canonical_datasets:
-        fluid = _build_fluid(cds, raw, registry, compound_id_by_org_num)
+        fluid = _build_fluid(
+            cds,
+            raw,
+            registry,
+            compound_id_by_org_num,
+            compounds,
+            fetch_from_pubchem=fetch_from_pubchem,
+        )
         fluids.append(fluid)
 
     doc: Dict[str, Any] = {}
@@ -233,7 +245,7 @@ def _build_citation(raw_cit: RawCitation) -> Optional[Citation]:
 def _build_compounds(
     raw: RawThermoML,
     registry: IDRegistry,
-    fetch_from_pubchem: bool = False,
+    fetch_from_pubchem: bool = True,
 ) -> tuple[List[Compound], Dict[int, str]]:
     compounds: List[Compound] = []
     id_by_org_num: Dict[int, str] = {}
@@ -275,6 +287,9 @@ def _build_fluid(
     raw: RawThermoML,
     registry: IDRegistry,
     compound_id_by_org_num: Dict[int, str],
+    compounds: List[Compound],
+    *,
+    fetch_from_pubchem: bool = True,
 ) -> Dict[str, Any]:
     fluid_id = registry.new_id("fluid")
 
@@ -290,10 +305,20 @@ def _build_fluid(
     }
 
     prop_objects, prop_id_map = _build_properties(cds, registry)
-    param_objects, param_id_map = _build_parameters(cds, registry, compound_id_map)
+    param_objects, param_id_map = _build_parameters(
+        cds, registry, compound_id_map, compound_refs
+    )
     measurements = _build_measurements(
-        cds, registry, prop_id_map, param_id_map, raw,
-        prop_objects, param_objects, compound_refs,
+        cds,
+        registry,
+        prop_id_map,
+        param_id_map,
+        raw,
+        prop_objects,
+        param_objects,
+        compound_refs,
+        compounds,
+        fetch_from_pubchem=fetch_from_pubchem,
     )
 
     sample = Sample(
@@ -352,6 +377,7 @@ def _build_parameters(
     cds: CanonicalDataset,
     registry: IDRegistry,
     compound_id_map: Dict[int, str],
+    compound_refs: List[str],
 ) -> tuple[List[Parameter], Dict[str, str]]:
     result: List[Parameter] = []
     id_map: Dict[str, str] = {}
@@ -376,23 +402,8 @@ def _build_parameters(
             )
         )
 
-    # ThermoML often stores only one explicit MOLE_FRACTION variable in binary
-    # systems. Add an implicit complement parameter for the other compound so
-    # per-row composition can be completed to x1 + x2 = 1.
-    mf_params = [p for p in result if p.parameters == Parameters.MOLE_FRACTION]
-    if len(cds.compounds) == 2 and len(mf_params) == 1:
-        explicit = mf_params[0]
-        explicit_assoc = set(explicit.associated_compounds or [])
-        missing = [c.compound_id for c in cds.compounds if c.compound_id not in explicit_assoc]
-        if len(missing) == 1:
-            result.append(
-                Parameter(
-                    parameterID=registry.new_id("parameter"),
-                    parameters=Parameters.MOLE_FRACTION,
-                    unit=UnitMapper.dimensionless(),
-                    associated_compounds=[missing[0]],
-                )
-            )
+    ensure_mass_fraction_parameters(result, compound_refs, registry)
+    ensure_mole_fraction_parameters(result, compound_refs, registry)
 
     return result, id_map
 
@@ -423,6 +434,9 @@ def _build_measurements(
     prop_objects: List[Property],
     param_objects: List[Parameter],
     compound_refs: List[str],
+    compounds: List[Compound],
+    *,
+    fetch_from_pubchem: bool = True,
 ) -> List[Measurement]:
     method = _resolve_method(cds)
     doi = _clean_doi(raw.citation.doi) if raw.citation.doi else None
@@ -468,10 +482,12 @@ def _build_measurements(
                 )
             )
 
-        _inject_binary_mole_fraction_complement(
+        complete_composition_values(
             param_values=param_values,
             param_objects=param_objects,
             compound_refs=compound_refs,
+            compounds=compounds,
+            fetch_from_pubchem=fetch_from_pubchem,
         )
 
         measurements.append(
@@ -484,52 +500,6 @@ def _build_measurements(
             )
         )
     return measurements
-
-
-def _inject_binary_mole_fraction_complement(
-    param_values: List[ParameterValue],
-    param_objects: List[Parameter],
-    compound_refs: List[str],
-) -> None:
-    """Add missing binary mole-fraction value as complement (1 - x)."""
-    if len(compound_refs) != 2:
-        return
-
-    mf_ids = {
-        p.parameterID
-        for p in param_objects
-        if p.parameterID and p.parameters == Parameters.MOLE_FRACTION
-    }
-    if len(mf_ids) != 2:
-        return
-
-    existing = {
-        pv.parameterID: pv
-        for pv in param_values
-        if pv.parameterID in mf_ids and pv.paramValue is not None
-    }
-    if len(existing) != 1:
-        return
-
-    known_id, known_pv = next(iter(existing.items()))
-    if known_pv.paramValue is None:
-        return
-
-    missing_id = next(pid for pid in mf_ids if pid != known_id)
-    complement = 1.0 - known_pv.paramValue
-    if complement < 0.0:
-        complement = 0.0
-    elif complement > 1.0:
-        complement = 1.0
-
-    param_values.append(
-        ParameterValue(
-            parameterID=missing_id,
-            parameters=Parameters.MOLE_FRACTION,
-            paramValue=complement,
-            uncertainty=None,
-        )
-    )
 
 
 def _resolve_method(cds: CanonicalDataset) -> Optional[Method]:

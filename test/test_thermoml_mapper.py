@@ -19,6 +19,11 @@ import pytest
 
 from fairfluids.core.lib import FAIRFluidsDocument, Method, Parameters, Properties
 from fairfluids.io.thermoml_to_fairfluids import convert
+from fairfluids.io.thermoml_to_fairfluids.composition import (
+    is_valid_mole_fraction_sum,
+    mass_fractions_to_mole_fractions,
+    molalities_to_mole_fractions,
+)
 from fairfluids.io.thermoml_to_fairfluids.mappers.parameter_mapper import ParameterMapper
 from fairfluids.io.thermoml_to_fairfluids.mappers.property_mapper import PropertyMapper
 
@@ -31,6 +36,12 @@ DATA_DIR = REPO_ROOT / "transition_water" / "data"
 
 GLYCEROL_WATER_XML = DATA_DIR / "glycerol_water" / "j.jct.2014.06.031.xml"
 METHANOL_WATER_XML = DATA_DIR / "methanol_water" / "fluid.2014.07.013.xml"
+JE700300Y_XML = (
+    REPO_ROOT
+    / "transition_water"
+    / "thermoml_xml_water_methanol_density"
+    / "10.1021_je700300y.xml"
+)
 
 
 def _fluid_measurements(fluid) -> List:
@@ -57,6 +68,22 @@ def _convert_xml(root: ET.Element) -> FAIRFluidsDocument:
         tmp.write(xml_bytes)
         tmp.flush()
         return _convert_file(Path(tmp.name))
+
+
+def _mole_fraction_param_ids(fluid) -> set[str]:
+    return {
+        p.parameterID
+        for p in fluid.parameter
+        if p.parameters == Parameters.MOLE_FRACTION and p.parameterID
+    }
+
+
+def _measurement_mole_fraction_values(meas, mf_pids: set[str]) -> list[float]:
+    return [
+        float(pv.paramValue)
+        for pv in meas.parameterValue
+        if pv.parameterID in mf_pids and pv.paramValue is not None
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -374,8 +401,7 @@ class TestMinimalXml:
         mf_params = [
             p for p in fluid.parameter if p.parameters == Parameters.MOLE_FRACTION
         ]
-        if not mf_params:
-            pytest.skip("Pure-component mole fraction parameter not emitted for this case")
+        assert len(mf_params) == 1
 
         meas = _fluid_measurements(fluid)[0]
         mf_values = [
@@ -543,18 +569,409 @@ class TestMinimalXml:
         fluid = doc.fluid[0]
         meas = _fluid_measurements(fluid)[0]
 
-        mf_pids = {
+        mf_pids = _mole_fraction_param_ids(fluid)
+        assert len(mf_pids) == 2
+        mf_vals = _measurement_mole_fraction_values(meas, mf_pids)
+        assert len(mf_vals) == 2
+        assert is_valid_mole_fraction_sum(mf_vals)
+        assert mf_vals[0] == pytest.approx(0.3)
+        assert mf_vals[1] == pytest.approx(0.7)
+
+    def test_ternary_mixture_mf_sum(self):
+        root = self._make_root(
+            "<Compound><RegNum><nOrgNum>1</nOrgNum></RegNum><sCommonName>water</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>2</nOrgNum></RegNum><sCommonName>methanol</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>3</nOrgNum></RegNum><sCommonName>ethanol</sCommonName></Compound>"
+            "<PureOrMixtureData>"
+            "  <nPureOrMixtureDataNumber>1</nPureOrMixtureDataNumber>"
+            "  <Component><RegNum><nOrgNum>1</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>2</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>3</nOrgNum></RegNum></Component>"
+            "  <Property>"
+            "    <nPropNumber>1</nPropNumber>"
+            "    <Property-MethodID><PropertyGroup>"
+            "      <VolumetricProp><ePropName>Mass density, kg/m3</ePropName></VolumetricProp>"
+            "    </PropertyGroup></Property-MethodID>"
+            "  </Property>"
+            "  <Variable>"
+            "    <nVarNumber>1</nVarNumber>"
+            "    <VariableID>"
+            "      <VariableType><eComponentComposition>Mole fraction</eComponentComposition></VariableType>"
+            "      <RegNum><nOrgNum>1</nOrgNum></RegNum>"
+            "    </VariableID>"
+            "  </Variable>"
+            "  <Variable>"
+            "    <nVarNumber>2</nVarNumber>"
+            "    <VariableID>"
+            "      <VariableType><eComponentComposition>Mole fraction</eComponentComposition></VariableType>"
+            "      <RegNum><nOrgNum>2</nOrgNum></RegNum>"
+            "    </VariableID>"
+            "  </Variable>"
+            "  <NumValues>"
+            "    <VariableValue><nVarNumber>1</nVarNumber><nVarValue>0.7117</nVarValue></VariableValue>"
+            "    <VariableValue><nVarNumber>2</nVarNumber><nVarValue>0.1949</nVarValue></VariableValue>"
+            "    <PropertyValue><nPropNumber>1</nPropNumber><nPropValue>910.69</nPropValue></PropertyValue>"
+            "  </NumValues>"
+            "</PureOrMixtureData>"
+        )
+        doc = _convert_xml(root)
+        fluid = doc.fluid[0]
+        meas = _fluid_measurements(fluid)[0]
+
+        mf_pids = _mole_fraction_param_ids(fluid)
+        assert len(mf_pids) == 3
+        mf_vals = _measurement_mole_fraction_values(meas, mf_pids)
+        assert len(mf_vals) == 3
+        assert is_valid_mole_fraction_sum(mf_vals)
+        assert mf_vals[0] == pytest.approx(0.7117)
+        assert mf_vals[1] == pytest.approx(0.1949)
+        assert mf_vals[2] == pytest.approx(0.0934)
+
+    def test_binary_mixture_mf_normalization(self):
+        root = self._make_root(
+            "<Compound><RegNum><nOrgNum>1</nOrgNum></RegNum><sCommonName>ethanol</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>2</nOrgNum></RegNum><sCommonName>water</sCommonName></Compound>"
+            "<PureOrMixtureData>"
+            "  <nPureOrMixtureDataNumber>1</nPureOrMixtureDataNumber>"
+            "  <Component><RegNum><nOrgNum>1</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>2</nOrgNum></RegNum></Component>"
+            "  <Property>"
+            "    <nPropNumber>1</nPropNumber>"
+            "    <Property-MethodID><PropertyGroup>"
+            "      <VolumetricProp><ePropName>Mass density, kg/m3</ePropName></VolumetricProp>"
+            "    </PropertyGroup></Property-MethodID>"
+            "  </Property>"
+            "  <Variable>"
+            "    <nVarNumber>1</nVarNumber>"
+            "    <VariableID>"
+            "      <VariableType><eComponentComposition>Mole fraction</eComponentComposition></VariableType>"
+            "      <RegNum><nOrgNum>1</nOrgNum></RegNum>"
+            "    </VariableID>"
+            "  </Variable>"
+            "  <Variable>"
+            "    <nVarNumber>2</nVarNumber>"
+            "    <VariableID>"
+            "      <VariableType><eComponentComposition>Mole fraction</eComponentComposition></VariableType>"
+            "      <RegNum><nOrgNum>2</nOrgNum></RegNum>"
+            "    </VariableID>"
+            "  </Variable>"
+            "  <NumValues>"
+            "    <VariableValue><nVarNumber>1</nVarNumber><nVarValue>0.3</nVarValue></VariableValue>"
+            "    <VariableValue><nVarNumber>2</nVarNumber><nVarValue>0.5</nVarValue></VariableValue>"
+            "    <PropertyValue><nPropNumber>1</nPropNumber><nPropValue>850.0</nPropValue></PropertyValue>"
+            "  </NumValues>"
+            "</PureOrMixtureData>"
+        )
+        doc = _convert_xml(root)
+        fluid = doc.fluid[0]
+        meas = _fluid_measurements(fluid)[0]
+        mf_vals = _measurement_mole_fraction_values(meas, _mole_fraction_param_ids(fluid))
+        assert is_valid_mole_fraction_sum(mf_vals)
+        assert mf_vals[0] == pytest.approx(0.375)
+        assert mf_vals[1] == pytest.approx(0.625)
+
+    def test_incomplete_mole_fractions_kept_with_warning(self, caplog):
+        import logging
+
+        root = self._make_root(
+            "<Compound><RegNum><nOrgNum>1</nOrgNum></RegNum><sCommonName>a</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>2</nOrgNum></RegNum><sCommonName>b</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>3</nOrgNum></RegNum><sCommonName>c</sCommonName></Compound>"
+            "<PureOrMixtureData>"
+            "  <nPureOrMixtureDataNumber>1</nPureOrMixtureDataNumber>"
+            "  <Component><RegNum><nOrgNum>1</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>2</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>3</nOrgNum></RegNum></Component>"
+            "  <Property>"
+            "    <nPropNumber>1</nPropNumber>"
+            "    <Property-MethodID><PropertyGroup>"
+            "      <VolumetricProp><ePropName>Mass density, kg/m3</ePropName></VolumetricProp>"
+            "    </PropertyGroup></Property-MethodID>"
+            "  </Property>"
+            "  <Variable>"
+            "    <nVarNumber>1</nVarNumber>"
+            "    <VariableID><VariableType>"
+            "      <eTemperature>Temperature, K</eTemperature>"
+            "    </VariableType></VariableID>"
+            "  </Variable>"
+            "  <NumValues>"
+            "    <VariableValue><nVarNumber>1</nVarNumber><nVarValue>298.15</nVarValue></VariableValue>"
+            "    <PropertyValue><nPropNumber>1</nPropNumber><nPropValue>997.0</nPropValue></PropertyValue>"
+            "  </NumValues>"
+            "</PureOrMixtureData>"
+        )
+        with caplog.at_level(logging.WARNING):
+            doc = _convert_xml(root)
+        assert any(
+            "Cannot infer missing MOLE_FRACTION parameters" in r.message
+            for r in caplog.records
+        )
+        fluid = doc.fluid[0]
+        assert len(_fluid_measurements(fluid)) == 1
+        assert _mole_fraction_param_ids(fluid) == set()
+
+    def test_mass_fraction_derives_mole_fraction(self, monkeypatch):
+        def _fake_resolve_molar_masses(compounds, compound_refs, **kwargs):
+            masses = {"compound_1": 18.015, "compound_2": 46.07}
+            return {
+                compound_id: masses[compound_id]
+                for compound_id in compound_refs
+                if compound_id in masses
+            }
+
+        monkeypatch.setattr(
+            "fairfluids.io.thermoml_to_fairfluids.composition.resolve_molar_masses",
+            _fake_resolve_molar_masses,
+        )
+
+        root = self._make_root(
+            "<Compound><RegNum><nOrgNum>1</nOrgNum></RegNum><sCommonName>water</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>2</nOrgNum></RegNum><sCommonName>ethanol</sCommonName></Compound>"
+            "<PureOrMixtureData>"
+            "  <nPureOrMixtureDataNumber>1</nPureOrMixtureDataNumber>"
+            "  <Component><RegNum><nOrgNum>1</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>2</nOrgNum></RegNum></Component>"
+            "  <Property>"
+            "    <nPropNumber>1</nPropNumber>"
+            "    <Property-MethodID><PropertyGroup>"
+            "      <VolumetricProp><ePropName>Mass density, kg/m3</ePropName></VolumetricProp>"
+            "    </PropertyGroup></Property-MethodID>"
+            "  </Property>"
+            "  <Variable>"
+            "    <nVarNumber>1</nVarNumber>"
+            "    <VariableID>"
+            "      <VariableType><eComponentComposition>Mass fraction</eComponentComposition></VariableType>"
+            "      <RegNum><nOrgNum>1</nOrgNum></RegNum>"
+            "    </VariableID>"
+            "  </Variable>"
+            "  <NumValues>"
+            "    <VariableValue><nVarNumber>1</nVarNumber><nVarValue>0.2</nVarValue></VariableValue>"
+            "    <PropertyValue><nPropNumber>1</nPropNumber><nPropValue>950.0</nPropValue></PropertyValue>"
+            "  </NumValues>"
+            "</PureOrMixtureData>"
+        )
+        doc = _convert_xml(root)
+        fluid = doc.fluid[0]
+        meas = _fluid_measurements(fluid)[0]
+
+        mf_pids = _mole_fraction_param_ids(fluid)
+        assert len(mf_pids) == 2
+        mf_vals = _measurement_mole_fraction_values(meas, mf_pids)
+        assert len(mf_vals) == 2
+        assert is_valid_mole_fraction_sum(mf_vals)
+
+        wf_pids = {
+            p.parameterID
+            for p in fluid.parameter
+            if p.parameters == Parameters.MASS_FRACTION and p.parameterID
+        }
+        assert len(wf_pids) == 2
+        wf_vals = sorted(
+            float(pv.paramValue)
+            for pv in meas.parameterValue
+            if pv.parameterID in wf_pids and pv.paramValue is not None
+        )
+        assert wf_vals == [pytest.approx(0.2), pytest.approx(0.8)]
+
+    def test_molality_derives_mole_fraction(self, monkeypatch):
+        def _fake_resolve_molar_masses(compounds, compound_refs, **kwargs):
+            masses = {"compound_1": 176.12, "compound_2": 18.015}
+            return {
+                compound_id: masses[compound_id]
+                for compound_id in compound_refs
+                if compound_id in masses
+            }
+
+        monkeypatch.setattr(
+            "fairfluids.io.thermoml_to_fairfluids.composition.resolve_molar_masses",
+            _fake_resolve_molar_masses,
+        )
+
+        root = self._make_root(
+            "<Compound><RegNum><nOrgNum>1</nOrgNum></RegNum><sCommonName>ascorbic acid</sCommonName></Compound>"
+            "<Compound><RegNum><nOrgNum>2</nOrgNum></RegNum><sCommonName>water</sCommonName></Compound>"
+            "<PureOrMixtureData>"
+            "  <nPureOrMixtureDataNumber>1</nPureOrMixtureDataNumber>"
+            "  <Component><RegNum><nOrgNum>1</nOrgNum></RegNum></Component>"
+            "  <Component><RegNum><nOrgNum>2</nOrgNum></RegNum></Component>"
+            "  <Property>"
+            "    <nPropNumber>1</nPropNumber>"
+            "    <Property-MethodID><PropertyGroup>"
+            "      <VolumetricProp><ePropName>Mass density, kg/m3</ePropName></VolumetricProp>"
+            "    </PropertyGroup></Property-MethodID>"
+            "  </Property>"
+            "  <Variable>"
+            "    <nVarNumber>1</nVarNumber>"
+            "    <VariableID>"
+            "      <VariableType><eComponentComposition>Molality, mol/kg</eComponentComposition></VariableType>"
+            "      <RegNum><nOrgNum>1</nOrgNum></RegNum>"
+            "    </VariableID>"
+            "  </Variable>"
+            "  <NumValues>"
+            "    <VariableValue><nVarNumber>1</nVarNumber><nVarValue>0.05</nVarValue></VariableValue>"
+            "    <PropertyValue><nPropNumber>1</nPropNumber><nPropValue>1003.0</nPropValue></PropertyValue>"
+            "  </NumValues>"
+            "</PureOrMixtureData>"
+        )
+        doc = _convert_xml(root)
+        fluid = doc.fluid[0]
+        meas = _fluid_measurements(fluid)[0]
+
+        mf_pids = _mole_fraction_param_ids(fluid)
+        assert len(mf_pids) == 2
+        mf_vals = _measurement_mole_fraction_values(meas, mf_pids)
+        assert len(mf_vals) == 2
+        assert is_valid_mole_fraction_sum(mf_vals)
+
+        expected_solute = 0.05 / (0.05 + 1000.0 / 18.015)
+        solute_pid = next(
             p.parameterID
             for p in fluid.parameter
             if p.parameters == Parameters.MOLE_FRACTION
-        }
-        mf_vals = [
-            pv.paramValue
-            for pv in meas.parameterValue
-            if pv.parameterID in mf_pids and pv.paramValue is not None
+            and p.associated_compounds == ["compound_1"]
+        )
+        solute_mf = next(
+            pv.paramValue for pv in meas.parameterValue if pv.parameterID == solute_pid
+        )
+        assert solute_mf == pytest.approx(expected_solute)
+
+
+class TestCompositionMassToMole:
+    def test_binary_water_ethanol_conversion(self):
+        water_mass = 0.2
+        ethanol_mass = 0.8
+        molar_masses = {"water": 18.015, "ethanol": 46.07}
+        mass_fractions = {"water": water_mass, "ethanol": ethanol_mass}
+        mole_fractions = mass_fractions_to_mole_fractions(
+            mass_fractions,
+            molar_masses,
+            ["water", "ethanol"],
+        )
+        expected_water = (water_mass / 18.015) / (
+            (water_mass / 18.015) + (ethanol_mass / 46.07)
+        )
+        assert is_valid_mole_fraction_sum(list(mole_fractions.values()))
+        assert mole_fractions["water"] == pytest.approx(expected_water)
+        assert mole_fractions["ethanol"] == pytest.approx(1.0 - expected_water)
+
+    def test_pure_component_is_unity(self):
+        mole_fractions = mass_fractions_to_mole_fractions(
+            {"methanol": 1.0},
+            {"methanol": 32.042},
+            ["methanol"],
+        )
+        assert mole_fractions == {"methanol": 1.0}
+
+
+class TestCompositionMolalityToMole:
+    def test_binary_solute_in_water(self):
+        molalities = {"solute": 0.05}
+        molar_masses = {"water": 18.015, "solute": 176.12}
+        mole_fractions = molalities_to_mole_fractions(
+            molalities,
+            molar_masses,
+            ["solute", "water"],
+            ["water"],
+        )
+        n_water = 1000.0 / 18.015
+        expected_solute = 0.05 / (0.05 + n_water)
+        assert is_valid_mole_fraction_sum(list(mole_fractions.values()))
+        assert mole_fractions["solute"] == pytest.approx(expected_solute)
+        assert mole_fractions["water"] == pytest.approx(1.0 - expected_solute)
+
+    def test_ternary_two_solutes_in_water(self):
+        molalities = {"solute_a": 0.1, "solute_b": 0.2}
+        molar_masses = {"water": 18.015, "solute_a": 100.0, "solute_b": 120.0}
+        mole_fractions = molalities_to_mole_fractions(
+            molalities,
+            molar_masses,
+            ["water", "solute_a", "solute_b"],
+            ["water"],
+        )
+        n_water = 1000.0 / 18.015
+        total = n_water + 0.1 + 0.2
+        assert mole_fractions["water"] == pytest.approx(n_water / total)
+        assert mole_fractions["solute_a"] == pytest.approx(0.1 / total)
+        assert mole_fractions["solute_b"] == pytest.approx(0.2 / total)
+
+
+class TestJe700300yMoleFractionCompletion:
+    @pytest.fixture(scope="class")
+    def je700300y_doc(self):
+        if not JE700300Y_XML.exists():
+            pytest.skip(f"Test data not found: {JE700300Y_XML}")
+        return _convert_file(JE700300Y_XML)
+
+    def test_density_rows_have_complete_mole_fractions(self, je700300y_doc):
+        from fairfluids.core.functionalities import extract_property_dataframe
+
+        df = extract_property_dataframe(
+            je700300y_doc,
+            property_type="density",
+            include_na_ratio=True,
+            keep_only_relevant_columns=False,
+        )
+        assert not df.empty
+
+        for _, row in df.iterrows():
+            fracs = row["mole_fractions"]
+            comps = row["fluid_compounds"]
+            assert isinstance(comps, list)
+            assert isinstance(fracs, (list, tuple))
+            assert len(fracs) == len(comps)
+            assert None not in fracs
+            assert is_valid_mole_fraction_sum([float(x) for x in fracs])
+
+    def test_pure_methanol_density_is_unity(self, je700300y_doc):
+        from fairfluids.core.functionalities import extract_property_dataframe
+
+        df = extract_property_dataframe(
+            je700300y_doc,
+            property_type="density",
+            include_na_ratio=True,
+            keep_only_relevant_columns=False,
+        )
+        pure_methanol = df[
+            df["fluid_compounds"].apply(lambda comps: comps == ["methanol"])
         ]
-        if len(mf_vals) < 2:
-            pytest.skip(
-                "Binary mixture implicit mole fractions not expanded in this builder output"
+        assert not pure_methanol.empty
+        for fracs in pure_methanol["mole_fractions"]:
+            assert fracs == [pytest.approx(1.0)]
+
+    def test_binary_ethanol_water_complement(self, je700300y_doc):
+        from fairfluids.core.functionalities import extract_property_dataframe
+
+        df = extract_property_dataframe(
+            je700300y_doc,
+            property_type="density",
+            include_na_ratio=True,
+            keep_only_relevant_columns=False,
+        )
+        binary = df[
+            df["fluid_compounds"].apply(
+                lambda comps: sorted(comps) == ["ethanol", "water"]
             )
-        assert abs(sum(mf_vals) - 1.0) < 1e-9
+        ]
+        assert not binary.empty
+        for fracs in binary["mole_fractions"]:
+            assert None not in fracs
+            assert is_valid_mole_fraction_sum([float(x) for x in fracs])
+
+    def test_ternary_mixture_complement(self, je700300y_doc):
+        from fairfluids.core.functionalities import extract_property_dataframe
+
+        df = extract_property_dataframe(
+            je700300y_doc,
+            property_type="density",
+            include_na_ratio=True,
+            keep_only_relevant_columns=False,
+        )
+        ternary = df[
+            df["fluid_compounds"].apply(
+                lambda comps: sorted(comps) == ["ethanol", "methanol", "water"]
+            )
+        ]
+        assert not ternary.empty
+        for fracs in ternary["mole_fractions"]:
+            assert None not in fracs
+            assert is_valid_mole_fraction_sum([float(x) for x in fracs])

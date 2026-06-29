@@ -120,6 +120,7 @@ class BayesianDataset(BaseModel):
         log_observation: bool = True,
         extract_kwargs: dict[str, Any] | None = None,
         composition_filter: Mapping[str, tuple[float, float]] | None = None,
+        row_filter: Callable[[pd.DataFrame], Any] | None = None,
         system_label_key: str = "system_name",
     ) -> "BayesianDataset":
         """Build a dataset from one or more FAIRFluids documents.
@@ -134,18 +135,31 @@ class BayesianDataset(BaseModel):
             group_by: Columns to group rows by. Typically includes ``source_doi`` and one
                 or more composition columns (``mole_fraction_water`` etc.).
             min_points: Drop groups with fewer than this many points.
-            log_observation: Apply ``log`` to the observation column before fitting and
-                propagate its uncertainty through ``sigma / value``.
+            log_observation: Apply the natural logarithm (``ln``; ``numpy.log``) to the
+                observation column before fitting and propagate uncertainty on that scale.
             extract_kwargs: Extra keyword arguments forwarded to
                 :func:`extract_property_dataframe` for every document.
             composition_filter: Optional inclusive ranges
                 ``{column: (low, high)}`` applied to the concatenated DataFrame.
+            row_filter: Optional callable ``df -> boolean mask`` applied to the
+                concatenated DataFrame after ``composition_filter``. A strict
+                superset of ``composition_filter`` (it can express component
+                identity, system unions and cross-column ratios); see
+                :mod:`fairfluids.analysis.fluids` for a composable selector
+                algebra that plugs in directly here.
             system_label_key: Column name to use for the per-document label when
                 ``documents`` is a mapping.
         """
         feature_names = tuple(features)
         group_by_cols = tuple(group_by)
         extra = dict(extract_kwargs or {})
+
+        # A row_filter (e.g. a fairfluids.analysis.fluids selector) typically
+        # inspects the per-component ``mole_fraction_<compound>`` columns, which
+        # the compact extraction drops by default. Keep them unless the caller
+        # has explicitly chosen otherwise.
+        if row_filter is not None:
+            extra.setdefault("keep_only_relevant_columns", False)
 
         if isinstance(documents, Mapping):
             doc_iter = list(documents.items())
@@ -181,6 +195,17 @@ class BayesianDataset(BaseModel):
                 col_num = pd.to_numeric(df_all[col], errors="coerce")
                 mask = (col_num >= low) & (col_num <= high)
                 df_all = df_all[mask].reset_index(drop=True)
+
+        if row_filter is not None:
+            mask_arr = np.asarray(row_filter(df_all), dtype=bool)
+            if mask_arr.shape[0] != len(df_all):
+                raise ValueError(
+                    f"row_filter returned a mask of length {mask_arr.shape[0]} "
+                    f"for {len(df_all)} rows."
+                )
+            df_all = df_all[mask_arr].reset_index(drop=True)
+            if df_all.empty:
+                raise ValueError("row_filter removed all rows; nothing left to fit.")
 
         property_value_col = f"{property}_value"
         property_unc_col = f"{property}_uncertainty"

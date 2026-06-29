@@ -362,11 +362,9 @@ def calculate_ratio_of_solvent(
     Example:
         doc = calculate_ratio_of_solvent(
             doc=fairfluids_document,
-            parameter_id_1="parameter_mole_fraction_glycerol",
-            parameter_id_2="parameter_mole_fraction_cholinechloride",
             name="glyceline",
-            compound_id_1="compound_glycerol",
-            compound_id_2="compound_cholinechloride",
+            compound_id_1="compound_1",  # glycerol
+            compound_id_2="compound_2",  # choline chloride
             precision=2  # Round to 2 decimal places
         )
     """

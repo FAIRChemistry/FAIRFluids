@@ -35,10 +35,7 @@ from fairfluids.operations import (
     cleanup_orphaned_parameters,
     combine_compounds,
 )
-from .functionalities import (
-    filter_fluid_compounds_by_mole_fractions,
-    calculate_activationEnergy,
-)
+from .functionalities import filter_fluid_compounds_by_mole_fractions
 from .visualization import filter_fluid_measurements
 from .plot_utils import save_plot_as_svg, reset_plot_counter
 
@@ -67,7 +64,6 @@ __all__ = [
     "combine_compounds",
     "calculate_ratio_of_solvent",
     "cleanup_orphaned_parameters",
-    "calculate_activationEnergy",
     "save_plot_as_svg",
     "reset_plot_counter",
 ]

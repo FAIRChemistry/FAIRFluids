@@ -8,7 +8,15 @@ Typical entry points:
 
 - :class:`BayesianDataset` — build a fit-ready dataset from FAIRFluids documents.
 - :func:`get_model` / :func:`list_models` — access the registered model library.
+- :class:`PriorSet` — define priors at fit time (there are no presets).
 - :class:`BayesianWorkflow` — orchestrate prior exploration, MCMC, evaluation, comparison.
+
+Models are no longer rendered by a codegen pipeline. Every ``BayesianModel`` is
+*synthesised at import time* from the single source of truth — the
+:class:`~fairfluids.analysis.models.SymbolicModel` instances in
+:data:`fairfluids.analysis.models.registry` — via :mod:`.bridge`. The
+data-anchored density variants (``T0 = mean(T)``, ``rho0 = rho(T0)``) fall out of
+the shared constant-resolver machinery rather than bespoke subclasses.
 """
 
 from __future__ import annotations
@@ -27,25 +35,19 @@ except ImportError as exc:
 
 from .comparison import ModelComparison, compare_models, posterior_summary
 from .data import BayesianDataset, BayesianGroup
-from .hierarchical import (
-    HierarchicalArrhenius,
-    HierarchicalBayesianModel,
-    HierarchicalFit,
-    fit_hierarchical,
-    get_hierarchical_model,
-    list_hierarchical_models,
-)
 from .inference import BayesianFit, GroupFit, fit_groups, predict, predict_averaged
 from .models import BayesianModel, ModelRegistry, get_model, list_models
 
-# Importing the built-in models registers them via __init_subclass__.
-from . import models_builtin  # noqa: F401
-from .models_builtin import Arrhenius, Litovitz, LitovitzExtended, VFT
+# Synthesise and register a NumPyro model for every symbolic model on import.
+from . import bridge
+
+bridge.register_all()
+
 from .priors import (
     HalfNormalPriorSpec,
     LogNormalPriorSpec,
     NormalPriorSpec,
-    PriorPreset,
+    PriorSet,
     PriorSpec,
     TruncatedNormalPriorSpec,
     UniformPriorSpec,
@@ -53,6 +55,7 @@ from .priors import (
     sample_prior,
 )
 from .workflow import BayesianWorkflow
+from .writeback import fit_to_fairfluids_document, fit_to_fitted_models
 
 # Plots are exposed as a submodule to avoid pulling matplotlib at import time
 # unless the user actually uses plotting helpers.
@@ -67,26 +70,18 @@ __all__ = [
     "BayesianWorkflow",
     "ModelComparison",
     "ModelRegistry",
-    "HierarchicalArrhenius",
-    "HierarchicalBayesianModel",
-    "HierarchicalFit",
-    "PriorPreset",
+    "PriorSet",
     "PriorSpec",
     "UniformPriorSpec",
     "NormalPriorSpec",
     "HalfNormalPriorSpec",
     "LogNormalPriorSpec",
     "TruncatedNormalPriorSpec",
-    "Arrhenius",
-    "VFT",
-    "Litovitz",
-    "LitovitzExtended",
     "compare_models",
     "fit_groups",
-    "fit_hierarchical",
-    "get_hierarchical_model",
+    "fit_to_fairfluids_document",
+    "fit_to_fitted_models",
     "get_model",
-    "list_hierarchical_models",
     "list_models",
     "plots",
     "posterior_summary",

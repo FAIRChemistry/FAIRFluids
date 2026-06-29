@@ -1,0 +1,103 @@
+{
+  "models": [
+    {
+      "name": "density_exp_poly",
+      "property": "density",
+      "expr": "rho0*exp(-(A1*T + A2*T**2/2))",
+      "features": ["T"],
+      "log_observation": true,
+      "p0": {"rho0": 1000.0, "A1": 0.0007, "A2": 0.000001},
+      "param_units": {"rho0": "kg/m^3", "A1": "1/K", "A2": "1/K^2"},
+      "derived": {"alpha_p": "A2*T + A1"},
+      "derived_units": {"alpha_p": "1/K"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 3},
+        "nuts": {"target_accept_prob_min": 0.9, "init_strategy": "init_to_median"}
+      },
+      "description": "Exponential-polynomial liquid density (no reference temperature): ln(rho) = ln(rho0) - A1*T - 0.5*A2*T^2. rho0, A1, A2 are free parameters; only observations are ln-transformed. Isobaric thermal expansivity alpha_p(T) = A2*T + A1."
+    },
+    {
+      "name": "density_exp_poly_t0",
+      "property": "density",
+      "expr": "rho0*exp(-(A1*(T - T0) + A2*(T**2 - T0**2)/2))",
+      "features": ["T"],
+      "constants": {"T0": 313.15},
+      "log_observation": true,
+      "p0": {"rho0": 1000.0, "A1": 0.0007, "A2": 0.000001},
+      "param_units": {"rho0": "kg/m^3", "A1": "1/K", "A2": "1/K^2"},
+      "derived": {"alpha_p": "A2*T + A1"},
+      "derived_units": {"alpha_p": "1/K"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 3},
+        "nuts": {"target_accept_prob_min": 0.9, "init_strategy": "init_to_median"}
+      },
+      "description": "Exponential-polynomial liquid density with fixed reference temperature T0=313.15 K: ln(rho) = ln(rho0) - A1*(T-T0) - 0.5*A2*(T^2-T0^2). rho0 is the density at T0."
+    },
+    {
+      "name": "density_exp_poly_t0_mean_centered",
+      "property": "density",
+      "expr": "rho0*exp(-(A1*(T - T0) + A2*(T**2 - T0**2)/2))",
+      "features": ["T"],
+      "constants": {
+        "T0": {"kind": "mean", "feature": "T"},
+        "rho0": {"kind": "interp", "feature": "T"}
+      },
+      "log_observation": true,
+      "p0": {"A1": 0.0007, "A2": 0.000001},
+      "param_units": {"A1": "1/K", "A2": "1/K^2"},
+      "derived": {"alpha_p": "A2*T + A1"},
+      "derived_units": {"alpha_p": "1/K"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 2},
+        "nuts": {"target_accept_prob_min": 0.9, "init_strategy": "init_to_median"}
+      },
+      "description": "Exponential-polynomial liquid density anchored at the group's mean temperature: T0 = mean(T), rho0 = rho(T0) by linear interpolation (fixed, not fitted). Only A1, A2 are inferred."
+    },
+    {
+      "name": "density_exp_poly_t0_anchored",
+      "property": "density",
+      "expr": "rho0*exp(-(A1*(T - T0) + A2*(T**2 - T0**2)/2))",
+      "features": ["T"],
+      "constants": {
+        "T0": {"kind": "mean", "feature": "T"},
+        "rho0": {"kind": "interp", "feature": "T"}
+      },
+      "log_observation": true,
+      "p0": {"A1": 0.0007, "A2": 0.000001},
+      "param_units": {"A1": "1/K", "A2": "1/K^2"},
+      "derived": {"alpha_p": "A2*T + A1"},
+      "derived_units": {"alpha_p": "1/K"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 2},
+        "nuts": {"target_accept_prob_min": 0.9, "init_strategy": "init_to_median"},
+        "anchor": "To anchor the fit at a specific T0 (rather than the group mean), redefine this model with constants={'T0': <value>, 'rho0': {'kind': 'interp', 'feature': 'T', 'anchor': <value>}}."
+      },
+      "description": "Exponential-polynomial liquid density anchored at a chosen reference temperature. By default T0 = mean(T) and rho0 = rho(T0) (interpolated, fixed); only A1, A2 are inferred. Sweeping the anchor exposes how sensitive A1/A2 are to which point the curve is pinned through."
+    },
+    {
+      "name": "density_exp_poly_degC_anchored",
+      "property": "density",
+      "expr": "rho0*exp(-A2*(T**2 - T0**2)/2 + (A1 - A2*273.15)*(T - T0))",
+      "features": ["T"],
+      "constants": {
+        "T0": {"kind": "mean", "feature": "T"},
+        "rho0": {"kind": "interp", "feature": "T"}
+      },
+      "log_observation": true,
+      "p0": {"A1": 0.0007, "A2": 0.000001},
+      "param_units": {"A1": "1/degC", "A2": "1/degC^2"},
+      "derived": {"alpha_p": "A1 + A2*(T - 273.15)"},
+      "derived_units": {"alpha_p": "1/degC"},
+      "metadata": {
+        "feature_aliases": {"T": "temperature"},
+        "regression": {"kind": "nonlinear", "n_fitted": 2},
+        "nuts": {"target_accept_prob_min": 0.9, "init_strategy": "init_to_median"}
+      },
+      "description": "Degree-Celsius-referenced exponential-polynomial density anchored at a chosen T0: ln(rho) = ln(rho0) - 0.5*A2*(T^2-T0^2) + (A1 - A2*273.15)*(T-T0). rho0 fixed (interpolated); only A1, A2 inferred."
+    }
+  ]
+}

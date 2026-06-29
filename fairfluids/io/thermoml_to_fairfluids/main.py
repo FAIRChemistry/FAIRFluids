@@ -24,15 +24,19 @@ def main() -> None:
 
     if len(sys.argv) < 2:
         print(
-            "Usage: python -m fairfluids.io.thermoml_to_fairfluids.main <thermoml.xml> [output.json] [--fetch-from-pubchem]"
+            "Usage: python -m fairfluids.io.thermoml_to_fairfluids.main "
+            "<thermoml.xml> [output.json] [--no-fetch-from-pubchem]"
         )
         sys.exit(1)
 
-    fetch_from_pubchem = "--fetch-from-pubchem" in sys.argv[1:]
-    positional = [arg for arg in sys.argv[1:] if arg != "--fetch-from-pubchem"]
+    fetch_from_pubchem = "--no-fetch-from-pubchem" not in sys.argv[1:]
+    positional = [
+        arg for arg in sys.argv[1:] if arg not in {"--fetch-from-pubchem", "--no-fetch-from-pubchem"}
+    ]
     if not positional:
         print(
-            "Usage: python -m fairfluids.io.thermoml_to_fairfluids.main <thermoml.xml> [output.json] [--fetch-from-pubchem]"
+            "Usage: python -m fairfluids.io.thermoml_to_fairfluids.main "
+            "<thermoml.xml> [output.json] [--no-fetch-from-pubchem]"
         )
         sys.exit(1)
 

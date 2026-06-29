@@ -135,6 +135,9 @@ Description: Contains metadata and experimental context for a dataset related to
 - sample
   - Type: Sample
   - Description: Sample
+- fitted_model
+  - Type: FittedModel[]
+  - Description: Models fitted to subsets of this fluid's measurements (e.g. Arrhenius/VFT regression or Bayesian posteriors). Each entry stores the derived parameters together with their uncertainties expressed according to the GUM (Guide to the Expression of Uncertainty in Measurement).
 
 
 
@@ -245,6 +248,95 @@ Description: Represents a numerical value for a parameter that was varied or con
 - uncertainty
   - Type: float
   - Description: The estimated uncertainty or error margin associated with the parameter value.
+
+### FittedModel
+
+Description: A parametric model fitted to a group of measurements within the fluid (typically one composition, source, and temperature range). It groups the jointly estimated parameters and their covariance so they can be reported and propagated together. The same structure is used for least-squares regression and for Bayesian inference; the difference is recorded in the method field.
+- modelID
+  - Type: Identifier
+  - Description: A unique identifier for this fitted model within the dataset.
+- model_name
+  - Type: string
+  - Description: Short machine-readable name of the model, e.g. 'arrhenius', 'extended_arrhenius' or 'vft'.
+- model_equation
+  - Type: string
+  - Description: Human-readable form of the fitted equation, e.g. 'ln(eta) = ln(As) + Ea / (R*T)'. Documents what the parameters mean.
+- method
+  - Type: FitMethod
+  - Description: How the parameters were obtained (e.g. ordinary least squares regression or Bayesian Markov chain Monte Carlo).
+- method_description
+  - Type: string
+  - Description: Free-text provenance about the fit, such as software name and version, prior distributions, sampler settings, weighting, or any non-default options.
+- fitted_property
+  - Type: Properties
+  - Description: The physical property that the model describes (e.g. viscosity), linking the fit to the standardized property vocabulary.
+- parameter
+  - Type: FittedParameter[]
+  - Description: The derived parameters of the model, each with its value, unit and GUM-style uncertainty.
+- covariance
+  - Type: float[][]
+  - Description: Optional parameter covariance matrix. Row and column order follow the order of the parameter list. Required to correctly propagate correlated parameters into predicted quantities.
+- r_squared
+  - Type: float
+  - Description: Optional coefficient of determination of the fit, as a quick goodness-of-fit indicator.
+- n_points
+  - Type: integer
+  - Description: Optional number of measurement points used in the fit.
+- temperature_lower
+  - Type: float
+  - Description: Optional lower bound of the temperature range over which the fit is valid, in Kelvin.
+- temperature_upper
+  - Type: float
+  - Description: Optional upper bound of the temperature range over which the fit is valid, in Kelvin.
+- applied_parameters
+  - Type: ParameterValue[]
+  - Description: Optional fixed conditions this fit applies to, such as the mole fractions of the composition. Pins the fit to a specific subset of the fluid's data.
+- source_measurement_ids
+  - Type: string[]
+  - Description: Optional list of measurement identifiers that were used in the fit, for provenance and traceability.
+
+### FittedParameter
+
+Description: A single derived quantity with its uncertainty expressed according to the GUM. The same fields serve regression results (where the standard uncertainty is the regression standard error) and Bayesian results (where the standard uncertainty is the posterior standard deviation and the interval is a credible interval).
+- name
+  - Type: string
+  - Description: Name of the parameter, e.g. 'Ea', 'lnAs', 'B' or 'T0'.
+- value
+  - Type: float
+  - Description: Best estimate of the parameter. For regression this is the fitted coefficient; for Bayesian inference it is the posterior mean or median.
+- unit
+  - Type: UnitDefinition
+  - Description: The unit of the parameter value.
+- standard_uncertainty
+  - Type: float
+  - Description: The standard uncertainty u(x) of the parameter, i.e. the estimated standard deviation. For regression this is the standard error; for Bayesian inference it is the posterior standard deviation.
+- uncertainty_evaluation
+  - Type: UncertaintyEvaluation
+  - Description: How the standard uncertainty was evaluated, named explicitly so that no specialized background is required to interpret it.
+- coverage_factor
+  - Type: float
+  - Description: The factor k by which the standard uncertainty is multiplied to obtain the expanded uncertainty (e.g. k = 2).
+- expanded_uncertainty
+  - Type: float
+  - Description: The expanded uncertainty U = k * u, defining a symmetric coverage interval value +/- U.
+- coverage_probability
+  - Type: float
+  - Description: The probability that the coverage interval contains the value, e.g. 0.95.
+- degrees_of_freedom
+  - Type: float
+  - Description: Effective number of degrees of freedom behind the uncertainty (e.g. number of points minus number of fitted parameters), needed to interpret the coverage factor for small samples.
+- distribution
+  - Type: DistributionType
+  - Description: The distribution assumed or sampled for the parameter, which gives meaning to the coverage interval.
+- interval_low
+  - Type: float
+  - Description: Lower bound of the coverage interval (confidence interval for regression, credible interval for Bayesian inference).
+- interval_high
+  - Type: float
+  - Description: Upper bound of the coverage interval.
+- properties
+  - Type: Properties
+  - Description: Optional link to a standardized quantity when the parameter corresponds to one (e.g. activationEnergy), so that derived quantities remain discoverable through the property vocabulary.
 
 ### UnitDefinition
 - unitID
@@ -553,4 +645,35 @@ FRIDGE = Fridge
 OPEN = Open
 CLOSED = Closed
 DESSICATOR = Dessicator
+```
+
+### FitMethod
+
+Description: Identifies how a FittedModel's parameters were obtained. REGRESSION_OLS is ordinary (unweighted) least squares on a linearized model, REGRESSION_NLS is nonlinear least squares, BAYESIAN_MCMC is Bayesian inference via Markov chain Monte Carlo sampling, and LITERATURE means the parameters were taken from a published source rather than fitted here.
+```python
+REGRESSION_OLS = regressionOLS
+REGRESSION_NLS = regressionNLS
+BAYESIAN_MCMC = bayesianMCMC
+LITERATURE = literature
+```
+
+### UncertaintyEvaluation
+
+Description: Explicitly names how a standard uncertainty was evaluated, so it can be interpreted without prior knowledge of measurement-uncertainty conventions. STATISTICAL means it was derived from the scatter of the data (regression residuals or repeated observations). NON_STATISTICAL means it was derived from other information such as instrument specifications, prior distributions, or expert judgement. COMBINED means both contributions were combined. POSTERIOR means it was summarized from a Bayesian posterior sample.
+```python
+STATISTICAL = statistical
+NON_STATISTICAL = nonStatistical
+COMBINED = combined
+POSTERIOR = posterior
+```
+
+### DistributionType
+
+Description: The probability distribution assumed for, or sampled for, a fitted parameter. It gives meaning to the reported coverage interval. NORMAL is a Gaussian, STUDENT_T is a Student's t-distribution (relevant for small-sample regression), LOGNORMAL is used for strictly positive quantities, UNIFORM is a flat distribution, and POSTERIOR denotes an empirical distribution represented by posterior samples.
+```python
+NORMAL = normal
+STUDENT_T = studentT
+LOGNORMAL = lognormal
+UNIFORM = uniform
+POSTERIOR = posterior
 ```

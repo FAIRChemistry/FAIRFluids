@@ -220,6 +220,25 @@ UNIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
             {"kind": "temperature", "exponent": -1},
         ],
     },
+    # Electrical conductivity (S/m = A^2 s^3 kg^-1 m^-3)
+    "S/m": {
+        "name": "siemens per meter",
+        "base_units": [
+            {"kind": "current", "exponent": 2},
+            {"kind": "time", "exponent": 3},
+            {"kind": "mass", "exponent": -1},
+            {"kind": "length", "exponent": -3},
+        ],
+    },
+    "mS/cm": {
+        "name": "millisiemens per centimeter",
+        "base_units": [
+            {"kind": "current", "exponent": 2, "scale": -3.0},
+            {"kind": "time", "exponent": 3},
+            {"kind": "mass", "exponent": -1},
+            {"kind": "length", "exponent": -3, "scale": 2.0},
+        ],
+    },
     # Thermal conductivity
     "W/(m*K)": {
         "name": "watt per meter per kelvin",

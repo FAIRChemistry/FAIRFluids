@@ -32,11 +32,8 @@ from .core.lib import (
     LitType,
 )
 
-from .io import FluidIO, FAIRFluidsCMLParser
-from .core.functionalities import (
-    filter_fluid_compounds_by_mole_fractions,
-    calculate_activationEnergy,
-)
+from .io import FluidIO, FAIRFluidsCMLParser, from_cml, from_csv, from_thermoml
+from .core.functionalities import filter_fluid_compounds_by_mole_fractions
 from .operations import (
     combine_compounds,
     calculate_ratio_of_solvent,
@@ -77,12 +74,14 @@ __all__ = [
     "LitType",
     "FluidIO",
     "FAIRFluidsCMLParser",
+    "from_cml",
+    "from_csv",
+    "from_thermoml",
     "filter_fluid_measurements",
     "filter_fluid_compounds_by_mole_fractions",
     "combine_compounds",
     "calculate_ratio_of_solvent",
     "cleanup_orphaned_parameters",
-    "calculate_activationEnergy",
     "save_plot_as_svg",
     "reset_plot_counter",
 ]

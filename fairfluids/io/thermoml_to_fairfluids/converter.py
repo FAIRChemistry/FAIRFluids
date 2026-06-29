@@ -15,12 +15,12 @@ from .fairfluids_builder import build_fairfluids
 from .parser import parse
 
 
-def convert(xml_file: str | Path, fetch_from_pubchem: bool = False) -> Dict[str, Any]:
+def convert(xml_file: str | Path, fetch_from_pubchem: bool = True) -> Dict[str, Any]:
     """Convert a ThermoML XML file into a FAIRFluids JSON dict.
 
     Args:
         xml_file: Path to the ThermoML XML file.
-        fetch_from_pubchem: If True, enrich compounds with PubChem metadata.
+        fetch_from_pubchem: If True (default), enrich compounds with PubChem metadata.
 
     Returns:
         A dict conforming to the ``FAIRFluidsDocument`` schema.

@@ -25,15 +25,17 @@ Usage:
 
 import csv
 import json
-import uuid
 import requests
 import time
-import random
+import warnings
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 from collections import defaultdict, Counter
 from urllib.parse import quote
 from fairfluids.io.pubchem import fetch_compound_from_pubchem
+from fairfluids.io.thermoml_to_fairfluids.fairfluids_builder import _clean_doi
+from fairfluids.io.thermoml_to_fairfluids.id_registry import IDRegistry
+from fairfluids.io.thermoml_to_fairfluids.mappers.unit_mapper import UnitMapper
 from fairfluids.core.lib import (
     Fluid,
     Property,
@@ -44,10 +46,10 @@ from fairfluids.core.lib import (
     ParameterValue,
     Method,
     FAIRFluidsDocument,
+    FittedModel,
     Properties,
     Parameters,
     UnitDefinition,
-    BaseUnit,
     Version,
 )
 
@@ -111,6 +113,17 @@ class FluidIO(Fluid):
         Returns:
             List of FAIRFluidsDocument objects (one per compound combination)
         """
+        # The workflow is expected to predefine the citation block before
+        # feeding data; warn (do not raise) if it is missing.
+        if document is None or document.citation is None:
+            warnings.warn(
+                "No citation defined. Pass a `document` whose `citation` block is "
+                "predefined before converting so the FAIRFluids document is fully "
+                "attributed.",
+                UserWarning,
+                stacklevel=2,
+            )
+
         # Read CSV/XLSX rows
         units = self._normalize_global_unit_map(units)
         uncertainty_units = self._normalize_global_unit_map(uncertainty_units)
@@ -196,62 +209,39 @@ class FluidIO(Fluid):
                 if document.citation:
                     doc.citation = document.citation
 
-            # Add compounds to document
-            # Also map compound names to compound IDs for use in fluids
+            # One ID registry per document so every generated object receives a
+            # canonical ``<type>_<n>`` counter ID, restarting per document.
+            registry = IDRegistry()
+
+            # Add compounds to document, assigning counter compound IDs. Compound
+            # ordering (index) maps onto the CSV composition components.
             compound_name_to_id = {}
             if fetch_from_pubchem:
                 for compound_name in compounds_list:
+                    compound_id = registry.new_id("compound")
+                    compound_name_to_id[compound_name] = compound_id
                     if compound_name in compound_data_cache:
                         compound_data = compound_data_cache[compound_name].copy()
-                        # Use commonName from PubChem as compoundID, formatted nicely
-                        # If commonName is not available, use a cleaned version of the original name
-                        if compound_data.get("commonName"):
-                            # Use commonName as compoundID (title case for readability)
-                            compound_id = compound_data["commonName"].title()
-                            compound_data["compoundID"] = compound_id
-                        else:
-                            # Fallback to original name, cleaned up
-                            compound_id = compound_name.strip().title()
-                            compound_data["compoundID"] = compound_id
-                        compound_name_to_id[compound_name] = compound_id
+                        compound_data["compoundID"] = compound_id
                         doc.add_to_compound(**compound_data)
                         print(
-                            f"  Added compound: {compound_name} -> {compound_id} (CID: {compound_data.get('pubChemID', 'N/A')})"
+                            f"  Added compound: {compound_name} -> {compound_id} "
+                            f"(CID: {compound_data.get('pubChemID', 'N/A')})"
                         )
                     else:
-                        # If not in cache, use the name as-is (title case)
-                        compound_id = compound_name.strip().title()
-                        compound_name_to_id[compound_name] = compound_id
-                        # Add basic compound entry with random pubChemID
+                        # Not found on PubChem: record the name, leave metadata empty
+                        # (do not fabricate identifiers).
                         doc.add_to_compound(
                             compoundID=compound_id,
-                            pubChemID=random.randint(999999999999, 9999999999999),
-                            commonName=compound_id,
-                            SELFIE=None,
-                            name_IUPAC=None,
-                            standard_InChI=None,
-                            standard_InChI_key=None,
-                            molar_weigth=None,
-                            smiles_code=None,
-                            sigma_profile=None,
+                            commonName=compound_name.strip(),
                         )
             else:
-                # If not fetching from PubChem, use compound names as IDs (title case)
                 for compound_name in compounds_list:
-                    compound_id = compound_name.strip().title()
+                    compound_id = registry.new_id("compound")
                     compound_name_to_id[compound_name] = compound_id
-                    # Add basic compound entry with random pubChemID
                     doc.add_to_compound(
                         compoundID=compound_id,
-                        pubChemID=random.randint(999999999999, 9999999999999),
-                        commonName=compound_id,
-                        SELFIE=None,
-                        name_IUPAC=None,
-                        standard_InChI=None,
-                        standard_InChI_key=None,
-                        molar_weigth=None,
-                        smiles_code=None,
-                        sigma_profile=None,
+                        commonName=compound_name.strip(),
                     )
 
             # Group rows by composition: (molar fractions + storage)
@@ -261,6 +251,7 @@ class FluidIO(Fluid):
             skip_no_property = 0
             skip_missing_mole_fraction = 0
             skip_invalid_mole_fraction_sum = 0
+            invalid_mole_fraction_compositions: Counter[Tuple[float, ...]] = Counter()
 
             for row in rows:
                 if not self._has_required_row_parameters(row, units):
@@ -279,6 +270,7 @@ class FluidIO(Fluid):
                     continue
                 if not self._is_valid_mole_fraction_sum(molar_fractions):
                     skip_invalid_mole_fraction_sum += 1
+                    invalid_mole_fraction_compositions[tuple(molar_fractions)] += 1
                     continue
 
                 # Extract storage condition for grouping
@@ -290,6 +282,23 @@ class FluidIO(Fluid):
                 # property_name is NOT part of the key - multiple properties can be in same fluid
                 composition_key = (tuple(molar_fractions), storage_key)
                 composition_groups[composition_key].append(row)
+
+            if skip_invalid_mole_fraction_sum > 0:
+                composition_details = "; ".join(
+                    f"{list(fracs)} (sum={sum(fracs):.6g}, {count} row(s))"
+                    for fracs, count in sorted(
+                        invalid_mole_fraction_compositions.items(),
+                        key=lambda item: (-item[1], item[0]),
+                    )
+                )
+                warnings.warn(
+                    f"Skipped {skip_invalid_mole_fraction_sum} row(s) for compound "
+                    f"combination {list(compounds_list)!r}: molar fractions must sum to "
+                    f"1 (tolerance 1e-8). No fluid is created for these compositions. "
+                    f"Invalid value(s): {composition_details}.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
             # Map compound names to IDs (always use the mapped IDs)
             fluid_compounds = [
@@ -310,6 +319,7 @@ class FluidIO(Fluid):
                         True,
                         units=units,
                         uncertainty_units=uncertainty_units,
+                        registry=registry,
                     )
                     if fluid:
                         doc.fluid.append(fluid)
@@ -435,7 +445,7 @@ class FluidIO(Fluid):
 
         # Add hints in first row to reduce formatting errors
         rows[0]["temperature_unit"] = "K"
-        rows[0]["pressure_unit"] = "Pa"
+        rows[0]["pressure_unit"] = "kPa"
         for property_name in normalized_properties:
             rows[0][f"{property_name}_unit"] = self._default_property_input_unit(
                 property_name
@@ -631,24 +641,29 @@ class FluidIO(Fluid):
         is_new_format: bool = False,
         units: Optional[Dict[str, str]] = None,
         uncertainty_units: Optional[Dict[str, str]] = None,
+        registry: Optional[IDRegistry] = None,
     ) -> Optional[Fluid]:
         """
         Create a Fluid object from rows. Multiple properties can be in the same fluid
         (as separate measurements).
 
         Args:
-            compounds_list: List of compound names
+            compounds_list: List of compound IDs (counter IDs, in component order).
             rows: List of CSV row dictionaries (can contain multiple property types)
             is_new_format: Kept for compatibility; structured format is assumed.
             units: Optional global input units (used if unit columns are missing).
             uncertainty_units: Optional global uncertainty units.
+            registry: Shared per-document ID registry for counter IDs.
 
         Returns:
             Fluid object or None if no valid data
         """
         if not rows:
             return None
+        if registry is None:
+            registry = IDRegistry()
 
+        # One shared Property definition per detected type (counter IDs + enums).
         property_objects: Dict[str, Property] = {}
         supported_properties = self._default_supported_property_aliases()
         for property_type in supported_properties:
@@ -659,80 +674,56 @@ class FluidIO(Fluid):
                 is not None
                 for row in rows
             ):
-                property_obj = Property(
-                    propertyID=property_type,
+                property_objects[property_type] = Property(
+                    propertyID=registry.new_id("property"),
                     properties=self._map_property_type(property_type),
+                    unit=self._make_property_unit(property_type, registry),
                 )
-                property_obj.unit = self._make_property_unit(property_type)
-                property_objects[property_type] = property_obj
 
         if not property_objects:
             return None
 
-        # Create required parameter definitions: temperature + pressure + mole fractions
-        all_parameters = [
-            Parameter(
-                parameterID="parameter_temperature",
-                parameters=Parameters.TEMPERATURE,
-                unit=self._make_unit("K"),
-                associated_compounds=[],
-            ),
-        ]
+        # Required parameter definitions: temperature (+ optional pressure) + mole fractions.
+        temperature_param = Parameter(
+            parameterID=registry.new_id("parameter"),
+            parameters=Parameters.TEMPERATURE,
+            unit=self._make_unit("K", registry),
+            associated_compounds=[],
+        )
+        all_parameters: List[Parameter] = [temperature_param]
 
+        pressure_param: Optional[Parameter] = None
         has_any_pressure = any(
-            self._extract_pressure_pascal(row, units) is not None for row in rows
+            self._extract_pressure_kpa(row, units) is not None for row in rows
         )
         if has_any_pressure:
-            all_parameters.append(
-                Parameter(
-                    parameterID="parameter_pressure",
-                    parameters=Parameters.PRESSURE,
-                    unit=self._make_unit("Pa"),
-                    associated_compounds=[],
-                )
+            pressure_param = Parameter(
+                parameterID=registry.new_id("parameter"),
+                parameters=Parameters.PRESSURE,
+                unit=self._make_unit("kPa", registry),
+                associated_compounds=[],
             )
+            all_parameters.append(pressure_param)
 
-        # Mole fraction parameters (one per compound)
-        mole_fraction_params = []
-        for i, compound_name in enumerate(compounds_list):
-            # Clean compound name for parameter ID
-            clean_name = (
-                compound_name.lower()
-                .replace(" ", "")
-                .replace("-", "")
-                .replace("_", "")
-                .replace(",", "")
-                .replace(";", "")
-            )
-            param_id = f"parameter_mole_fraction_{clean_name}"
-
-            # Use actual compound ID (from compounds_list, which already has the correct IDs)
-            compound_id = (
-                compound_name  # This is already the compound ID from fluid_compounds
-            )
-
-            mole_fraction_param = Parameter(
-                parameterID=param_id,
+        # Mole fraction parameters (one per compound), keyed by component index.
+        mole_fraction_params: Dict[int, Parameter] = {}
+        for i, compound_id in enumerate(compounds_list):
+            param = Parameter(
+                parameterID=registry.new_id("parameter"),
                 parameters=Parameters.MOLE_FRACTION,
-                unit=self._make_unit("1"),
+                unit=self._dimensionless(),
                 associated_compounds=[compound_id],
             )
-            mole_fraction_params.append(mole_fraction_param)
+            mole_fraction_params[i] = param
+            all_parameters.append(param)
 
-        # Combine all parameters
-        all_parameters.extend(mole_fraction_params)
-
-        # Generate UUID for fluidID
-        fluid_uuid = str(uuid.uuid4())
-
-        # Create fluid with UUID as fluidID and all properties
         fluid = Fluid(
-            fluidID=[fluid_uuid],
+            fluidID=[registry.new_id("fluid")],
             compounds=compounds_list,
-            property=list(property_objects.values()),  # All properties in this fluid
+            property=list(property_objects.values()),
             parameter=all_parameters,
             sample=Sample(
-                sample_id=f"sample_{uuid.uuid4()}",
+                sample_id=registry.new_id("sample"),
                 associated_compounds=compounds_list,
                 measurement=[],
             ),
@@ -740,7 +731,7 @@ class FluidIO(Fluid):
 
         for row in rows:
             temperature_value = self._extract_temperature_kelvin(row, units)
-            pressure_value = self._extract_pressure_pascal(row, units)
+            pressure_value = self._extract_pressure_kpa(row, units)
             mole_fractions = self._extract_molar_fractions(row, len(compounds_list))
 
             if (
@@ -751,7 +742,7 @@ class FluidIO(Fluid):
                 continue
 
             property_values: List[PropertyValue] = []
-            for property_type in supported_properties:
+            for property_type, property_obj in property_objects.items():
                 prop_payload = self._extract_property_si(
                     row,
                     property_type,
@@ -762,8 +753,8 @@ class FluidIO(Fluid):
                     continue
                 property_values.append(
                     PropertyValue(
-                        properties=self._map_property_type(property_type),
-                        propertyID=property_type,
+                        properties=property_obj.properties,
+                        propertyID=property_obj.propertyID,
                         propValue=prop_payload["value"],
                         uncertainty=prop_payload["uncertainty"],
                     )
@@ -774,35 +765,28 @@ class FluidIO(Fluid):
 
             parameter_values = [
                 ParameterValue(
-                    parameters=Parameters.TEMPERATURE,
-                    parameterID="parameter_temperature",
+                    parameters=temperature_param.parameters,
+                    parameterID=temperature_param.parameterID,
                     paramValue=temperature_value,
                     uncertainty=None,
                 ),
             ]
-            if pressure_value is not None:
+            if pressure_value is not None and pressure_param is not None:
                 parameter_values.append(
                     ParameterValue(
-                        parameters=Parameters.PRESSURE,
-                        parameterID="parameter_pressure",
+                        parameters=pressure_param.parameters,
+                        parameterID=pressure_param.parameterID,
                         paramValue=pressure_value,
                         uncertainty=None,
                     )
                 )
 
-            for i, compound_name in enumerate(compounds_list):
-                clean_name = (
-                    compound_name.lower()
-                    .replace(" ", "")
-                    .replace("-", "")
-                    .replace("_", "")
-                    .replace(",", "")
-                    .replace(";", "")
-                )
+            for i in range(len(compounds_list)):
+                param = mole_fraction_params[i]
                 parameter_values.append(
                     ParameterValue(
-                        parameters=Parameters.MOLE_FRACTION,
-                        parameterID=f"parameter_mole_fraction_{clean_name}",
+                        parameters=param.parameters,
+                        parameterID=param.parameterID,
                         paramValue=mole_fractions[i],
                         uncertainty=None,
                     )
@@ -812,8 +796,7 @@ class FluidIO(Fluid):
                 row.get("source_doi", "").strip()
                 or row.get("Reference (DOI)", "").strip()
             )
-            if doi.lower() in ["", "nan", "none"]:
-                doi = None
+            doi = _clean_doi(doi) or None
 
             comment = row.get("Comment", "").strip()
             method_description = "Experimental measurement"
@@ -821,7 +804,7 @@ class FluidIO(Fluid):
                 method_description += f" (Comment: {comment})"
 
             measurement = Measurement(
-                measurement_id=f"meas_{uuid.uuid4()}",
+                measurement_id=registry.new_id("measurement"),
                 source_doi=doi,
                 propertyValue=property_values,
                 parameterValue=parameter_values,
@@ -880,14 +863,23 @@ class FluidIO(Fluid):
         }
         return defaults.get(property_name, "")
 
-    def _make_property_unit(self, property_type: str) -> UnitDefinition:
-        unit_map = {
-            "viscosity": ("Pa*s", "pascal second"),
-            "density": ("kg/m3", "kilogram per cubic meter"),
-            "conductivity": ("S/m", "siemens per meter"),
+    def _make_property_unit(
+        self, property_type: str, registry: IDRegistry
+    ) -> UnitDefinition:
+        """Build a fully-specified canonical-SI unit for a property type."""
+        unit_str_map = {
+            "viscosity": "Pa*s",
+            "density": "kg/m3",
+            "conductivity": "S/m",
         }
-        unit_id, unit_name = unit_map[property_type]
-        return UnitDefinition(unitID=unit_id, name=unit_name, base_units=[])
+        unit_str = unit_str_map[property_type]
+        return UnitMapper.from_unit_string(
+            unit_str, unit_id=registry.new_id("unit")
+        )
+
+    def _dimensionless(self) -> UnitDefinition:
+        """Return the single canonical dimensionless unit."""
+        return UnitMapper.dimensionless()
 
     def _parse_float(self, raw_value: Any) -> Optional[float]:
         if raw_value is None:
@@ -969,12 +961,12 @@ class FluidIO(Fluid):
             return value + 273.15
         return None
 
-    def _convert_pressure_to_pascal(self, value: float, unit: str) -> Optional[float]:
+    def _convert_pressure_to_kpa(self, value: float, unit: str) -> Optional[float]:
         factors = {
-            "pa": 1.0,
-            "kpa": 1e3,
-            "mpa": 1e6,
-            "bar": 1e5,
+            "pa": 1e-3,
+            "kpa": 1.0,
+            "mpa": 1e3,
+            "bar": 1e2,
         }
         factor = factors.get(unit)
         return None if factor is None else value * factor
@@ -1041,7 +1033,7 @@ class FluidIO(Fluid):
             return None
         return self._convert_temperature_to_kelvin(value, unit)
 
-    def _extract_pressure_pascal(
+    def _extract_pressure_kpa(
         self, row: Dict[str, str], units: Optional[Dict[str, str]] = None
     ) -> Optional[float]:
         value = self._parse_float(row.get("pressure_value"))
@@ -1050,7 +1042,7 @@ class FluidIO(Fluid):
             unit = self._normalize_unit(units.get("pressure"))
         if value is None or not unit:
             return None
-        return self._convert_pressure_to_pascal(value, unit)
+        return self._convert_pressure_to_kpa(value, unit)
 
     def _extract_property_si(
         self,
@@ -1209,74 +1201,53 @@ class FluidIO(Fluid):
             f"Unsupported parameter '{parameter_name}'. Provide a Parameters enum name/value."
         )
 
-    def _make_unit(self, unit_str: str) -> UnitDefinition:
-        """Create a UnitDefinition from a unit string for parameters.
-        Parameters use units with base_units that have kind=null, exponent=null."""
-        # Map common unit strings to unit definitions matching example structure
-        unit_map = {
-            "K": UnitDefinition(
-                unitID="K",
-                name="kelvin",
-                base_units=[
-                    BaseUnit(
-                        kind=None,
-                        exponent=None,
-                        multiplier=1.0,
-                        scale=0.0,
-                    )
-                ],
-            ),
-            "1": UnitDefinition(
-                unitID="1",
-                name="dimensionless",
-                base_units=[
-                    BaseUnit(
-                        kind=None,
-                        exponent=None,
-                        multiplier=1.0,
-                        scale=0.0,
-                    )
-                ],
-            ),
-            "days": UnitDefinition(
-                unitID="days",
-                name="days",
-                base_units=[
-                    BaseUnit(
-                        kind=None,
-                        exponent=None,
-                        multiplier=1.0,
-                        scale=0.0,
-                    )
-                ],
-            ),
-            "Pa": UnitDefinition(
-                unitID="Pa",
-                name="pascal",
-                base_units=[
-                    BaseUnit(
-                        kind=None,
-                        exponent=None,
-                        multiplier=1.0,
-                        scale=0.0,
-                    )
-                ],
-            ),
-        }
-
-        if unit_str in unit_map:
-            return unit_map[unit_str]
-
-        # Default unit definition for parameters
-        return UnitDefinition(
-            unitID=unit_str,
-            name=unit_str,
-            base_units=[
-                BaseUnit(
-                    kind=None,
-                    exponent=None,
-                    multiplier=1.0,
-                    scale=0.0,
-                )
-            ],
+    def _make_unit(self, unit_str: str, registry: IDRegistry) -> UnitDefinition:
+        """Build a fully-specified canonical-SI unit for a parameter."""
+        return UnitMapper.from_unit_string(
+            unit_str, unit_id=registry.new_id("unit")
         )
+
+
+# ``FluidIO`` subclasses ``Fluid``, whose ``fitted_model`` field forward-references
+# ``FittedModel``. Rebuild the model here so the reference resolves in this module's
+# namespace (``FittedModel`` is imported above) rather than failing lazily on first
+# instantiation.
+FluidIO.model_rebuild()
+
+
+def from_csv(
+    csv_path: str,
+    *,
+    document: Optional[FAIRFluidsDocument] = None,
+    units: Optional[Dict[str, str]] = None,
+    uncertainty_units: Optional[Dict[str, str]] = None,
+    fetch_from_pubchem: bool = False,
+    output_dir: Optional[str] = None,
+) -> List[FAIRFluidsDocument]:
+    """Convert a structured CSV/XLSX file into FAIRFluids documents.
+
+    One document is produced per unique compound combination found in the file.
+    The workflow should predefine ``document.citation`` (and, ideally, the
+    compound block) before converting; a :class:`UserWarning` is emitted if the
+    citation is missing.
+
+    Args:
+        csv_path: Path to the CSV or XLSX file.
+        document: Optional template document supplying metadata (citation/version).
+        units: Optional input units per quantity (e.g. ``{"pressure": "bar"}``);
+            values are converted to canonical SI before storing.
+        uncertainty_units: Optional input units for the uncertainty columns.
+        fetch_from_pubchem: If True, enrich compounds with PubChem metadata.
+        output_dir: Optional directory to additionally write JSON files into.
+
+    Returns:
+        A list of :class:`FAIRFluidsDocument` objects.
+    """
+    return FluidIO().data_from_spreadsheet(
+        spreadsheet_path=csv_path,
+        document=document,
+        output_dir=output_dir,
+        fetch_from_pubchem=fetch_from_pubchem,
+        units=units,
+        uncertainty_units=uncertainty_units,
+    )
