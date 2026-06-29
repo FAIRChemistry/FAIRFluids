@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# marimo notebook autosave/cache
+__marimo__/
+
 # C extensions
 *.so
 
@@ -196,3 +199,7 @@ time
 # Neo4j outputs
 neo4j/*.png
 neo4j/*.csv
+
+# Local scratch / experiment areas (notebooks, ad-hoc scripts, data dumps)
+transition_water/
+Workflows/
