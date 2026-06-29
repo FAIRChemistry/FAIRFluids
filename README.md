@@ -13,7 +13,7 @@ FAIRFluids standardizes how experimental and literature fluid data are represent
 - **Analysis and visualization** helpers (Arrhenius/VFT fits, plots, DataFrames)
 - Optional **Bayesian inference** workflows (NumPyro / JAX / ArviZ)
 
-**Requirements:** Python ≥ 3.10 (reference environment: **3.13** via `environment.yml`).
+**Requirements:** Python ≥ 3.12 (reference environment: **3.13** via `environment.yml`). The `bayesian` / `all` extras require Python ≥ 3.12 because of the ArviZ stack.
 
 ## Features
 
@@ -37,21 +37,22 @@ FAIRFluids/
 │   ├── analysis/               # Fits, activation energy, Bayesian hooks
 │   ├── inspection/             # Document inspection, CST export
 │   └── data/                   # Example CSV, CML, ThermoML files
-├── Workflows/                  # Jupyter notebooks (CSV → FF, CML, ThermoML, Bayesian, …)
 ├── docs/                       # Migration guide, API inventory, model layers
 ├── specifications/             # Model and ThermoML specifications
 ├── neo4j/                      # Neo4j import and query scripts
 ├── thin_layer/                 # Lightweight views / Arrhenius helpers
 ├── test/                       # Pytest suite
-├── environment.yml             # Conda environment (Python 3.13)
-├── requirements.txt            # Pip dependencies
-├── requirements-conda.txt      # Extra pip packages after conda create
+├── environment.yml             # Conda environment (Python 3.13, self-contained)
+├── requirements.txt            # Core pip deps (see pyproject.toml extras)
+├── requirements-conda.txt        # Pip-only add-ons for custom minimal conda envs
 └── pyproject.toml              # Package metadata and optional extras
 ```
 
 See [docs/MIGRATION.md](docs/MIGRATION.md) if you are updating code from an older package layout.
 
 ## Installation
+
+`pyproject.toml` is the single source of truth for dependencies and optional extras.
 
 ### Conda (recommended)
 
@@ -63,7 +64,7 @@ conda env create -f environment.yml
 conda activate fairfluids
 ```
 
-The environment includes core scientific packages, Jupyter support, Neo4j client, and the Bayesian stack (NumPyro, JAX, ArviZ).
+`environment.yml` is self-contained: core packages, notebooks, Neo4j, Bayesian stack, test tools, and an editable install of FAIRFluids.
 
 ### pip
 
@@ -74,8 +75,29 @@ cd FAIRFluids
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
-pip install -r requirements.txt
+pip install -e ".[all]"
+```
+
+For a minimal install (library + CLI only):
+
+```bash
 pip install -e .
+```
+
+### uv
+
+```bash
+git clone https://github.com/FAIRChemistry/FAIRFluids.git
+cd FAIRFluids
+
+uv sync --extra all
+```
+
+Run commands without activating the virtual environment:
+
+```bash
+uv run fairfluids --help
+uv run pytest test/
 ```
 
 ### Optional dependency groups
@@ -88,16 +110,20 @@ Install only what you need via [optional dependencies](pyproject.toml):
 | `neo4j` | Neo4j Python driver |
 | `workflows` | Notebooks (ipykernel, openpyxl, plotly, flask, pint, …) |
 | `bayesian` | NumPyro, JAX, ArviZ (+ arviz-plots) |
-| `dev` / `test` | pytest, pytest-asyncio |
+| `dev` / `test` | pytest, pytest-asyncio, pytest-cov |
 | `all` | All of the above |
 
 ```bash
 pip install -e ".[viz]"
 pip install -e ".[bayesian]"
 pip install -e ".[all]"
+
+uv sync --extra workflows --extra bayesian
 ```
 
-After a minimal conda create, you can add pip-only packages with:
+`requirements.txt` lists core runtime dependencies only. Prefer the extras above instead of maintaining a separate full requirements file.
+
+For a **custom minimal conda env** (without the pip section in `environment.yml`), use:
 
 ```bash
 pip install -r requirements-conda.txt
@@ -194,20 +220,23 @@ fairfluids --help
 
 ## Workflows
 
-Example Jupyter notebooks live in [`Workflows/`](Workflows/):
+Interactive Jupyter notebooks are kept in a local `Workflows/` directory that is
+**not tracked in the repository** (it is gitignored as a personal scratch/experiment
+area). Typical examples you can build there:
 
 | Notebook | Description |
 |----------|-------------|
-| `0_Basic_FF_Creation.ipynb` | Create and populate a FAIRFluids document |
-| `1_CSV_to_FAIRFluids_Example.ipynb` | Import tabular data via `FluidIO` |
-| `2_CML_to_FF.ipynb` | Parse CML and visualize viscosity data |
-| `3_ThermoML_to_FF.ipynb` | Convert ThermoML files to FAIRFluids JSON |
-| `4_query_and_visualize.ipynb` | Query and plot document collections |
-| `BaysianInference.ipynb` | Bayesian Arrhenius / VFT fitting (requires `[bayesian]`) |
+| Basic creation | Create and populate a FAIRFluids document |
+| CSV → FAIRFluids | Import tabular data via `FluidIO` |
+| CML → FF | Parse CML and visualize viscosity data |
+| ThermoML → FF | Convert ThermoML files to FAIRFluids JSON |
+| Query & visualize | Query and plot document collections |
+| Bayesian inference | Bayesian Arrhenius / VFT fitting (requires `[bayesian]`) |
 
-Start Jupyter after installing `[workflows]` or using `environment.yml`:
+Install the notebook stack and start Jupyter after creating your own `Workflows/`:
 
 ```bash
+pip install -e ".[workflows]"   # or use environment.yml
 jupyter notebook Workflows/
 ```
 
