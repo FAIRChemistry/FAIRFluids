@@ -19,13 +19,13 @@ import pytest
 
 from fairfluids.core.lib import FAIRFluidsDocument, Method, Parameters, Properties
 from fairfluids.io.thermoml_to_fairfluids import convert
-from fairfluids.io.thermoml_to_fairfluids.composition import (
+from fairfluids.io.canonical.composition import (
     is_valid_mole_fraction_sum,
     mass_fractions_to_mole_fractions,
     molalities_to_mole_fractions,
 )
-from fairfluids.io.thermoml_to_fairfluids.mappers.parameter_mapper import ParameterMapper
-from fairfluids.io.thermoml_to_fairfluids.mappers.property_mapper import PropertyMapper
+from fairfluids.io.canonical.mappers.parameter_mapper import ParameterMapper
+from fairfluids.io.canonical.mappers.property_mapper import PropertyMapper
 
 # ---------------------------------------------------------------------------
 # Path helpers
@@ -720,7 +720,7 @@ class TestMinimalXml:
             }
 
         monkeypatch.setattr(
-            "fairfluids.io.thermoml_to_fairfluids.composition.resolve_molar_masses",
+            "fairfluids.io.canonical.composition.resolve_molar_masses",
             _fake_resolve_molar_masses,
         )
 
@@ -783,7 +783,7 @@ class TestMinimalXml:
             }
 
         monkeypatch.setattr(
-            "fairfluids.io.thermoml_to_fairfluids.composition.resolve_molar_masses",
+            "fairfluids.io.canonical.composition.resolve_molar_masses",
             _fake_resolve_molar_masses,
         )
 

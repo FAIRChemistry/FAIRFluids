@@ -6,7 +6,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
-from fairfluids.io.thermoml_to_fairfluids.mappers.property_mapper import PROPERTY_MAP
+from fairfluids.io.canonical.mappers.property_mapper import PROPERTY_MAP
 
 _ENUM_BLOCK_RE = re.compile(
     r"^###\s+(e\w+)\s*\n+```python\n(.*?)```",

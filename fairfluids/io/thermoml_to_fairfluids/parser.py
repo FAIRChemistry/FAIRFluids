@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Optional
 from xml.etree import ElementTree as ET
 
-from .canonical_model import (
+from fairfluids.io.canonical.canonical_model import (
     RawCitation,
     RawComponent,
     RawCompound,

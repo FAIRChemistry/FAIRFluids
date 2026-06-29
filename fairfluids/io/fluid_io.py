@@ -1,62 +1,57 @@
 """
 fluid_io.py
 
-Extends the Fluid class with input utilities for loading data from CSV files.
+Utilities for loading tabular (CSV) fluid-property data into FAIRFluids
+documents via the shared canonical pipeline (producer -> Canonical models ->
+build_fairfluids -> FAIRFluidsDocument).
 
-Example CSV format:
-
-# compounds,propertyID,propertyType,parameterID,parameterType,parameterValue,propertyValue,uncertainty,method,method_description
-# H2O_001;urea_001,viscosity,viscosity,temp,Temperature, K,298.15,1.23,0.01,measuredRotational viscometer
-# H2O_001;urea_001,viscosity,viscosity,temp,Temperature, K,303.15,1.10,0.01,measuredRotational viscometer
+CSV rows are grouped by ``source_doi`` into one FAIRFluidsDocument per DOI,
+then split into fluids by composition.
 
 Usage:
-    from FAIRFluids.core.fluid_io import FluidIO
-    from FAIRFluids.core.lib import FAIRFluidsDocument
-    fluid = FluidIO()
-    fluid.data_from_csv('path/to/data.csv')
-    doc = FAIRFluidsDocument()
-    doc.fluid.append(fluid)
+    from fairfluids.io.fluid_io import FluidIO
+    from fairfluids.core.lib import FAIRFluidsDocument
 
-    # Or with a document (creates multiple fluids grouped by composition and property):
+    # Returns a list of FAIRFluidsDocument, one per source DOI:
+    docs = FluidIO().data_from_csv('path/to/data.csv')
+
+    # Or seed citation/version metadata from a template document:
     doc = FAIRFluidsDocument()
-    fluid_io = FluidIO()
-    fluid_io.data_from_csv('path/to/data.csv', document=doc)
+    docs = FluidIO().data_from_csv('path/to/data.csv', document=doc)
 """
 
 import csv
-import json
-import requests
-import time
 import warnings
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 from collections import defaultdict, Counter
-from urllib.parse import quote
-from fairfluids.io.pubchem import fetch_compound_from_pubchem
-from fairfluids.io.thermoml_to_fairfluids.fairfluids_builder import _clean_doi
-from fairfluids.io.thermoml_to_fairfluids.id_registry import IDRegistry
-from fairfluids.io.thermoml_to_fairfluids.mappers.unit_mapper import UnitMapper
+from fairfluids.io.canonical.fairfluids_builder import (
+    _clean_doi,
+    build_fairfluids,
+)
+from fairfluids.io.canonical.canonical_model import (
+    CanonicalCitation,
+    CanonicalCompound,
+    CanonicalDataset,
+    CanonicalDocument,
+    CanonicalParameter,
+    CanonicalProperty,
+    CanonicalRow,
+    CanonicalSourceCompound,
+)
 from fairfluids.core.lib import (
-    Fluid,
-    Property,
-    Parameter,
-    Measurement,
-    Sample,
-    PropertyValue,
-    ParameterValue,
     Method,
     FAIRFluidsDocument,
-    FittedModel,
     Properties,
     Parameters,
-    UnitDefinition,
     Version,
 )
 
 
-class FluidIO(Fluid):
+class FluidIO:
     """
-    Extends Fluid with input utility to load data from a CSV file.
+    Converter that loads fluid data from a structured CSV/XLSX file and emits
+    :class:`FAIRFluidsDocument` objects via the shared canonical builder.
     """
 
     def data_from_csv(
@@ -90,28 +85,36 @@ class FluidIO(Fluid):
         uncertainty_units: Optional[Dict[str, str]] = None,
     ) -> List[FAIRFluidsDocument]:
         """
-        Create FAIRFluids documents from CSV file.
+        Create FAIRFluids documents from a structured CSV/XLSX file.
 
-        Supports the structured CSV format with:
+        Supports the structured format with:
         - Compound i / Molar Fraction i columns
         - mandatory temperature and pressure columns (+ units)
         - optional multi-property blocks per row (e.g. viscosity_value, density_value)
 
-        Each unique compound combination creates a separate document. Within each document,
-        separate fluids are created for each composition group.
+        Grouping:
+        - One :class:`FAIRFluidsDocument` is produced **per source DOI**
+          (``source_doi`` / ``Reference (DOI)`` column).
+        - Within a document, one fluid is created per **composition group**
+          (compound set + molar fractions + storage). A single DOI may contain
+          several compound sets; these become several fluids and the document's
+          compound list is the union across them.
+        - Rows without a DOI are kept but grouped into a single document and a
+          ``UserWarning`` is emitted; attribute them by predefining the
+          ``document`` citation block.
 
         Args:
-            csv_path: Path to CSV file
-            document: Optional template document (for metadata like citation)
-            output_dir: Optional directory to save JSON files
-            fetch_from_pubchem: If True, fetch compound information from PubChem
+            spreadsheet_path: Path to the CSV or XLSX file.
+            document: Optional template document (for metadata like citation).
+            output_dir: Optional directory to save JSON files.
+            fetch_from_pubchem: If True, fetch compound information from PubChem.
             units: Optional global input units, e.g.
                 {"temperature": "C", "pressure": "bar", "viscosity": "cP"}
             uncertainty_units: Optional global uncertainty units per quantity, e.g.
                 {"temperature": "K", "pressure": "bar", "viscosity": "cP"}
 
         Returns:
-            List of FAIRFluidsDocument objects (one per compound combination)
+            List of FAIRFluidsDocument objects (one per source DOI).
         """
         # The workflow is expected to predefine the citation block before
         # feeding data; warn (do not raise) if it is missing.
@@ -131,208 +134,50 @@ class FluidIO(Fluid):
         input_path = Path(spreadsheet_path)
         rows_data = self._read_tabular_rows(input_path)
 
-        # Group rows by compound combinations
-        compound_combinations = defaultdict(list)
-        for row in rows_data:
-            compounds = self._extract_compounds(row)
-
-            if not compounds:
-                continue  # Skip rows with no compounds
-
-            # Create key for grouping (tuple of compound names)
-            compound_key = tuple(compounds)
-            compound_combinations[compound_key].append(row)
-
-        print(f"Found {len(compound_combinations)} unique compound combinations")
-
-        # Fetch compound data from PubChem if requested
-        compound_data_cache = {}
-        if fetch_from_pubchem:
-            explicit_pubchem_ids: Dict[str, int] = {}
-            for compound_key, rows in compound_combinations.items():
-                for row in rows:
-                    pubchem_ids = self._extract_pubchem_ids(row, len(compound_key))
-                    for idx, compound_name in enumerate(compound_key):
-                        cid = pubchem_ids[idx]
-                        if (
-                            cid is not None
-                            and compound_name not in explicit_pubchem_ids
-                        ):
-                            explicit_pubchem_ids[compound_name] = cid
-
-            # Collect all unique compounds
-            all_unique_compounds = set()
-            for compounds_list in compound_combinations.keys():
-                for comp in compounds_list:
-                    if comp:
-                        all_unique_compounds.add(comp)
-
-            print(
-                f"\nFetching compound information from PubChem for {len(all_unique_compounds)} unique compounds..."
+        # Warn about rows lacking a source DOI (they collapse into one document
+        # attributed only by the predefined citation).
+        rows_without_doi = sum(
+            1
+            for row in rows_data
+            if self._extract_compounds(row) and self._extract_row_doi(row) is None
+        )
+        if rows_without_doi:
+            warnings.warn(
+                f"{rows_without_doi} row(s) have no source DOI; they are grouped "
+                "into a single document attributed only by the predefined citation "
+                "(if any). Provide a `source_doi` (or `Reference (DOI)`) per row to "
+                "split data by publication.",
+                UserWarning,
+                stacklevel=2,
             )
 
-            # Fetch compound data from PubChem with rate limiting
-            # Add a small delay between requests to avoid overwhelming PubChem API
-            for idx, compound_name in enumerate(all_unique_compounds):
-                compound_data = None
-                explicit_cid = explicit_pubchem_ids.get(compound_name)
-                if explicit_cid is not None:
-                    compound_data = fetch_compound_from_pubchem(explicit_cid)
-                    if compound_data:
-                        compound_data["pubChemID"] = explicit_cid
-                if compound_data is None:
-                    compound_data = self._fetch_compound_by_name(compound_name)
-                if compound_data:
-                    compound_data_cache[compound_name] = compound_data
+        # Route B: turn the rows into one neutral CanonicalDocument per DOI,
+        # then let the shared FAIRFluids builder produce each document.
+        canonical_pairs = self._csv_to_canonical_documents(
+            rows_data, units=units, uncertainty_units=uncertainty_units
+        )
+        print(f"Found {len(canonical_pairs)} source DOI group(s)")
 
-                # Rate limiting: wait 0.5 seconds between requests to avoid API throttling
-                # Skip delay for the last item
-                if idx < len(all_unique_compounds) - 1:
-                    time.sleep(0.5)
+        documents: List[FAIRFluidsDocument] = []
+        for doi, canonical_document in canonical_pairs:
+            doc_dict = build_fairfluids(
+                canonical_document, fetch_from_pubchem=fetch_from_pubchem
+            )
+            doc = FAIRFluidsDocument.model_validate(doc_dict)
 
-            print(f"\nFetched data for {len(compound_data_cache)} compounds\n")
-
-        documents = []
-
-        # Create a document for each compound combination
-        for compound_key, rows in compound_combinations.items():
-            compounds_list = list(compound_key)
-
-            # Always create new document for this compound combination
-            # (each combination gets its own JSON file)
-            doc = FAIRFluidsDocument(version=Version(versionMajor=1, versionMinor=0))
-
-            # If a document template was provided, copy its metadata (but not fluids/compounds)
-            if document is not None:
-                if document.version:
-                    doc.version = document.version
-                if document.citation:
-                    doc.citation = document.citation
-
-            # One ID registry per document so every generated object receives a
-            # canonical ``<type>_<n>`` counter ID, restarting per document.
-            registry = IDRegistry()
-
-            # Add compounds to document, assigning counter compound IDs. Compound
-            # ordering (index) maps onto the CSV composition components.
-            compound_name_to_id = {}
-            if fetch_from_pubchem:
-                for compound_name in compounds_list:
-                    compound_id = registry.new_id("compound")
-                    compound_name_to_id[compound_name] = compound_id
-                    if compound_name in compound_data_cache:
-                        compound_data = compound_data_cache[compound_name].copy()
-                        compound_data["compoundID"] = compound_id
-                        doc.add_to_compound(**compound_data)
-                        print(
-                            f"  Added compound: {compound_name} -> {compound_id} "
-                            f"(CID: {compound_data.get('pubChemID', 'N/A')})"
-                        )
-                    else:
-                        # Not found on PubChem: record the name, leave metadata empty
-                        # (do not fabricate identifiers).
-                        doc.add_to_compound(
-                            compoundID=compound_id,
-                            commonName=compound_name.strip(),
-                        )
-            else:
-                for compound_name in compounds_list:
-                    compound_id = registry.new_id("compound")
-                    compound_name_to_id[compound_name] = compound_id
-                    doc.add_to_compound(
-                        compoundID=compound_id,
-                        commonName=compound_name.strip(),
-                    )
-
-            # Group rows by composition: (molar fractions + storage)
-            # Multiple properties can be in the same fluid (as separate measurements)
-            composition_groups = defaultdict(list)
-            skip_missing_required = 0
-            skip_no_property = 0
-            skip_missing_mole_fraction = 0
-            skip_invalid_mole_fraction_sum = 0
-            invalid_mole_fraction_compositions: Counter[Tuple[float, ...]] = Counter()
-
-            for row in rows:
-                if not self._has_required_row_parameters(row, units):
-                    skip_missing_required += 1
-                    continue
-
-                if not self._row_has_any_property_value(row, units):
-                    skip_no_property += 1
-                    continue
-
-                molar_fractions = self._extract_molar_fractions(
-                    row, len(compounds_list)
-                )
-                if molar_fractions is None:
-                    skip_missing_mole_fraction += 1
-                    continue
-                if not self._is_valid_mole_fraction_sum(molar_fractions):
-                    skip_invalid_mole_fraction_sum += 1
-                    invalid_mole_fraction_compositions[tuple(molar_fractions)] += 1
-                    continue
-
-                # Extract storage condition for grouping
-                storage_str = row.get("Storage", "").strip().lower()
-                storage_key = (
-                    None if storage_str in ["", "nan", "none"] else storage_str
-                )
-
-                # property_name is NOT part of the key - multiple properties can be in same fluid
-                composition_key = (tuple(molar_fractions), storage_key)
-                composition_groups[composition_key].append(row)
-
-            if skip_invalid_mole_fraction_sum > 0:
-                composition_details = "; ".join(
-                    f"{list(fracs)} (sum={sum(fracs):.6g}, {count} row(s))"
-                    for fracs, count in sorted(
-                        invalid_mole_fraction_compositions.items(),
-                        key=lambda item: (-item[1], item[0]),
-                    )
-                )
-                warnings.warn(
-                    f"Skipped {skip_invalid_mole_fraction_sum} row(s) for compound "
-                    f"combination {list(compounds_list)!r}: molar fractions must sum to "
-                    f"1 (tolerance 1e-8). No fluid is created for these compositions. "
-                    f"Invalid value(s): {composition_details}.",
-                    UserWarning,
-                    stacklevel=2,
-                )
-
-            # Map compound names to IDs (always use the mapped IDs)
-            fluid_compounds = [
-                compound_name_to_id.get(name, name.strip().title())
-                for name in compounds_list
-            ]
-
-            # Create fluid for each composition (molar fractions + storage)
-            # Each fluid can contain multiple properties (as separate measurements)
-            for composition_key, composition_rows in composition_groups.items():
-                if composition_rows:
-                    # New format: (molar_fractions_tuple, storage_key)
-                    _, storage_key = composition_key
-
-                    fluid = self._create_fluid_from_rows(
-                        fluid_compounds,
-                        composition_rows,
-                        True,
-                        units=units,
-                        uncertainty_units=uncertainty_units,
-                        registry=registry,
-                    )
-                    if fluid:
-                        doc.fluid.append(fluid)
+            # Document-level metadata mirrors the template (the canonical builder
+            # leaves citation/version to the producer): default to version 1.0
+            # and copy the template's citation/version when provided.
+            doc.version = (
+                document.version
+                if (document is not None and document.version)
+                else Version(versionMajor=1, versionMinor=0)
+            )
+            if document is not None and document.citation:
+                doc.citation = document.citation
 
             if not doc.fluid:
-                print(
-                    "No fluids created for compound combination "
-                    f"{compound_key}. Skipped rows -> "
-                    f"missing_required(T): {skip_missing_required}, "
-                    f"no_property: {skip_no_property}, "
-                    f"missing_mole_fraction: {skip_missing_mole_fraction}, "
-                    f"invalid_mole_fraction_sum: {skip_invalid_mole_fraction_sum}"
-                )
+                print(f"No fluids created for DOI {doi!r}.")
 
             documents.append(doc)
 
@@ -340,24 +185,39 @@ class FluidIO(Fluid):
             if output_dir:
                 output_path = Path(output_dir)
                 output_path.mkdir(parents=True, exist_ok=True)
-
-                # Create filename from compound names
-                compound_names = "_".join(
-                    [
-                        c.replace(" ", "_").replace(",", "").replace(";", "_")[:20]
-                        for c in compounds_list
-                    ]
-                )
-                filename = f"{compound_names}.json"
-                filepath = output_path / filename
-
+                filepath = output_path / f"{self._sanitize_doi_for_filename(doi)}.json"
                 with open(filepath, "w", encoding="utf-8") as f:
-                    json_str = doc.model_dump_json(indent=2)
-                    f.write(json_str)
-
+                    f.write(doc.model_dump_json(indent=2))
                 print(f"Saved document to: {filepath}")
 
         return documents
+
+
+    def _extract_row_doi(self, row: Dict[str, str]) -> Optional[str]:
+        """Return the cleaned bare DOI for a row, or ``None`` if absent."""
+        raw = (
+            row.get("source_doi", "").strip()
+            or row.get("Reference (DOI)", "").strip()
+        )
+        return _clean_doi(raw) or None
+
+    def _unique_compounds_in_order(
+        self, rows: List[Dict[str, str]]
+    ) -> List[str]:
+        """Collect every compound name across ``rows`` in first-seen order."""
+        seen: List[str] = []
+        for row in rows:
+            for name in self._extract_compounds(row):
+                if name not in seen:
+                    seen.append(name)
+        return seen
+
+    def _sanitize_doi_for_filename(self, doi: Optional[str]) -> str:
+        """Turn a DOI (or ``None``) into a filesystem-safe filename stem."""
+        if not doi:
+            return "no_doi"
+        safe = doi.replace("/", "_").replace(":", "_").replace(" ", "_")
+        return safe.replace("\\", "_")
 
     def create_datasheet(
         self,
@@ -480,340 +340,276 @@ class FluidIO(Fluid):
             ) from exc
         return str(output_file)
 
-    def _fetch_compound_by_name(
-        self, compound_name: str, max_retries: int = 3, retry_delay: float = 2.0
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Fetch compound information from PubChem by searching with compound name.
-        Includes retry logic for handling timeouts and 503 errors.
+    # ------------------------------------------------------------------
+    # Canonical producer (Route B): CSV/XLSX rows -> CanonicalDocument(s)
+    # ------------------------------------------------------------------
 
-        Args:
-            compound_name: Name of the compound to search for
-            max_retries: Maximum number of retry attempts (default: 3)
-            retry_delay: Delay between retries in seconds (default: 2.0)
+    # Canonical-SI unit strings per supported property type (mirrors the
+    # controlled vocabulary the shared FAIRFluids builder expects).
+    _PROPERTY_SI_UNIT: Dict[str, str] = {
+        "viscosity": "Pa*s",
+        "density": "kg/m3",
+        "conductivity": "S/m",
+    }
 
-        Returns:
-            Dictionary with compound information or None if not found
-        """
-        # URL-encode the compound name to handle special characters safely
-        encoded_name = quote(compound_name)
-        search_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{encoded_name}/JSON"
-
-        # Retry logic for search request
-        for attempt in range(max_retries):
-            try:
-                # Increased timeout and retry for 503 errors
-                search_response = requests.get(
-                    search_url, timeout=30
-                )  # Increased from 10 to 30 seconds
-
-                if search_response.status_code == 200:
-                    search_data = search_response.json()
-
-                    # Extract CID from the response
-                    if (
-                        "PC_Compounds" in search_data
-                        and len(search_data["PC_Compounds"]) > 0
-                    ):
-                        cid = search_data["PC_Compounds"][0]["id"]["id"]["cid"]
-
-                        # Use the existing fetch_compound_from_pubchem function
-                        # Retry logic for fetching compound data
-                        for info_attempt in range(max_retries):
-                            try:
-                                compound_data = fetch_compound_from_pubchem(cid)
-
-                                if compound_data:
-                                    # Generate compound ID from cleaned name
-                                    clean_name = (
-                                        compound_name.lower()
-                                        .replace(" ", "")
-                                        .replace("-", "")
-                                        .replace("_", "")
-                                        .replace(",", "")
-                                        .replace(";", "")
-                                    )
-                                    compound_id = f"compound_{clean_name}"
-
-                                    # Update compound_data with compoundID
-                                    compound_data["compoundID"] = compound_id
-
-                                    # Ensure sigma_profile is set (not sigman_profile)
-                                    if "sigman_profile" in compound_data:
-                                        compound_data["sigma_profile"] = (
-                                            compound_data.pop("sigman_profile")
-                                        )
-                                    elif "sigma_profile" not in compound_data:
-                                        compound_data["sigma_profile"] = None
-
-                                    # Ensure SELFIE is set
-                                    if "SELFIE" not in compound_data:
-                                        compound_data["SELFIE"] = None
-
-                                    return compound_data
-                                else:
-                                    # If fetch failed, retry
-                                    if info_attempt < max_retries - 1:
-                                        time.sleep(retry_delay * (info_attempt + 1))
-                                        continue
-                                    else:
-                                        print(
-                                            f"Warning: Failed to fetch compound data for '{compound_name}' (CID: {cid}) after {max_retries} attempts"
-                                        )
-                                        return None
-
-                            except Exception as e:
-                                if info_attempt < max_retries - 1:
-                                    print(
-                                        f"Error fetching compound data for '{compound_name}' (CID: {cid}), retrying ({info_attempt + 1}/{max_retries})...: {e}"
-                                    )
-                                    time.sleep(retry_delay * (info_attempt + 1))
-                                    continue
-                                else:
-                                    print(
-                                        f"Error fetching compound data for '{compound_name}' from PubChem: {e}"
-                                    )
-                                    return None
-
-                        return None  # If all info attempts failed
-
-                elif search_response.status_code == 404:
-                    print(f"Warning: Compound '{compound_name}' not found in PubChem")
-                    return None
-                elif search_response.status_code == 503:
-                    # Service unavailable - retry with exponential backoff
-                    if attempt < max_retries - 1:
-                        delay = retry_delay * (2**attempt)  # Exponential backoff
-                        print(
-                            f"PubChem service unavailable (503) for '{compound_name}', retrying in {delay:.1f}s ({attempt + 1}/{max_retries})..."
-                        )
-                        time.sleep(delay)
-                        continue
-                    else:
-                        print(
-                            f"Warning: PubChem search failed for '{compound_name}' after {max_retries} attempts (status: 503)"
-                        )
-                        return None
-                else:
-                    print(
-                        f"Warning: PubChem search failed for '{compound_name}' (status: {search_response.status_code})"
-                    )
-                    return None
-
-            except requests.exceptions.Timeout:
-                if attempt < max_retries - 1:
-                    delay = retry_delay * (2**attempt)  # Exponential backoff
-                    print(
-                        f"Timeout fetching '{compound_name}', retrying in {delay:.1f}s ({attempt + 1}/{max_retries})..."
-                    )
-                    time.sleep(delay)
-                    continue
-                else:
-                    print(
-                        f"Error: Timeout fetching compound '{compound_name}' from PubChem after {max_retries} attempts"
-                    )
-                    return None
-            except requests.exceptions.RequestException as e:
-                if attempt < max_retries - 1:
-                    delay = retry_delay * (2**attempt)
-                    print(
-                        f"Request error for '{compound_name}', retrying in {delay:.1f}s ({attempt + 1}/{max_retries})...: {e}"
-                    )
-                    time.sleep(delay)
-                    continue
-                else:
-                    print(
-                        f"Error fetching compound '{compound_name}' from PubChem: {e}"
-                    )
-                    return None
-            except Exception as e:
-                print(
-                    f"Unexpected error fetching compound '{compound_name}' from PubChem: {e}"
-                )
-                return None
-
-        return None
-
-    def _create_fluid_from_rows(
+    def _csv_to_canonical_documents(
         self,
-        compounds_list: List[str],
-        rows: List[Dict[str, str]],
-        is_new_format: bool = False,
+        rows_data: List[Dict[str, str]],
+        *,
         units: Optional[Dict[str, str]] = None,
         uncertainty_units: Optional[Dict[str, str]] = None,
-        registry: Optional[IDRegistry] = None,
-    ) -> Optional[Fluid]:
+    ) -> List[Tuple[Optional[str], CanonicalDocument]]:
+        """Group CSV/XLSX rows into one neutral :class:`CanonicalDocument` per DOI.
+
+        Route B: composition is fully specified (exact mole fractions), the
+        controlled-vocab member and canonical unit are pre-resolved, and each
+        measurement carries its method explicitly. ``complete_composition`` is
+        therefore ``False`` and ``source_doi`` is the per-document DOI.
+
+        Returns a list of ``(doi, document)`` pairs preserving first-seen DOI
+        order so the caller can attribute / name outputs per group.
         """
-        Create a Fluid object from rows. Multiple properties can be in the same fluid
-        (as separate measurements).
+        # One document per source DOI (rows without a DOI share the ``None`` key).
+        doi_groups: "defaultdict[Optional[str], List[Dict[str, str]]]" = defaultdict(
+            list
+        )
+        for row in rows_data:
+            if not self._extract_compounds(row):
+                continue  # Skip rows with no compounds
+            doi_groups[self._extract_row_doi(row)].append(row)
 
-        Args:
-            compounds_list: List of compound IDs (counter IDs, in component order).
-            rows: List of CSV row dictionaries (can contain multiple property types)
-            is_new_format: Kept for compatibility; structured format is assumed.
-            units: Optional global input units (used if unit columns are missing).
-            uncertainty_units: Optional global uncertainty units.
-            registry: Shared per-document ID registry for counter IDs.
+        documents: List[Tuple[Optional[str], CanonicalDocument]] = []
+        for doi, rows in doi_groups.items():
+            # Document compounds = union of every compound under this DOI in
+            # first-seen order; the index is the document-global component key.
+            names = self._unique_compounds_in_order(rows)
+            name_to_key = {name: idx for idx, name in enumerate(names)}
+            # Explicit ``pubchemID i`` columns (first-seen per name) so the
+            # builder's PubChem enrichment can use them directly.
+            explicit_cid: Dict[str, int] = {}
+            for row in rows:
+                row_compounds = self._extract_compounds(row)
+                pubchem_ids = self._extract_pubchem_ids(row, len(row_compounds))
+                for name, cid in zip(row_compounds, pubchem_ids):
+                    if cid is not None and name not in explicit_cid:
+                        explicit_cid[name] = cid
+            source_compounds = [
+                CanonicalSourceCompound(
+                    component_key=idx,
+                    common_name=name.strip(),
+                    pubchem_cid=explicit_cid.get(name),
+                )
+                for idx, name in enumerate(names)
+            ]
 
-        Returns:
-            Fluid object or None if no valid data
-        """
-        if not rows:
-            return None
-        if registry is None:
-            registry = IDRegistry()
+            # Group rows into fluids/datasets by composition
+            # (compound set + molar fractions + storage).
+            composition_groups: "defaultdict[Tuple[Tuple[str, ...], Tuple[float, ...], Optional[str]], List[Dict[str, str]]]" = defaultdict(
+                list
+            )
+            skip_invalid_mole_fraction_sum = 0
+            invalid_mole_fraction_compositions: Counter[Tuple[float, ...]] = Counter()
+            for row in rows:
+                row_compounds = self._extract_compounds(row)
+                if not self._has_required_row_parameters(row, units):
+                    continue
+                if not self._row_has_any_property_value(row, units):
+                    continue
+                molar_fractions = self._extract_molar_fractions(
+                    row, len(row_compounds)
+                )
+                if molar_fractions is None:
+                    continue
+                if not self._is_valid_mole_fraction_sum(molar_fractions):
+                    skip_invalid_mole_fraction_sum += 1
+                    invalid_mole_fraction_compositions[tuple(molar_fractions)] += 1
+                    continue
+                storage_str = row.get("Storage", "").strip().lower()
+                storage_key = (
+                    None if storage_str in ["", "nan", "none"] else storage_str
+                )
+                composition_groups[
+                    (tuple(row_compounds), tuple(molar_fractions), storage_key)
+                ].append(row)
 
-        # One shared Property definition per detected type (counter IDs + enums).
-        property_objects: Dict[str, Property] = {}
-        supported_properties = self._default_supported_property_aliases()
-        for property_type in supported_properties:
+            if skip_invalid_mole_fraction_sum > 0:
+                composition_details = "; ".join(
+                    f"{list(fracs)} (sum={sum(fracs):.6g}, {count} row(s))"
+                    for fracs, count in sorted(
+                        invalid_mole_fraction_compositions.items(),
+                        key=lambda item: (-item[1], item[0]),
+                    )
+                )
+                warnings.warn(
+                    f"Skipped {skip_invalid_mole_fraction_sum} row(s) for DOI "
+                    f"{doi!r}: molar fractions must sum to 1 (tolerance 1e-8). "
+                    f"No fluid is created for these compositions. "
+                    f"Invalid value(s): {composition_details}.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
+            datasets: List[CanonicalDataset] = []
+            for index, (
+                (row_compounds, _fracs, _storage),
+                group_rows,
+            ) in enumerate(composition_groups.items()):
+                if not group_rows:
+                    continue
+                datasets.append(
+                    self._csv_composition_to_dataset(
+                        index,
+                        list(row_compounds),
+                        name_to_key,
+                        group_rows,
+                        units=units,
+                        uncertainty_units=uncertainty_units,
+                    )
+                )
+
+            documents.append(
+                (
+                    doi,
+                    CanonicalDocument(
+                        citation=CanonicalCitation(),
+                        compounds=source_compounds,
+                        datasets=datasets,
+                        complete_composition=False,
+                        source_doi=doi,
+                    ),
+                )
+            )
+
+        return documents
+
+    def _csv_composition_to_dataset(
+        self,
+        index: int,
+        row_compounds: List[str],
+        name_to_key: Dict[str, int],
+        group_rows: List[Dict[str, str]],
+        *,
+        units: Optional[Dict[str, str]] = None,
+        uncertainty_units: Optional[Dict[str, str]] = None,
+    ) -> CanonicalDataset:
+        """Turn one composition group into a canonical dataset (fluid)."""
+        # Properties present in any row, in canonical supported order so the
+        # builder reproduces stable ``property_<n>`` IDs.
+        present_props: List[str] = []
+        for property_type in self._default_supported_property_aliases():
             if any(
                 self._extract_property_si(
                     row, property_type, units=units, uncertainty_units=uncertainty_units
                 )
                 is not None
-                for row in rows
+                for row in group_rows
             ):
-                property_objects[property_type] = Property(
-                    propertyID=registry.new_id("property"),
-                    properties=self._map_property_type(property_type),
-                    unit=self._make_property_unit(property_type, registry),
-                )
+                present_props.append(property_type)
 
-        if not property_objects:
-            return None
-
-        # Required parameter definitions: temperature (+ optional pressure) + mole fractions.
-        temperature_param = Parameter(
-            parameterID=registry.new_id("parameter"),
-            parameters=Parameters.TEMPERATURE,
-            unit=self._make_unit("K", registry),
-            associated_compounds=[],
-        )
-        all_parameters: List[Parameter] = [temperature_param]
-
-        pressure_param: Optional[Parameter] = None
-        has_any_pressure = any(
-            self._extract_pressure_kpa(row, units) is not None for row in rows
-        )
-        if has_any_pressure:
-            pressure_param = Parameter(
-                parameterID=registry.new_id("parameter"),
-                parameters=Parameters.PRESSURE,
-                unit=self._make_unit("kPa", registry),
-                associated_compounds=[],
+        properties: Dict[str, CanonicalProperty] = {}
+        prop_canon_id: Dict[str, str] = {}
+        for property_type in present_props:
+            canon_id = f"prop_{property_type}"
+            prop_canon_id[property_type] = canon_id
+            properties[canon_id] = CanonicalProperty(
+                prop_id=canon_id,
+                source_term=property_type,
+                resolved_property=self._map_property_type(property_type),
+                canonical_unit=self._PROPERTY_SI_UNIT[property_type],
             )
-            all_parameters.append(pressure_param)
 
-        # Mole fraction parameters (one per compound), keyed by component index.
-        mole_fraction_params: Dict[int, Parameter] = {}
-        for i, compound_id in enumerate(compounds_list):
-            param = Parameter(
-                parameterID=registry.new_id("parameter"),
-                parameters=Parameters.MOLE_FRACTION,
-                unit=self._dimensionless(),
-                associated_compounds=[compound_id],
+        # Parameters: temperature, optional pressure, then a mole fraction per
+        # compound (insertion order = builder allocation order).
+        parameters: Dict[str, CanonicalParameter] = {
+            "param_temperature": CanonicalParameter(
+                param_id="param_temperature",
+                source_term="temperature",
+                resolved_parameter=Parameters.TEMPERATURE,
+                canonical_unit="K",
             )
-            mole_fraction_params[i] = param
-            all_parameters.append(param)
-
-        fluid = Fluid(
-            fluidID=[registry.new_id("fluid")],
-            compounds=compounds_list,
-            property=list(property_objects.values()),
-            parameter=all_parameters,
-            sample=Sample(
-                sample_id=registry.new_id("sample"),
-                associated_compounds=compounds_list,
-                measurement=[],
-            ),
+        }
+        has_pressure = any(
+            self._extract_pressure_kpa(row, units) is not None for row in group_rows
         )
+        if has_pressure:
+            parameters["param_pressure"] = CanonicalParameter(
+                param_id="param_pressure",
+                source_term="pressure",
+                resolved_parameter=Parameters.PRESSURE,
+                canonical_unit="kPa",
+            )
+        molefrac_canon_id: Dict[int, str] = {}
+        for position, name in enumerate(row_compounds):
+            key = name_to_key[name]
+            canon_id = f"param_x_{key}"
+            molefrac_canon_id[position] = canon_id
+            parameters[canon_id] = CanonicalParameter(
+                param_id=canon_id,
+                source_term="mole fraction",
+                resolved_parameter=Parameters.MOLE_FRACTION,
+                canonical_unit="dimensionless",
+                component_ref=key,
+            )
 
-        for row in rows:
-            temperature_value = self._extract_temperature_kelvin(row, units)
-            pressure_value = self._extract_pressure_kpa(row, units)
-            mole_fractions = self._extract_molar_fractions(row, len(compounds_list))
+        rows_out: List[CanonicalRow] = []
+        for row in group_rows:
+            temperature = self._extract_temperature_kelvin(row, units)
+            pressure = self._extract_pressure_kpa(row, units)
+            molar_fractions = self._extract_molar_fractions(
+                row, len(row_compounds)
+            )
 
-            if (
-                temperature_value is None
-                or mole_fractions is None
-                or not self._is_valid_mole_fraction_sum(mole_fractions)
-            ):
-                continue
-
-            property_values: List[PropertyValue] = []
-            for property_type, property_obj in property_objects.items():
-                prop_payload = self._extract_property_si(
+            property_values: Dict[str, float] = {}
+            uncertainties: Dict[str, float] = {}
+            for property_type in present_props:
+                payload = self._extract_property_si(
                     row,
                     property_type,
                     units=units,
                     uncertainty_units=uncertainty_units,
                 )
-                if prop_payload is None:
+                if payload is None:
                     continue
-                property_values.append(
-                    PropertyValue(
-                        properties=property_obj.properties,
-                        propertyID=property_obj.propertyID,
-                        propValue=prop_payload["value"],
-                        uncertainty=prop_payload["uncertainty"],
-                    )
-                )
+                canon_id = prop_canon_id[property_type]
+                property_values[canon_id] = payload["value"]
+                if payload["uncertainty"] is not None:
+                    uncertainties[f"{canon_id}_unc"] = payload["uncertainty"]
 
-            if not property_values:
-                continue
-
-            parameter_values = [
-                ParameterValue(
-                    parameters=temperature_param.parameters,
-                    parameterID=temperature_param.parameterID,
-                    paramValue=temperature_value,
-                    uncertainty=None,
-                ),
-            ]
-            if pressure_value is not None and pressure_param is not None:
-                parameter_values.append(
-                    ParameterValue(
-                        parameters=pressure_param.parameters,
-                        parameterID=pressure_param.parameterID,
-                        paramValue=pressure_value,
-                        uncertainty=None,
-                    )
-                )
-
-            for i in range(len(compounds_list)):
-                param = mole_fraction_params[i]
-                parameter_values.append(
-                    ParameterValue(
-                        parameters=param.parameters,
-                        parameterID=param.parameterID,
-                        paramValue=mole_fractions[i],
-                        uncertainty=None,
-                    )
-                )
-
-            doi = (
-                row.get("source_doi", "").strip()
-                or row.get("Reference (DOI)", "").strip()
-            )
-            doi = _clean_doi(doi) or None
+            parameter_values: Dict[str, float] = {"param_temperature": temperature}
+            if has_pressure and pressure is not None:
+                parameter_values["param_pressure"] = pressure
+            for position in range(len(row_compounds)):
+                parameter_values[molefrac_canon_id[position]] = molar_fractions[
+                    position
+                ]
 
             comment = row.get("Comment", "").strip()
             method_description = "Experimental measurement"
             if comment:
                 method_description += f" (Comment: {comment})"
 
-            measurement = Measurement(
-                measurement_id=registry.new_id("measurement"),
-                source_doi=doi,
-                propertyValue=property_values,
-                parameterValue=parameter_values,
-                method=Method.MEASURED,
-                method_description=method_description,
+            rows_out.append(
+                CanonicalRow(
+                    parameter_values=parameter_values,
+                    property_values=property_values,
+                    uncertainties=uncertainties,
+                    method=Method.MEASURED,
+                    method_description=method_description,
+                )
             )
-            fluid.sample.measurement.append(measurement)
 
-        return fluid if fluid.sample and fluid.sample.measurement else None
+        return CanonicalDataset(
+            index=index,
+            compounds=[
+                CanonicalCompound(
+                    component_key=name_to_key[name], compound_id=""
+                )
+                for name in row_compounds
+            ],
+            properties=properties,
+            parameters=parameters,
+            rows=rows_out,
+        )
 
     def _map_property_type(self, property_type: str) -> Properties:
         """Map property type string to Properties enum."""
@@ -862,24 +658,6 @@ class FluidIO(Fluid):
             "conductivity": "mS/cm",
         }
         return defaults.get(property_name, "")
-
-    def _make_property_unit(
-        self, property_type: str, registry: IDRegistry
-    ) -> UnitDefinition:
-        """Build a fully-specified canonical-SI unit for a property type."""
-        unit_str_map = {
-            "viscosity": "Pa*s",
-            "density": "kg/m3",
-            "conductivity": "S/m",
-        }
-        unit_str = unit_str_map[property_type]
-        return UnitMapper.from_unit_string(
-            unit_str, unit_id=registry.new_id("unit")
-        )
-
-    def _dimensionless(self) -> UnitDefinition:
-        """Return the single canonical dimensionless unit."""
-        return UnitMapper.dimensionless()
 
     def _parse_float(self, raw_value: Any) -> Optional[float]:
         if raw_value is None:
@@ -1095,10 +873,6 @@ class FluidIO(Fluid):
     ) -> bool:
         return self._extract_temperature_kelvin(row, units) is not None
 
-    def _map_parameter_type(self, parameter_type: str) -> Parameters:
-        """Map parameter type string to Parameters enum."""
-        return self._resolve_parameter_enum(parameter_type)
-
     def _default_supported_property_aliases(self) -> Tuple[str, ...]:
         return ("viscosity", "density", "conductivity")
 
@@ -1201,20 +975,6 @@ class FluidIO(Fluid):
             f"Unsupported parameter '{parameter_name}'. Provide a Parameters enum name/value."
         )
 
-    def _make_unit(self, unit_str: str, registry: IDRegistry) -> UnitDefinition:
-        """Build a fully-specified canonical-SI unit for a parameter."""
-        return UnitMapper.from_unit_string(
-            unit_str, unit_id=registry.new_id("unit")
-        )
-
-
-# ``FluidIO`` subclasses ``Fluid``, whose ``fitted_model`` field forward-references
-# ``FittedModel``. Rebuild the model here so the reference resolves in this module's
-# namespace (``FittedModel`` is imported above) rather than failing lazily on first
-# instantiation.
-FluidIO.model_rebuild()
-
-
 def from_csv(
     csv_path: str,
     *,
@@ -1226,14 +986,14 @@ def from_csv(
 ) -> List[FAIRFluidsDocument]:
     """Convert a structured CSV/XLSX file into FAIRFluids documents.
 
-    One document is produced per unique compound combination found in the file.
-    The workflow should predefine ``document.citation`` (and, ideally, the
-    compound block) before converting; a :class:`UserWarning` is emitted if the
-    citation is missing.
+    One :class:`FAIRFluidsDocument` is produced **per source DOI**; within a
+    document each composition group becomes a fluid. The optional ``document``
+    template supplies citation/version metadata (CSV rows carry no citation
+    block); a :class:`UserWarning` is emitted if no citation is provided.
 
     Args:
         csv_path: Path to the CSV or XLSX file.
-        document: Optional template document supplying metadata (citation/version).
+        document: Optional template document supplying citation/version metadata.
         units: Optional input units per quantity (e.g. ``{"pressure": "bar"}``);
             values are converted to canonical SI before storing.
         uncertainty_units: Optional input units for the uncertainty columns.
@@ -1241,7 +1001,8 @@ def from_csv(
         output_dir: Optional directory to additionally write JSON files into.
 
     Returns:
-        A list of :class:`FAIRFluidsDocument` objects.
+        A list of :class:`FAIRFluidsDocument` (one per source DOI); the list
+        return type matches :func:`from_cml` and :func:`from_thermoml`.
     """
     return FluidIO().data_from_spreadsheet(
         spreadsheet_path=csv_path,

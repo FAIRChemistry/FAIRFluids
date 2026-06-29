@@ -5,49 +5,11 @@ PubChem enrichment helpers for ThermoML -> FAIRFluids conversion.
 from __future__ import annotations
 
 import logging
-import time
 from typing import Any, Dict, Optional
-from urllib.parse import quote
 
-import requests
-
-from fairfluids.io.pubchem import fetch_compound_from_pubchem
+from fairfluids.io.pubchem import fetch_compound_from_pubchem, search_cid_by_name
 
 logger = logging.getLogger(__name__)
-
-
-def _search_cid_by_name(
-    compound_name: str, max_retries: int = 3, retry_delay: float = 2.0
-) -> Optional[int]:
-    """
-    Resolve a PubChem CID from a compound name.
-    """
-    encoded_name = quote(compound_name)
-    search_url = (
-        f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{encoded_name}/JSON"
-    )
-
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(search_url, timeout=30)
-            if response.status_code == 200:
-                payload = response.json()
-                compounds = payload.get("PC_Compounds", [])
-                if compounds:
-                    return compounds[0]["id"]["id"]["cid"]
-                return None
-            if response.status_code in {429, 502, 503} and attempt < max_retries - 1:
-                time.sleep(retry_delay * (2**attempt))
-                continue
-            if response.status_code in {400, 404}:
-                return None
-            return None
-        except requests.exceptions.RequestException:
-            if attempt < max_retries - 1:
-                time.sleep(retry_delay * (2**attempt))
-                continue
-            return None
-    return None
 
 
 def enrich_compound_from_pubchem(
@@ -65,7 +27,7 @@ def enrich_compound_from_pubchem(
     if cid is None:
         if not common_name:
             return {}
-        cid = _search_cid_by_name(common_name)
+        cid = search_cid_by_name(common_name)
         if cid is None:
             return {}
 

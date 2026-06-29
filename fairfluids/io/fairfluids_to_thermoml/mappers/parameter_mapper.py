@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Dict
 
 from fairfluids.core.lib import Parameters
-from fairfluids.io.thermoml_to_fairfluids.mappers.parameter_mapper import PARAMETER_MAP
+from fairfluids.io.canonical.mappers.parameter_mapper import PARAMETER_MAP
 
 _REVERSE: Dict[str, str] = {}
 for thermo_name, ff_name in PARAMETER_MAP.items():

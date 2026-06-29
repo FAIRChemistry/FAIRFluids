@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from fairfluids.io.pubchem import fetch_compound_from_pubchem
-from fairfluids.io.thermoml_to_fairfluids.pubchem import _search_cid_by_name
+from fairfluids.io.pubchem import fetch_compound_from_pubchem, search_cid_by_name
 
 
 @dataclass(frozen=True)
@@ -26,7 +25,7 @@ def resolve_component(common_name: str) -> ResolvedComponent:
     if not name:
         return ResolvedComponent(common_name=common_name, lookup_error="empty name")
 
-    cid = _search_cid_by_name(name)
+    cid = search_cid_by_name(name)
     if cid is None:
         return ResolvedComponent(
             common_name=name,

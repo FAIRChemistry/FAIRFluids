@@ -31,10 +31,11 @@ from fairfluids.core.lib import (
 )
 
 from .canonical_model import (
+    CanonicalCitation,
     CanonicalDataset,
+    CanonicalDocument,
     CanonicalParameter,
-    RawCitation,
-    RawThermoML,
+    CanonicalSourceCompound,
 )
 from .composition import (
     complete_composition_values,
@@ -174,27 +175,36 @@ def _map_method(raw: Optional[str]) -> Optional[Method]:
 
 
 def build_fairfluids(
-    raw: RawThermoML,
-    canonical_datasets: List[CanonicalDataset],
+    document: CanonicalDocument,
     fetch_from_pubchem: bool = True,
 ) -> Dict[str, Any]:
-    """Build a FAIRFluidsDocument dict from canonical datasets + raw meta."""
+    """Build a FAIRFluidsDocument dict from a neutral :class:`CanonicalDocument`."""
     registry = IDRegistry()
 
-    citation = _build_citation(raw.citation)
+    citation = _build_citation(document.citation)
+    # G4: measurement provenance (``source_doi``) defaults to the citation DOI,
+    # but a producer may override it (e.g. CSV emits one document per source DOI
+    # while sharing a single citation template).
+    if document.source_doi:
+        doi = _clean_doi(document.source_doi)
+    elif document.citation.doi:
+        doi = _clean_doi(document.citation.doi)
+    else:
+        doi = None
     compounds, compound_id_by_org_num = _build_compounds(
-        raw, registry, fetch_from_pubchem=fetch_from_pubchem
+        document.compounds, registry, fetch_from_pubchem=fetch_from_pubchem
     )
 
     fluids: List[Dict[str, Any]] = []
-    for cds in canonical_datasets:
+    for cds in document.datasets:
         fluid = _build_fluid(
             cds,
-            raw,
+            doi,
             registry,
             compound_id_by_org_num,
             compounds,
             fetch_from_pubchem=fetch_from_pubchem,
+            complete_composition=document.complete_composition,
         )
         fluids.append(fluid)
 
@@ -213,25 +223,25 @@ def build_fairfluids(
 # ---------------------------------------------------------------------------
 
 
-def _build_citation(raw_cit: RawCitation) -> Optional[Citation]:
-    if not raw_cit.title and not raw_cit.doi:
+def _build_citation(cit: CanonicalCitation) -> Optional[Citation]:
+    if not cit.title and not cit.doi:
         return None
 
     authors: List[Author] = []
-    for author_str in raw_cit.authors:
+    for author_str in cit.authors:
         for parsed in _parse_authors(author_str):
             authors.append(Author(**parsed))
 
-    lit_type = _map_lit_type(raw_cit.lit_type)
-    doi = _clean_doi(raw_cit.doi) if raw_cit.doi else None
+    lit_type = _map_lit_type(cit.lit_type)
+    doi = _clean_doi(cit.doi) if cit.doi else None
 
     return Citation(
-        title=raw_cit.title,
+        title=cit.title,
         doi=doi,
-        pub_name=raw_cit.pub_name,
-        publication_year=raw_cit.pub_year,
-        lit_volume_num=raw_cit.volume,
-        page=raw_cit.page,
+        pub_name=cit.pub_name,
+        publication_year=cit.pub_year,
+        lit_volume_num=cit.volume,
+        page=cit.page,
         litType=lit_type,
         author=authors,
     )
@@ -243,15 +253,15 @@ def _build_citation(raw_cit: RawCitation) -> Optional[Citation]:
 
 
 def _build_compounds(
-    raw: RawThermoML,
+    source_compounds: List[CanonicalSourceCompound],
     registry: IDRegistry,
     fetch_from_pubchem: bool = True,
 ) -> tuple[List[Compound], Dict[int, str]]:
     compounds: List[Compound] = []
     id_by_org_num: Dict[int, str] = {}
-    for rc in raw.compounds:
+    for rc in source_compounds:
         cid = registry.new_id("compound")
-        id_by_org_num[rc.org_num] = cid
+        id_by_org_num[rc.component_key] = cid
         pubchem_fields: Dict[str, Any] = {}
         if fetch_from_pubchem:
             pubchem_fields = enrich_compound_from_pubchem(
@@ -284,41 +294,44 @@ def _build_compounds(
 
 def _build_fluid(
     cds: CanonicalDataset,
-    raw: RawThermoML,
+    doi: Optional[str],
     registry: IDRegistry,
     compound_id_by_org_num: Dict[int, str],
     compounds: List[Compound],
     *,
     fetch_from_pubchem: bool = True,
+    complete_composition: bool = True,
 ) -> Dict[str, Any]:
     fluid_id = registry.new_id("fluid")
 
     compound_refs = [
-        compound_id_by_org_num[comp.org_num]
+        compound_id_by_org_num[comp.component_key]
         for comp in cds.compounds
-        if comp.org_num in compound_id_by_org_num
+        if comp.component_key in compound_id_by_org_num
     ]
     compound_id_map = {
-        comp.org_num: compound_id_by_org_num[comp.org_num]
+        comp.component_key: compound_id_by_org_num[comp.component_key]
         for comp in cds.compounds
-        if comp.org_num in compound_id_by_org_num
+        if comp.component_key in compound_id_by_org_num
     }
 
     prop_objects, prop_id_map = _build_properties(cds, registry)
     param_objects, param_id_map = _build_parameters(
-        cds, registry, compound_id_map, compound_refs
+        cds, registry, compound_id_map, compound_refs,
+        complete_composition=complete_composition,
     )
     measurements = _build_measurements(
         cds,
         registry,
         prop_id_map,
         param_id_map,
-        raw,
+        doi,
         prop_objects,
         param_objects,
         compound_refs,
         compounds,
         fetch_from_pubchem=fetch_from_pubchem,
+        complete_composition=complete_composition,
     )
 
     sample = Sample(
@@ -353,10 +366,18 @@ def _build_properties(
         ff_id = registry.new_id("property")
         id_map[canonical_id] = ff_id
 
-        mapped_prop = PropertyMapper.map(cp.thermoml_name)
-        unit = UnitMapper.from_thermoml_name(
-            cp.thermoml_name, unit_id=registry.new_id("unit")
-        )
+        if cp.resolved_property is not None:
+            mapped_prop = cp.resolved_property
+        else:
+            mapped_prop = PropertyMapper.map(cp.source_term)
+        if cp.canonical_unit is not None:
+            unit = UnitMapper.from_unit_string(
+                cp.canonical_unit, unit_id=registry.new_id("unit")
+            )
+        else:
+            unit = UnitMapper.from_thermoml_name(
+                cp.source_term, unit_id=registry.new_id("unit")
+            )
 
         result.append(
             Property(
@@ -378,6 +399,8 @@ def _build_parameters(
     registry: IDRegistry,
     compound_id_map: Dict[int, str],
     compound_refs: List[str],
+    *,
+    complete_composition: bool = True,
 ) -> tuple[List[Parameter], Dict[str, str]]:
     result: List[Parameter] = []
     id_map: Dict[str, str] = {}
@@ -386,12 +409,15 @@ def _build_parameters(
         ff_id = registry.new_id("parameter")
         id_map[canonical_id] = ff_id
 
-        mapped_param = ParameterMapper.map(cparam.thermoml_name)
+        if cparam.resolved_parameter is not None:
+            mapped_param = cparam.resolved_parameter
+        else:
+            mapped_param = ParameterMapper.map(cparam.source_term)
         unit = _resolve_param_unit(cparam, registry)
 
         assoc: List[str] = []
-        if cparam.reg_num is not None and cparam.reg_num in compound_id_map:
-            assoc.append(compound_id_map[cparam.reg_num])
+        if cparam.component_ref is not None and cparam.component_ref in compound_id_map:
+            assoc.append(compound_id_map[cparam.component_ref])
 
         result.append(
             Parameter(
@@ -402,21 +428,28 @@ def _build_parameters(
             )
         )
 
-    ensure_mass_fraction_parameters(result, compound_refs, registry)
-    ensure_mole_fraction_parameters(result, compound_refs, registry)
+    if complete_composition:
+        ensure_mass_fraction_parameters(result, compound_refs, registry)
+        ensure_mole_fraction_parameters(result, compound_refs, registry)
 
     return result, id_map
 
 
 def _resolve_param_unit(cparam: CanonicalParameter, registry: IDRegistry):
-    name = cparam.thermoml_name.lower()
+    if cparam.canonical_unit is not None:
+        if cparam.canonical_unit.strip().lower() in ("", "dimensionless", "1"):
+            return UnitMapper.dimensionless()
+        return UnitMapper.from_unit_string(
+            cparam.canonical_unit, unit_id=registry.new_id("unit")
+        )
+    name = cparam.source_term.lower()
     if any(
         kw in name
         for kw in ("mole fraction", "mass fraction", "volume fraction")
     ):
         return UnitMapper.dimensionless()
     return UnitMapper.from_thermoml_name(
-        cparam.thermoml_name, unit_id=registry.new_id("unit")
+        cparam.source_term, unit_id=registry.new_id("unit")
     )
 
 
@@ -430,16 +463,16 @@ def _build_measurements(
     registry: IDRegistry,
     prop_id_map: Dict[str, str],
     param_id_map: Dict[str, str],
-    raw: RawThermoML,
+    doi: Optional[str],
     prop_objects: List[Property],
     param_objects: List[Parameter],
     compound_refs: List[str],
     compounds: List[Compound],
     *,
     fetch_from_pubchem: bool = True,
+    complete_composition: bool = True,
 ) -> List[Measurement]:
-    method = _resolve_method(cds)
-    doi = _clean_doi(raw.citation.doi) if raw.citation.doi else None
+    dataset_method = _resolve_method(cds)
 
     prop_enum_by_id: Dict[str, Optional[Properties]] = {
         p.propertyID: p.properties for p in prop_objects if p.propertyID
@@ -482,13 +515,16 @@ def _build_measurements(
                 )
             )
 
-        complete_composition_values(
-            param_values=param_values,
-            param_objects=param_objects,
-            compound_refs=compound_refs,
-            compounds=compounds,
-            fetch_from_pubchem=fetch_from_pubchem,
-        )
+        if complete_composition:
+            complete_composition_values(
+                param_values=param_values,
+                param_objects=param_objects,
+                compound_refs=compound_refs,
+                compounds=compounds,
+                fetch_from_pubchem=fetch_from_pubchem,
+            )
+
+        row_method = row.method if row.method is not None else dataset_method
 
         measurements.append(
             Measurement(
@@ -496,7 +532,8 @@ def _build_measurements(
                 source_doi=doi,
                 propertyValue=prop_values,
                 parameterValue=param_values,
-                method=method,
+                method=row_method,
+                method_description=row.method_description,
             )
         )
     return measurements
