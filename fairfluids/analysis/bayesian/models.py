@@ -16,10 +16,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, Mapping
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from .data import BayesianGroup
-from .priors import PriorSet
+from .priors import HalfNormal, Prior, PriorSet, PriorSpec
 
 if TYPE_CHECKING:
     import jax
@@ -57,6 +57,72 @@ class _ModelRegistry:
 ModelRegistry = _ModelRegistry()
 
 
+class _Parameter:
+    """Catalax-style handle for one model parameter, exposing a settable ``prior``.
+
+    Obtained via ``model.parameters.<name>`` or ``model.parameters[name]``. Reading
+    / writing :attr:`prior` reads / writes ``model.priors[name]`` in place.
+    """
+
+    __slots__ = ("_model", "_name")
+
+    def __init__(self, model: "BayesianModel", name: str) -> None:
+        self._model = model
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def prior(self) -> Prior | None:
+        return self._model.priors.get(self._name)
+
+    @prior.setter
+    def prior(self, value: Prior) -> None:
+        if not isinstance(value, Prior):
+            raise TypeError(
+                f"parameter {self._name!r}.prior must be a Prior (Normal, Uniform, "
+                f"HalfNormal, ...), got {type(value).__name__}."
+            )
+        self._model.priors[self._name] = value
+
+    def __repr__(self) -> str:
+        return f"Parameter({self._name!r}, prior={self.prior!r})"
+
+
+class _ParametersView:
+    """Mapping-like accessor over a model's parameters (``model.parameters``)."""
+
+    __slots__ = ("_model",)
+
+    def __init__(self, model: "BayesianModel") -> None:
+        self._model = model
+
+    def __getitem__(self, name: str) -> _Parameter:
+        if name not in self._model.param_names:
+            raise KeyError(
+                f"{self._model.name!r} has no parameter {name!r}. "
+                f"Parameters: {list(self._model.param_names)}."
+            )
+        return _Parameter(self._model, name)
+
+    def __getattr__(self, name: str) -> _Parameter:
+        try:
+            return self[name]
+        except KeyError as exc:
+            raise AttributeError(str(exc)) from exc
+
+    def __iter__(self):
+        return (self[n] for n in self._model.param_names)
+
+    def __len__(self) -> int:
+        return len(self._model.param_names)
+
+    def __repr__(self) -> str:
+        return f"ParametersView({list(self._model.param_names)})"
+
+
 class BayesianModel(BaseModel):
     """Abstract Pydantic v2 base for Bayesian regression models.
 
@@ -66,11 +132,24 @@ class BayesianModel(BaseModel):
     sampling, noise composition and the observation site so subclasses normally
     do not need to touch it.
 
-    Instances are immutable Pydantic v2 objects so they can safely be shared
-    across groups and fits.
+    Priors live *on the model* (Catalax-style): set them via
+    ``model.parameters.<name>.prior = Normal(...)`` or :meth:`set_priors`, tune the
+    observation-noise prior through :attr:`error`, and the likelihood family via
+    :attr:`likelihood`. The fitting / workflow machinery reads these directly, so
+    no separate prior argument is threaded through ``fit``.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=False)
+
+    # -- instance-level prior configuration (Catalax-style) --------------------
+    priors: dict[str, PriorSpec] = Field(default_factory=dict)
+    """Per-parameter priors, keyed by parameter name."""
+    sigma_scale: float = Field(default=0.1, gt=0.0)
+    """Scale of the ``HalfNormal`` prior on the model observation noise (``model_sigma``)."""
+    likelihood: Literal["normal", "student_t"] = "normal"
+    """Observation likelihood family (``student_t`` is outlier-robust)."""
+    student_t_df: float = Field(default=4.0, gt=2.0)
+    """Degrees of freedom for the Student-t likelihood (used when ``likelihood='student_t'``)."""
 
     name: ClassVar[str] = ""
     property_name: ClassVar[str] = ""
@@ -98,8 +177,83 @@ class BayesianModel(BaseModel):
             return
         ModelRegistry.register(cls)
 
-    def validate_priors(self, priors: PriorSet) -> None:
-        """Raise if ``priors`` does not cover every entry in :attr:`param_names`."""
+    # -- Catalax-style prior configuration -------------------------------------
+
+    @property
+    def parameters(self) -> _ParametersView:
+        """Accessor for per-parameter priors: ``model.parameters.<name>.prior = Normal(...)``."""
+        return _ParametersView(self)
+
+    @property
+    def error(self) -> HalfNormal:
+        """The ``HalfNormal`` prior on the observation noise ``model_sigma``.
+
+        Assign a :class:`~fairfluids.analysis.bayesian.priors.HalfNormal` to change
+        it: ``model.error = HalfNormal(sigma=0.05)``.
+        """
+        return HalfNormal(sigma=self.sigma_scale)
+
+    @error.setter
+    def error(self, value: HalfNormal) -> None:
+        if not isinstance(value, HalfNormal):
+            raise TypeError(
+                f"model.error must be a HalfNormal prior, got {type(value).__name__}."
+            )
+        self.sigma_scale = value.sigma
+
+    def set_priors(self, **priors: Prior) -> "BayesianModel":
+        """Set one or more parameter priors and return ``self`` (chainable).
+
+        Example::
+
+            get_model("arrhenius").set_priors(
+                logA=Normal(-20, 2), Ea=Normal(50000, 20000),
+            )
+        """
+        unknown = [p for p in priors if p not in self.param_names]
+        if unknown:
+            raise KeyError(
+                f"Model {self.name!r} has no parameter(s) {unknown}. "
+                f"Parameters: {list(self.param_names)}."
+            )
+        for pname, spec in priors.items():
+            if not isinstance(spec, Prior):
+                raise TypeError(
+                    f"Prior for {pname!r} must be a Prior instance, got {type(spec).__name__}."
+                )
+            self.priors[pname] = spec
+        return self
+
+    def prior_set(self) -> PriorSet:
+        """Bundle the model's configured priors into a :class:`PriorSet`.
+
+        This is the internal representation consumed by the NumPyro model,
+        prior-predictive simulation and plotting. Raises if any parameter is
+        still missing a prior.
+        """
+        self.ensure_priors()
+        return PriorSet(
+            parameters=dict(self.priors),
+            sigma_scale=self.sigma_scale,
+            likelihood=self.likelihood,
+            student_t_df=self.student_t_df,
+        )
+
+    def ensure_priors(self) -> None:
+        """Raise if any parameter is missing a prior (configured via the model)."""
+        missing = [name for name in self.param_names if name not in self.priors]
+        if missing:
+            raise ValueError(
+                f"Model {self.name!r} is missing priors for parameters {missing}. "
+                f"Set them via model.parameters.<name>.prior = ... or "
+                f"model.set_priors({missing[0]}=...). Parameters: {list(self.param_names)}."
+            )
+
+    def validate_priors(self, priors: PriorSet | None = None) -> None:
+        """Raise if ``priors`` (or the model's own priors) miss any parameter."""
+        if priors is None:
+            self.ensure_priors()
+            return
         missing = [name for name in self.param_names if name not in priors.parameters]
         if missing:
             raise ValueError(
@@ -202,7 +356,7 @@ class BayesianModel(BaseModel):
 
     def sample_parameters(
         self,
-        priors: PriorSet,
+        priors: PriorSet | None,
         features: Mapping[str, "jax.Array"],
     ) -> dict[str, "jax.Array"]:
         """Sample the model's parameters from the supplied :class:`PriorSet`.
@@ -217,6 +371,8 @@ class BayesianModel(BaseModel):
         """
         import numpyro
 
+        if priors is None:
+            priors = self.prior_set()
         params: dict[str, "jax.Array"] = {}
         for pname in self.param_names:
             spec = priors.parameters.get(pname)
@@ -233,18 +389,22 @@ class BayesianModel(BaseModel):
         observation: "jax.Array | None" = None,
         observation_uncertainty: "jax.Array | None" = None,
         *,
-        priors: PriorSet,
+        priors: PriorSet | None = None,
     ) -> None:
         """Generic NumPyro model used for both prior predictive and MCMC.
 
         The signature matches what NumPyro's ``Predictive`` / ``MCMC`` expect when
         called via keyword arguments. ``priors`` provides the per-parameter prior
-        specs, the ``model_sigma`` scale and the observation likelihood.
+        specs, the ``model_sigma`` scale and the observation likelihood; when
+        omitted it defaults to the model's own configured priors
+        (:meth:`prior_set`).
         """
         import jax.numpy as jnp
         import numpyro
         import numpyro.distributions as dist
 
+        if priors is None:
+            priors = self.prior_set()
         params = self.sample_parameters(priors, features)
         mu = self.mean(features, params)
         numpyro.deterministic("mu", mu)
