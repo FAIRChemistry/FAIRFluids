@@ -51,18 +51,6 @@ def test_fairfluids():
         print(f"❌ FAIRFluids import error: {e}")
         return False
 
-def test_cli():
-    """Test CLI functionality."""
-    print("\n🧪 Testing CLI...")
-    
-    try:
-        from fairfluids.cli import main
-        print("✅ CLI module imported")
-        return True
-    except ImportError as e:
-        print(f"❌ CLI import error: {e}")
-        return False
-
 def main():
     """Run all tests."""
     print("🚀 FAIRFluids Conda Environment Test")
@@ -75,7 +63,6 @@ def main():
     tests = [
         test_imports,
         test_fairfluids,
-        test_cli,
     ]
     
     all_passed = True

@@ -119,9 +119,6 @@ Repository = "https://github.com/FAIRChemistry/FAIRFluids.git"
 Issues = "https://github.com/FAIRChemistry/FAIRFluids/issues"
 Changelog = "https://github.com/FAIRChemistry/FAIRFluids/blob/main/CHANGELOG.md"
 
-[project.scripts]
-fairfluids = "fairfluids.cli:main"
-
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["fairfluids*"]

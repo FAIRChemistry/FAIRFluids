@@ -22,7 +22,7 @@ from fairfluids.io.canonical.canonical_model import (
     CanonicalRow,
     CanonicalSourceCompound,
 )
-from fairfluids.io.canonical.fairfluids_builder import build_fairfluids
+from fairfluids.io.canonical.fairfluids_builder import _clean_doi, build_fairfluids
 
 
 class FAIRFluidsCMLParser:
@@ -183,6 +183,23 @@ class FAIRFluidsCMLParser:
         ]
         return experiments + simulations
 
+    @staticmethod
+    def _extract_module_doi(props: Dict[str, str]) -> Optional[str]:
+        """Return the cleaned DOI for a measurement module, or ``None``.
+
+        CML stores the source DOI as a ``des:DOI`` property per measurement
+        module. Placeholder values (``"NO"``/``"NG"``) and empty strings are
+        treated as *no DOI* so the caller can group those modules into a single
+        template-attributed document.
+        """
+        raw = props.get("DOI")
+        if raw is None:
+            return None
+        raw = raw.strip()
+        if not raw or raw.upper() in ("NO", "NG"):
+            return None
+        return _clean_doi(raw)
+
     def _extract_uncertainty(
         self, props: Dict[str, str], property_name: str, property_value: float
     ) -> Optional[float]:
@@ -329,12 +346,76 @@ class FAIRFluidsCMLParser:
             )
         return result
 
-    def to_canonical_document(self) -> CanonicalDocument:
-        """Parse the CML file into a neutral :class:`CanonicalDocument`."""
-        source_compounds = self._canonical_source_compounds()
-        n_compounds = len(source_compounds)
+    def to_canonical_documents(self) -> List[CanonicalDocument]:
+        """Parse the CML file into one :class:`CanonicalDocument` per source DOI.
 
+        Each measurement module carries its own ``des:DOI``; modules are bucketed
+        by cleaned DOI so every distinct DOI yields a separate document whose
+        ``citation.doi`` and measurement ``source_doi`` are set to that DOI.
+        Modules with a placeholder/empty DOI are grouped into a single document
+        attributed only by the template citation (a ``UserWarning`` is emitted).
+        """
+        source_compounds = self._canonical_source_compounds()
         measurement_modules = self._extract_measurement_modules()
+
+        # Bucket modules by cleaned DOI (preserving first-seen order); placeholder
+        # DOIs collapse into a single ``None`` bucket.
+        buckets: Dict[Optional[str], list] = {}
+        bucket_order: List[Optional[str]] = []
+        for exp, method_type in measurement_modules:
+            props = self._extract_properties(exp)
+            doi = self._extract_module_doi(props)
+            if doi not in buckets:
+                buckets[doi] = []
+                bucket_order.append(doi)
+            buckets[doi].append((exp, method_type))
+
+        if None in buckets:
+            warnings.warn(
+                f"{len(buckets[None])} CML measurement module(s) have no usable "
+                "DOI (placeholder 'NO'/'NG' or empty); grouping them into a single "
+                "document attributed only by the template citation.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+        base_citation = self._canonical_citation()
+        documents: List[CanonicalDocument] = []
+        for doi in bucket_order:
+            citation = (
+                base_citation
+                if doi is None
+                else base_citation.model_copy(update={"doi": doi})
+            )
+            documents.append(
+                self._canonical_document_for_modules(
+                    buckets[doi], source_compounds, citation, doi
+                )
+            )
+        return documents
+
+    def to_canonical_document(self) -> CanonicalDocument:
+        """Parse the CML file into a single neutral :class:`CanonicalDocument`.
+
+        Back-compat helper that merges *all* measurement modules (regardless of
+        DOI) into one document. Prefer :meth:`to_canonical_documents` for the
+        per-DOI split.
+        """
+        source_compounds = self._canonical_source_compounds()
+        measurement_modules = self._extract_measurement_modules()
+        return self._canonical_document_for_modules(
+            measurement_modules, source_compounds, self._canonical_citation(), None
+        )
+
+    def _canonical_document_for_modules(
+        self,
+        measurement_modules: List[tuple],
+        source_compounds: List[CanonicalSourceCompound],
+        citation: CanonicalCitation,
+        source_doi: Optional[str],
+    ) -> CanonicalDocument:
+        """Build a :class:`CanonicalDocument` from a single DOI bucket's modules."""
+        n_compounds = len(source_compounds)
 
         # Discover property types present across modules (stable order).
         property_types: List[str] = []
@@ -491,13 +572,33 @@ class FAIRFluidsCMLParser:
             )
 
         return CanonicalDocument(
-            citation=self._canonical_citation(),
+            citation=citation,
             compounds=source_compounds,
             datasets=datasets,
             complete_composition=False,
+            source_doi=source_doi,
         )
 
+    def parse_all(self, fetch_from_pubchem: bool = True) -> List[FAIRFluidsDocument]:
+        """Parse the CML file into one FAIRFluids document per source DOI."""
+        self._warn_if_blocks_undefined()
+        canonical_docs = self.to_canonical_documents()
+        documents: List[FAIRFluidsDocument] = []
+        for canonical in canonical_docs:
+            doc_dict = build_fairfluids(
+                canonical, fetch_from_pubchem=fetch_from_pubchem
+            )
+            documents.append(FAIRFluidsDocument.model_validate(doc_dict))
+        # Preserve the last document on the instance for back-compat callers.
+        if documents:
+            self.document = documents[-1]
+        return documents
+
     def parse(self, fetch_from_pubchem: bool = True) -> FAIRFluidsDocument:
+        """Parse and return a single merged FAIRFluids document (back-compat).
+
+        Prefer :meth:`parse_all` for the per-DOI split.
+        """
         self._warn_if_blocks_undefined()
         canonical = self.to_canonical_document()
         doc_dict = build_fairfluids(canonical, fetch_from_pubchem=fetch_from_pubchem)
@@ -527,9 +628,11 @@ def from_cml(
     final document.
 
     Returns:
-        A list of :class:`FAIRFluidsDocument`. A CML file maps to a single
-        document, so the list always has exactly one element; the list return
-        type matches :func:`from_csv` and :func:`from_thermoml`.
+        A list of :class:`FAIRFluidsDocument`, one per source DOI found in the
+        CML file (each measurement module carries its own ``des:DOI``). Modules
+        with a placeholder/empty DOI collapse into one template-attributed
+        document. The list return type matches :func:`from_csv` and
+        :func:`from_thermoml`.
     """
     parser = FAIRFluidsCMLParser(
         cml_path,
@@ -537,7 +640,7 @@ def from_cml(
         document=document,
         viscosity_input_unit=viscosity_input_unit,
     )
-    return [parser.parse(fetch_from_pubchem=fetch_from_pubchem)]
+    return parser.parse_all(fetch_from_pubchem=fetch_from_pubchem)
 
 
 __all__ = ["FAIRFluidsCMLParser", "from_cml"]
