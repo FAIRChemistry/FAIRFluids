@@ -44,16 +44,18 @@ from . import bridge
 bridge.register_all()
 
 from .priors import (
-    HalfNormalPriorSpec,
-    LogNormalPriorSpec,
-    NormalPriorSpec,
+    HalfNormal,
+    LogNormal,
+    Normal,
+    Prior,
     PriorSet,
     PriorSpec,
-    TruncatedNormalPriorSpec,
-    UniformPriorSpec,
+    TruncatedNormal,
+    Uniform,
     prior_predictive_quantiles,
     sample_prior,
 )
+from .setup import enable_x64, set_host_count, set_platform
 from .workflow import BayesianWorkflow
 from .writeback import fit_to_fairfluids_document, fit_to_fitted_models
 
@@ -70,14 +72,16 @@ __all__ = [
     "BayesianWorkflow",
     "ModelComparison",
     "ModelRegistry",
+    "Prior",
     "PriorSet",
     "PriorSpec",
-    "UniformPriorSpec",
-    "NormalPriorSpec",
-    "HalfNormalPriorSpec",
-    "LogNormalPriorSpec",
-    "TruncatedNormalPriorSpec",
+    "Uniform",
+    "Normal",
+    "HalfNormal",
+    "LogNormal",
+    "TruncatedNormal",
     "compare_models",
+    "enable_x64",
     "fit_groups",
     "fit_to_fairfluids_document",
     "fit_to_fitted_models",
@@ -89,4 +93,6 @@ __all__ = [
     "predict_averaged",
     "prior_predictive_quantiles",
     "sample_prior",
+    "set_host_count",
+    "set_platform",
 ]

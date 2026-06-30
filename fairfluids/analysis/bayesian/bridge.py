@@ -127,7 +127,15 @@ class _SymbolicBayesianModel(BayesianModel):
         }
         raw = np.asarray(group.raw_observation, dtype=float).ravel()
         consts = resolve_constants(sm.constants, feats, raw)
-        return type(self)(resolved_constants=consts)
+        # Carry the user-configured priors onto the group-bound instance so the
+        # model stays the single source of priors through fitting.
+        return type(self)(
+            resolved_constants=consts,
+            priors=dict(self.priors),
+            sigma_scale=self.sigma_scale,
+            likelihood=self.likelihood,
+            student_t_df=self.student_t_df,
+        )
 
     def nuts_kernel_kwargs(self, *, target_accept_prob: float) -> dict[str, Any]:
         sm = type(self).symbolic_model
@@ -145,7 +153,7 @@ class _SymbolicBayesianModel(BayesianModel):
 
     def sample_parameters(
         self,
-        priors: "PriorSet",
+        priors: "PriorSet | None",
         features: Mapping[str, "jax.Array"],
     ) -> dict[str, "jax.Array"]:
         sm = type(self).symbolic_model
@@ -158,8 +166,10 @@ class _SymbolicBayesianModel(BayesianModel):
         import numpyro.distributions as dist
         import jax.numpy as jnp
 
-        from .priors import UniformPriorSpec
+        from .priors import Uniform
 
+        if priors is None:
+            priors = self.prior_set()
         aliases = type(self).feature_aliases
         primary_col = aliases[sm.features[0]]
         t_array = features[primary_col]
@@ -172,7 +182,7 @@ class _SymbolicBayesianModel(BayesianModel):
                     f"PriorSet for model {sm.name!r} is missing parameter {pname!r}."
                 )
             cfg = fdb.get(pname)
-            if cfg and isinstance(spec, UniformPriorSpec):
+            if cfg and isinstance(spec, Uniform):
                 upper = spec.high
                 if "upper_expr" in cfg:
                     upper = jnp.minimum(spec.high, _eval_bound_expr(cfg["upper_expr"], t_array))

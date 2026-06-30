@@ -253,37 +253,19 @@ def _densify_inference_data(idata: "az.InferenceData") -> "az.InferenceData":
     return idata
 
 
-def _resolve_priors_for(
-    models: list["BayesianModel"],
-    priors: "PriorSet | Mapping[str, PriorSet]",
-) -> dict[str, PriorSet]:
-    """Normalize the ``priors`` argument to a ``{model_name: PriorSet}`` mapping.
+def _collect_priors(models: list["BayesianModel"]) -> dict[str, PriorSet]:
+    """Assemble each model's own configured priors into a ``{model_name: PriorSet}`` map.
 
-    Accepts either a single :class:`PriorSet` (applied to every model) or a
-    per-model mapping. Each resolved :class:`PriorSet` is validated against the
-    model's ``param_names`` so missing priors fail fast.
+    Priors live on the model instances (Catalax-style); ``model.prior_set()``
+    validates that every parameter has a prior and fails fast otherwise.
     """
-    if isinstance(priors, PriorSet):
-        resolved = {m.name: priors for m in models}
-    else:
-        missing = [m.name for m in models if m.name not in priors]
-        if missing:
-            raise KeyError(
-                f"priors mapping is missing entries for models: {missing}. "
-                f"Provided keys: {sorted(priors)}"
-            )
-        resolved = {m.name: priors[m.name] for m in models}
-
-    for model in models:
-        model.validate_priors(resolved[model.name])
-    return resolved
+    return {m.name: m.prior_set() for m in models}
 
 
 def fit_groups(
     dataset: BayesianDataset,
     models: Iterable["BayesianModel"],
     *,
-    priors: "PriorSet | Mapping[str, PriorSet]",
     num_warmup: int = 2000,
     num_samples: int = 2000,
     num_chains: int = 4,
@@ -295,10 +277,9 @@ def fit_groups(
 
     Args:
         dataset: Prepared :class:`BayesianDataset`.
-        models: Iterable of :class:`BayesianModel` instances to fit.
-        priors: Either a single :class:`PriorSet` applied to every model, or a
-            mapping ``{model_name: PriorSet}`` for per-model priors. Each set must
-            cover every parameter of the corresponding model.
+        models: Iterable of :class:`BayesianModel` instances to fit. Each must
+            carry priors for all its parameters (set via
+            ``model.parameters.<name>.prior = ...`` or ``model.set_priors(...)``).
         num_warmup, num_samples, num_chains, target_accept_prob: Standard NUTS knobs.
         seed: PRNG seed (each ``(model, group)`` gets a distinct fold-in).
         progress_bar: Show one unified tqdm bar across all ``(model, group)`` fits.
@@ -315,7 +296,7 @@ def fit_groups(
     model_names = tuple(m.name for m in model_list)
     group_ids = tuple(grp.group_id for grp in dataset.groups)
 
-    priors_for = _resolve_priors_for(model_list, priors)
+    priors_for = _collect_priors(model_list)
 
     base_key = random.PRNGKey(seed)
     fit = BayesianFit(model_names=model_names, group_ids=group_ids)
