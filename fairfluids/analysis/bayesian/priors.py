@@ -8,9 +8,9 @@ parameter when calling :func:`fairfluids.analysis.bayesian.fit_groups`.
 
 Each prior specification is a small Pydantic model exposing a ``to_numpyro()``
 factory that returns a ``numpyro.distributions.Distribution``. The supported
-families are :class:`UniformPriorSpec`, :class:`NormalPriorSpec`,
-:class:`HalfNormalPriorSpec`, :class:`LogNormalPriorSpec` and
-:class:`TruncatedNormalPriorSpec`. The :data:`PriorSpec` type alias is a
+families are :class:`Uniform`, :class:`Normal`,
+:class:`HalfNormal`, :class:`LogNormal` and
+:class:`TruncatedNormal`. The :data:`PriorSpec` type alias is a
 discriminated union over these, keyed by the ``kind`` field — Pydantic uses it
 to deserialize ``PriorSet`` instances from JSON without ambiguity.
 """
@@ -34,13 +34,16 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 
-class _PriorSpecBase(BaseModel):
-    """Common configuration for all prior spec variants.
+class Prior(BaseModel):
+    """Common configuration for all prior distributions.
 
     Each subclass declares a ``kind`` :class:`typing.Literal` field that doubles
     as the discriminator in :data:`PriorSpec`. Subclasses must implement
     :meth:`to_numpyro` (used at fit time) and :meth:`support` (used for prior
     plotting and as an approximate ``(low, high)`` window for diagnostics).
+
+    The class names mirror NumPyro / Catalax (``Normal``, ``Uniform``,
+    ``HalfNormal`` ...) and use ``mu`` / ``sigma`` for location / scale.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -57,26 +60,32 @@ class _PriorSpecBase(BaseModel):
         raise NotImplementedError
 
     def describe(self) -> str:
-        """Single-line human description (e.g. ``"Normal(loc=0.0, scale=1.0)"``)."""
+        """Single-line human description (e.g. ``"Normal(mu=0.0, sigma=1.0)"``)."""
         params = ", ".join(
             f"{k}={v}" for k, v in self.model_dump(exclude={"kind"}).items()
         )
-        kind = getattr(self, "kind", type(self).__name__).replace("_", " ").title().replace(" ", "")
-        return f"{kind}({params})"
+        return f"{type(self).__name__}({params})"
 
 
-class UniformPriorSpec(_PriorSpecBase):
+class Uniform(Prior):
     """Uniform prior on the closed interval ``[low, high]``."""
 
     kind: Literal["uniform"] = "uniform"
     low: float
     high: float
 
+    def __init__(self, low: float | None = None, high: float | None = None, **data: Any) -> None:
+        if low is not None:
+            data["low"] = low
+        if high is not None:
+            data["high"] = high
+        super().__init__(**data)
+
     @model_validator(mode="after")
-    def _check_interval(self) -> "UniformPriorSpec":
+    def _check_interval(self) -> "Uniform":
         if not (self.high > self.low):
             raise ValueError(
-                f"UniformPriorSpec requires high > low, got low={self.low}, high={self.high}"
+                f"Uniform requires high > low, got low={self.low}, high={self.high}"
             )
         return self
 
@@ -89,77 +98,114 @@ class UniformPriorSpec(_PriorSpecBase):
         return self.low, self.high
 
 
-class NormalPriorSpec(_PriorSpecBase):
-    """Normal (Gaussian) prior with mean ``loc`` and standard deviation ``scale``."""
+class Normal(Prior):
+    """Normal (Gaussian) prior with mean ``mu`` and standard deviation ``sigma``."""
 
     kind: Literal["normal"] = "normal"
-    loc: float
-    scale: float = Field(gt=0.0)
+    mu: float
+    sigma: float = Field(gt=0.0)
+
+    def __init__(self, mu: float | None = None, sigma: float | None = None, **data: Any) -> None:
+        if mu is not None:
+            data["mu"] = mu
+        if sigma is not None:
+            data["sigma"] = sigma
+        super().__init__(**data)
 
     def to_numpyro(self) -> "dist.Distribution":
         import numpyro.distributions as dist
 
-        return dist.Normal(self.loc, self.scale)
+        return dist.Normal(self.mu, self.sigma)
 
     def support(self, n_sigma: float = 4.0) -> tuple[float, float]:
-        return self.loc - n_sigma * self.scale, self.loc + n_sigma * self.scale
+        return self.mu - n_sigma * self.sigma, self.mu + n_sigma * self.sigma
 
 
-class HalfNormalPriorSpec(_PriorSpecBase):
-    """Half-Normal prior on ``[0, infinity)`` with scale ``scale``.
+class HalfNormal(Prior):
+    """Half-Normal prior on ``[0, infinity)`` with scale ``sigma``.
 
     Useful for strictly-positive parameters such as activation energies or
     variance scales.
     """
 
     kind: Literal["half_normal"] = "half_normal"
-    scale: float = Field(gt=0.0)
+    sigma: float = Field(gt=0.0)
+
+    def __init__(self, sigma: float | None = None, **data: Any) -> None:
+        if sigma is not None:
+            data["sigma"] = sigma
+        super().__init__(**data)
 
     def to_numpyro(self) -> "dist.Distribution":
         import numpyro.distributions as dist
 
-        return dist.HalfNormal(self.scale)
+        return dist.HalfNormal(self.sigma)
 
     def support(self, n_sigma: float = 4.0) -> tuple[float, float]:
-        return 0.0, n_sigma * self.scale
+        return 0.0, n_sigma * self.sigma
 
 
-class LogNormalPriorSpec(_PriorSpecBase):
-    """LogNormal prior — the natural log of the parameter is ``Normal(loc, scale)``.
+class LogNormal(Prior):
+    """LogNormal prior — the natural log of the parameter is ``Normal(mu, sigma)``.
 
     Best suited for parameters that are strictly positive and span several
     orders of magnitude.
     """
 
     kind: Literal["log_normal"] = "log_normal"
-    loc: float
-    scale: float = Field(gt=0.0)
+    mu: float
+    sigma: float = Field(gt=0.0)
+
+    def __init__(self, mu: float | None = None, sigma: float | None = None, **data: Any) -> None:
+        if mu is not None:
+            data["mu"] = mu
+        if sigma is not None:
+            data["sigma"] = sigma
+        super().__init__(**data)
 
     def to_numpyro(self) -> "dist.Distribution":
         import numpyro.distributions as dist
 
-        return dist.LogNormal(self.loc, self.scale)
+        return dist.LogNormal(self.mu, self.sigma)
 
     def support(self, n_sigma: float = 4.0) -> tuple[float, float]:
-        lo = math.exp(self.loc - n_sigma * self.scale)
-        hi = math.exp(self.loc + n_sigma * self.scale)
+        lo = math.exp(self.mu - n_sigma * self.sigma)
+        hi = math.exp(self.mu + n_sigma * self.sigma)
         return lo, hi
 
 
-class TruncatedNormalPriorSpec(_PriorSpecBase):
+class TruncatedNormal(Prior):
     """Normal prior truncated to ``[low, high]`` (either bound may be ``None`` for one-sided)."""
 
     kind: Literal["truncated_normal"] = "truncated_normal"
-    loc: float
-    scale: float = Field(gt=0.0)
+    mu: float
+    sigma: float = Field(gt=0.0)
     low: float | None = None
     high: float | None = None
 
+    def __init__(
+        self,
+        mu: float | None = None,
+        sigma: float | None = None,
+        low: float | None = None,
+        high: float | None = None,
+        **data: Any,
+    ) -> None:
+        if mu is not None:
+            data["mu"] = mu
+        if sigma is not None:
+            data["sigma"] = sigma
+        if low is not None:
+            data["low"] = low
+        if high is not None:
+            data["high"] = high
+        super().__init__(**data)
+
     @model_validator(mode="after")
-    def _check_bounds(self) -> "TruncatedNormalPriorSpec":
+    def _check_bounds(self) -> "TruncatedNormal":
         if self.low is not None and self.high is not None and self.high <= self.low:
             raise ValueError(
-                "TruncatedNormalPriorSpec requires high > low when both bounds are given, "
+                "TruncatedNormal requires high > low when both bounds are given, "
                 f"got low={self.low}, high={self.high}"
             )
         return self
@@ -168,22 +214,22 @@ class TruncatedNormalPriorSpec(_PriorSpecBase):
         import numpyro.distributions as dist
 
         return dist.TruncatedNormal(
-            loc=self.loc, scale=self.scale, low=self.low, high=self.high
+            loc=self.mu, scale=self.sigma, low=self.low, high=self.high
         )
 
     def support(self, n_sigma: float = 4.0) -> tuple[float, float]:
-        lo = self.low if self.low is not None else self.loc - n_sigma * self.scale
-        hi = self.high if self.high is not None else self.loc + n_sigma * self.scale
+        lo = self.low if self.low is not None else self.mu - n_sigma * self.sigma
+        hi = self.high if self.high is not None else self.mu + n_sigma * self.sigma
         return float(lo), float(hi)
 
 
 PriorSpec = Annotated[
     Union[
-        UniformPriorSpec,
-        NormalPriorSpec,
-        HalfNormalPriorSpec,
-        LogNormalPriorSpec,
-        TruncatedNormalPriorSpec,
+        Uniform,
+        Normal,
+        HalfNormal,
+        LogNormal,
+        TruncatedNormal,
     ],
     Field(discriminator="kind"),
 ]
@@ -225,7 +271,7 @@ class PriorSet(BaseModel):
     def parameter_bounds(self, parameter: str) -> tuple[float, float]:
         """Return a ``(low, high)`` plotting window for ``parameter``.
 
-        For :class:`UniformPriorSpec` this is the exact interval, for unbounded
+        For :class:`Uniform` this is the exact interval, for unbounded
         distributions it falls back to ``spec.support()`` (a ``4 sigma`` band).
         """
         spec = self.parameters.get(parameter)
@@ -320,11 +366,12 @@ def sample_prior(
 
 
 __all__ = [
-    "UniformPriorSpec",
-    "NormalPriorSpec",
-    "HalfNormalPriorSpec",
-    "LogNormalPriorSpec",
-    "TruncatedNormalPriorSpec",
+    "Prior",
+    "Uniform",
+    "Normal",
+    "HalfNormal",
+    "LogNormal",
+    "TruncatedNormal",
     "PriorSpec",
     "PriorSet",
     "prior_predictive_quantiles",

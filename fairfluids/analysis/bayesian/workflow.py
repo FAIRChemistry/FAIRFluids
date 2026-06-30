@@ -25,13 +25,13 @@ from .data import BayesianDataset, BayesianGroup
 from .inference import BayesianFit, fit_groups, predict, predict_averaged
 from .models import BayesianModel, get_model
 from .priors import (
-    HalfNormalPriorSpec,
-    LogNormalPriorSpec,
-    NormalPriorSpec,
+    HalfNormal,
+    LogNormal,
+    Normal,
     PriorSet,
     PriorSpec,
-    TruncatedNormalPriorSpec,
-    UniformPriorSpec,
+    TruncatedNormal,
+    Uniform,
     prior_predictive_quantiles,
 )
 
@@ -44,15 +44,15 @@ if TYPE_CHECKING:
 class BayesianWorkflow:
     """Top-level facade orchestrating prior exploration, MCMC fitting and model comparison.
 
-    Construct with a :class:`BayesianDataset`, an iterable of models (instances
-    or registered names) and the :class:`PriorSet` (or per-model mapping) to use.
-    The workflow keeps the latest :class:`BayesianFit` and
-    :class:`ModelComparison` for downstream plotting.
+    Construct with a :class:`BayesianDataset` and an iterable of
+    :class:`BayesianModel` instances. Priors live on the models themselves
+    (Catalax-style) — configure them via ``model.parameters.<name>.prior = ...``
+    or ``model.set_priors(...)`` before fitting. The workflow keeps the latest
+    :class:`BayesianFit` and :class:`ModelComparison` for downstream plotting.
     """
 
     dataset: BayesianDataset
     models: list[BayesianModel]
-    priors: PriorSet | dict[str, PriorSet]
     fit_result: BayesianFit | None = None
     comparison_result: ModelComparison | None = None
 
@@ -61,19 +61,17 @@ class BayesianWorkflow:
         cls,
         dataset: BayesianDataset,
         model_names: Iterable[str],
-        *,
-        priors: PriorSet | dict[str, PriorSet],
     ) -> "BayesianWorkflow":
+        """Build a workflow from registered model names.
+
+        The instantiated models start without priors; set them on
+        ``workflow.models`` (e.g. ``wf.models[0].set_priors(...)``) before
+        calling :meth:`fit`.
+        """
         instances = [get_model(n) for n in model_names]
-        return cls(dataset=dataset, models=instances, priors=priors)
+        return cls(dataset=dataset, models=instances)
 
-    # -- Phase 1: Prior setting -------------------------------------------------
-
-    def set_priors(self, priors: PriorSet | Mapping[str, PriorSet]) -> None:
-        if isinstance(priors, PriorSet):
-            self.priors = priors
-        else:
-            self.priors = dict(priors)
+    # -- Phase 1: Prior exploration ---------------------------------------------
 
     def explore_priors(
         self,
@@ -169,7 +167,6 @@ class BayesianWorkflow:
         self.fit_result = fit_groups(
             self.dataset,
             self.models,
-            priors=self.priors,
             num_warmup=num_warmup,
             num_samples=num_samples,
             num_chains=num_chains,
@@ -480,7 +477,7 @@ class BayesianWorkflow:
         informative.
 
         Notes:
-            * For ``UniformPriorSpec``: bounds are widened around the midpoint
+            * For ``Uniform``: bounds are widened around the midpoint
               by the ``scale`` factor.
             * For ``Normal``/``HalfNormal``/``LogNormal``/``TruncatedNormal``:
               the ``scale`` parameter is multiplied. Truncation bounds are kept.
@@ -489,16 +486,20 @@ class BayesianWorkflow:
         """
         fit_baseline = self.fit_result
         comparison_baseline = self.comparison_result
-        original_priors = self.priors
+        # Snapshot each model's prior configuration so we can restore it after
+        # the sweep (priors now live on the models, not the workflow).
+        original_state = {
+            model.name: (dict(model.priors), model.sigma_scale)
+            for model in self.models
+        }
 
         try:
             rows: list[dict[str, Any]] = []
             for s in scales:
-                scaled_priors: dict[str, PriorSet] = {}
                 for model in self.models:
-                    base = self._priors_for(model.name)
-                    scaled_priors[model.name] = _scale_priors(base, s)
-                self.priors = scaled_priors
+                    scaled = _scale_priors(model.prior_set(), s)
+                    model.priors = dict(scaled.parameters)
+                    model.sigma_scale = scaled.sigma_scale
 
                 self.fit_result = None
                 self.fit(
@@ -523,7 +524,10 @@ class BayesianWorkflow:
                         }
                     )
         finally:
-            self.priors = original_priors
+            for model in self.models:
+                priors, sigma_scale = original_state[model.name]
+                model.priors = priors
+                model.sigma_scale = sigma_scale
             self.fit_result = fit_baseline
             self.comparison_result = comparison_baseline
 
@@ -672,13 +676,9 @@ class BayesianWorkflow:
             groups=new_groups,
         )
         models_in_order = [m for m in self.models if m.name in models_to_fit]
-        priors_arg: dict[str, PriorSet] = {
-            m.name: self._priors_for(m.name) for m in models_in_order
-        }
         new_fit = fit_groups(
             cleaned_dataset,
             models_in_order,
-            priors=priors_arg,
             num_warmup=nw,
             num_samples=ns,
             num_chains=nc,
@@ -897,16 +897,17 @@ class BayesianWorkflow:
         *,
         override: PriorSet | Mapping[str, PriorSet] | None = None,
     ) -> PriorSet:
-        source: Any = override if override is not None else self.priors
-        if isinstance(source, PriorSet):
-            return source
-        try:
-            return source[model_name]
-        except KeyError as exc:
-            raise KeyError(
-                f"No PriorSet configured for model {model_name!r}. "
-                f"Provided keys: {sorted(source)}"
-            ) from exc
+        if override is not None:
+            if isinstance(override, PriorSet):
+                return override
+            try:
+                return override[model_name]
+            except KeyError as exc:
+                raise KeyError(
+                    f"No PriorSet override provided for model {model_name!r}. "
+                    f"Provided keys: {sorted(override)}"
+                ) from exc
+        return self._model_by_name(model_name).prior_set()
 
     def _require_fit(self) -> BayesianFit:
         if self.fit_result is None:
@@ -953,32 +954,30 @@ def _compute_ebfmi(idata: Any, mcmc: Any) -> float:
 def _scale_priors(priors: PriorSet, scale: float) -> PriorSet:
     """Return a new ``PriorSet`` with every prior widened/narrowed by ``scale``.
 
-    * ``UniformPriorSpec`` — bounds widened around the midpoint by ``scale``.
+    * ``Uniform`` — bounds widened around the midpoint by ``scale``.
     * ``Normal``/``HalfNormal``/``LogNormal``/``TruncatedNormal`` — the
-      distribution's ``scale`` parameter is multiplied by ``scale``. For
-      :class:`TruncatedNormalPriorSpec` truncation bounds are preserved.
+      distribution's ``sigma`` parameter is multiplied by ``scale``. For
+      :class:`TruncatedNormal` truncation bounds are preserved.
     * ``sigma_scale`` is multiplied by ``scale``.
     """
     if scale <= 0.0:
         raise ValueError(f"prior_sensitivity scale must be > 0, got {scale}")
     new_params: dict[str, PriorSpec] = {}
     for name, spec in priors.parameters.items():
-        if isinstance(spec, UniformPriorSpec):
+        if isinstance(spec, Uniform):
             mid = 0.5 * (spec.low + spec.high)
             half = 0.5 * (spec.high - spec.low) * scale
-            new_params[name] = UniformPriorSpec(low=mid - half, high=mid + half)
-        elif isinstance(spec, NormalPriorSpec):
-            new_params[name] = NormalPriorSpec(loc=spec.loc, scale=spec.scale * scale)
-        elif isinstance(spec, HalfNormalPriorSpec):
-            new_params[name] = HalfNormalPriorSpec(scale=spec.scale * scale)
-        elif isinstance(spec, LogNormalPriorSpec):
-            new_params[name] = LogNormalPriorSpec(
-                loc=spec.loc, scale=spec.scale * scale
-            )
-        elif isinstance(spec, TruncatedNormalPriorSpec):
-            new_params[name] = TruncatedNormalPriorSpec(
-                loc=spec.loc,
-                scale=spec.scale * scale,
+            new_params[name] = Uniform(low=mid - half, high=mid + half)
+        elif isinstance(spec, Normal):
+            new_params[name] = Normal(mu=spec.mu, sigma=spec.sigma * scale)
+        elif isinstance(spec, HalfNormal):
+            new_params[name] = HalfNormal(sigma=spec.sigma * scale)
+        elif isinstance(spec, LogNormal):
+            new_params[name] = LogNormal(mu=spec.mu, sigma=spec.sigma * scale)
+        elif isinstance(spec, TruncatedNormal):
+            new_params[name] = TruncatedNormal(
+                mu=spec.mu,
+                sigma=spec.sigma * scale,
                 low=spec.low,
                 high=spec.high,
             )
