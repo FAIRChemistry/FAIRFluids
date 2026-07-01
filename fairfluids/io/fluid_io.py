@@ -28,6 +28,7 @@ from collections import defaultdict, Counter
 from fairfluids.io.canonical.fairfluids_builder import (
     _clean_doi,
     build_fairfluids,
+    canonical_citation_from_citation,
 )
 from fairfluids.io.canonical.canonical_model import (
     CanonicalCitation,
@@ -60,6 +61,7 @@ class FluidIO:
         document: Optional[FAIRFluidsDocument] = None,
         output_dir: Optional[str] = None,
         fetch_from_pubchem: bool = False,
+        fetch_from_doi: bool = True,
         units: Optional[Dict[str, str]] = None,
         uncertainty_units: Optional[Dict[str, str]] = None,
     ) -> List[FAIRFluidsDocument]:
@@ -71,6 +73,7 @@ class FluidIO:
             document=document,
             output_dir=output_dir,
             fetch_from_pubchem=fetch_from_pubchem,
+            fetch_from_doi=fetch_from_doi,
             units=units,
             uncertainty_units=uncertainty_units,
         )
@@ -81,6 +84,7 @@ class FluidIO:
         document: Optional[FAIRFluidsDocument] = None,
         output_dir: Optional[str] = None,
         fetch_from_pubchem: bool = False,
+        fetch_from_doi: bool = True,
         units: Optional[Dict[str, str]] = None,
         uncertainty_units: Optional[Dict[str, str]] = None,
     ) -> List[FAIRFluidsDocument]:
@@ -108,6 +112,10 @@ class FluidIO:
             document: Optional template document (for metadata like citation).
             output_dir: Optional directory to save JSON files.
             fetch_from_pubchem: If True, fetch compound information from PubChem.
+            fetch_from_doi: If True (default), resolve each document's citation
+                block online from its ``source_doi`` (Crossref / OpenAlex /
+                Semantic Scholar), filling fields the template citation omits.
+                Network failures degrade gracefully to the template values.
             units: Optional global input units, e.g.
                 {"temperature": "C", "pressure": "bar", "viscosity": "cP"}
             uncertainty_units: Optional global uncertainty units per quantity, e.g.
@@ -158,23 +166,36 @@ class FluidIO:
         )
         print(f"Found {len(canonical_pairs)} source DOI group(s)")
 
+        # Flatten the template citation once so every per-DOI document runs the
+        # same builder path: template fields stay authoritative, the per-document
+        # ``source_doi`` attributes the citation, and (when enabled) the DOI
+        # lookup fills any remaining gaps.
+        template_citation = (
+            canonical_citation_from_citation(document.citation)
+            if (document is not None and document.citation)
+            else None
+        )
+
         documents: List[FAIRFluidsDocument] = []
         for doi, canonical_document in canonical_pairs:
+            if template_citation is not None:
+                canonical_document.citation = template_citation
             doc_dict = build_fairfluids(
-                canonical_document, fetch_from_pubchem=fetch_from_pubchem
+                canonical_document,
+                fetch_from_pubchem=fetch_from_pubchem,
+                fetch_from_doi=fetch_from_doi,
             )
             doc = FAIRFluidsDocument.model_validate(doc_dict)
 
-            # Document-level metadata mirrors the template (the canonical builder
-            # leaves citation/version to the producer): default to version 1.0
-            # and copy the template's citation/version when provided.
+            # Document-level version mirrors the template (the canonical builder
+            # leaves version to the producer): default to 1.0 otherwise. The
+            # citation is now built + DOI-enriched per document by the builder,
+            # so it is no longer overwritten with the shared template here.
             doc.version = (
                 document.version
                 if (document is not None and document.version)
                 else Version(versionMajor=1, versionMinor=0)
             )
-            if document is not None and document.citation:
-                doc.citation = document.citation
 
             if not doc.fluid:
                 print(f"No fluids created for DOI {doi!r}.")

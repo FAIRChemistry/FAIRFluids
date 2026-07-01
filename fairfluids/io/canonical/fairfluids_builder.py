@@ -42,6 +42,7 @@ from .composition import (
     ensure_mass_fraction_parameters,
     ensure_mole_fraction_parameters,
 )
+from .citation import enrich_citation_from_doi
 from .id_registry import IDRegistry
 from .mappers import ParameterMapper, PropertyMapper, UnitMapper
 from .pubchem import enrich_compound_from_pubchem
@@ -177,20 +178,31 @@ def _map_method(raw: Optional[str]) -> Optional[Method]:
 def build_fairfluids(
     document: CanonicalDocument,
     fetch_from_pubchem: bool = True,
+    fetch_from_doi: bool = False,
 ) -> Dict[str, Any]:
-    """Build a FAIRFluidsDocument dict from a neutral :class:`CanonicalDocument`."""
+    """Build a FAIRFluidsDocument dict from a neutral :class:`CanonicalDocument`.
+
+    When ``fetch_from_doi`` is True, a missing/partial citation block is filled
+    from online bibliographic providers (Crossref / OpenAlex / Semantic Scholar)
+    keyed on the document's DOI; caller-provided citation fields stay
+    authoritative and network failures degrade to no enrichment.
+    """
     registry = IDRegistry()
 
-    citation = _build_citation(document.citation)
     # G4: measurement provenance (``source_doi``) defaults to the citation DOI,
     # but a producer may override it (e.g. CSV emits one document per source DOI
-    # while sharing a single citation template).
+    # while sharing a single citation template). Resolve it before the citation
+    # so the DOI lookup can attribute even a citation-less document.
     if document.source_doi:
         doi = _clean_doi(document.source_doi)
     elif document.citation.doi:
         doi = _clean_doi(document.citation.doi)
     else:
         doi = None
+
+    citation = _build_citation(
+        document.citation, effective_doi=doi, fetch_from_doi=fetch_from_doi
+    )
     compounds, compound_id_by_org_num = _build_compounds(
         document.compounds, registry, fetch_from_pubchem=fetch_from_pubchem
     )
@@ -223,26 +235,88 @@ def build_fairfluids(
 # ---------------------------------------------------------------------------
 
 
-def _build_citation(cit: CanonicalCitation) -> Optional[Citation]:
-    if not cit.title and not cit.doi:
-        return None
+def canonical_citation_from_citation(cit: Citation) -> CanonicalCitation:
+    """Convert a lib.py :class:`Citation` template into a neutral CanonicalCitation.
 
+    Producers (CSV, CML) accept a template ``FAIRFluidsDocument`` whose citation
+    block seeds attribution. This flattens it to the neutral canonical form the
+    builder consumes, so the same DOI-enrichment path runs for every producer.
+    """
+    authors: List[str] = []
+    for a in (cit.author or []):
+        fam = (a.family_name or "").strip()
+        giv = (a.given_name or "").strip()
+        if fam and giv:
+            authors.append(f"{fam}, {giv}")
+        elif fam or giv:
+            authors.append(fam or giv)
+    return CanonicalCitation(
+        title=cit.title,
+        doi=cit.doi,
+        pub_name=cit.pub_name,
+        pub_year=cit.publication_year,
+        volume=cit.lit_volume_num,
+        page=cit.page,
+        lit_type=(cit.litType.value if cit.litType is not None else None),
+        authors=authors,
+    )
+
+
+def _build_citation(
+    cit: CanonicalCitation,
+    *,
+    effective_doi: Optional[str] = None,
+    fetch_from_doi: bool = False,
+) -> Optional[Citation]:
+    # The DOI to attribute + look up: the citation's own DOI wins, else the
+    # document's measurement DOI (``source_doi``), which is how CSV documents —
+    # whose citation block is otherwise empty — get attributed.
+    lookup_doi = _clean_doi(cit.doi) if cit.doi else (
+        _clean_doi(effective_doi) if effective_doi else None
+    )
+    existing = {
+        "title": cit.title,
+        "doi": lookup_doi,
+        "pub_name": cit.pub_name,
+        "pub_year": cit.pub_year,
+        "volume": cit.volume,
+        "page": cit.page,
+        "lit_type": cit.lit_type,
+    }
+    # Fill gaps from the web (Crossref/OpenAlex/Semantic Scholar); the caller's
+    # values above stay authoritative. A no-op when ``fetch_from_doi`` is False.
+    enriched = enrich_citation_from_doi(lookup_doi, existing, fetch=fetch_from_doi)
+
+    # Authors: producer-supplied names are authoritative; only fall back to the
+    # resolved author list (which can carry ORCID iDs) when none were provided.
     authors: List[Author] = []
     for author_str in cit.authors:
         for parsed in _parse_authors(author_str):
             authors.append(Author(**parsed))
+    if not authors:
+        for a in enriched.get("authors", []):
+            authors.append(
+                Author(
+                    given_name=a.get("given_name"),
+                    family_name=a.get("family_name"),
+                    orcid=a.get("orcid"),
+                )
+            )
 
-    lit_type = _map_lit_type(cit.lit_type)
-    doi = _clean_doi(cit.doi) if cit.doi else None
+    title = enriched.get("title")
+    doi = enriched.get("doi")
+    if not title and not doi and not authors:
+        return None
 
     return Citation(
-        title=cit.title,
+        title=title,
         doi=doi,
-        pub_name=cit.pub_name,
-        publication_year=cit.pub_year,
-        lit_volume_num=cit.volume,
-        page=cit.page,
-        litType=lit_type,
+        pub_name=enriched.get("pub_name"),
+        publication_year=enriched.get("pub_year"),
+        lit_volume_num=enriched.get("volume"),
+        page=enriched.get("page"),
+        url_citation=enriched.get("url"),
+        litType=_map_lit_type(enriched.get("lit_type")),
         author=authors,
     )
 

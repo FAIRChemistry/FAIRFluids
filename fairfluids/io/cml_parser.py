@@ -22,7 +22,11 @@ from fairfluids.io.canonical.canonical_model import (
     CanonicalRow,
     CanonicalSourceCompound,
 )
-from fairfluids.io.canonical.fairfluids_builder import _clean_doi, build_fairfluids
+from fairfluids.io.canonical.fairfluids_builder import (
+    _clean_doi,
+    build_fairfluids,
+    canonical_citation_from_citation,
+)
 
 
 class FAIRFluidsCMLParser:
@@ -38,12 +42,42 @@ class FAIRFluidsCMLParser:
     still proceeds).
     """
 
-    # property_type -> (controlled-vocab enum, canonical unit string)
+    # property_type -> (controlled-vocab enum, canonical SI unit string)
     _PROPERTY_SPEC: Dict[str, tuple] = {
         "viscosity": (Properties.VISCOSITY, "Pa*s"),
         "kinematic_viscosity": (Properties.KINEMATIC_VISCOSITY, "m2/s"),
         "conductivity": (Properties.ELECTRICAL_CONDUCTIVITY, "S/m"),
         "density": (Properties.DENSITY, "kg/m3"),
+        "water_activity": (Properties.WATER_ACTIVITY, "dimensionless"),
+    }
+
+    # CML ``des:value_<name>`` property -> internal property_type.
+    _VALUE_KEY_TO_TYPE: Dict[str, str] = {
+        "value_viscosity": "viscosity",
+        "value_conductivity": "conductivity",
+        "value_density": "density",
+        "value_water_activity": "water_activity",
+    }
+
+    # CML files carry no unit metadata, so the input unit is assumed per
+    # property (the DES convention used by these datasets). Override via the
+    # ``input_units`` constructor argument. Values are converted to the canonical
+    # SI unit in ``_PROPERTY_SPEC``.
+    _DEFAULT_INPUT_UNITS: Dict[str, str] = {
+        "viscosity": "cP",
+        "density": "g/cm3",
+        "conductivity": "uS/cm",
+        "water_activity": "dimensionless",
+    }
+
+    # Plausibility ranges in canonical SI units: (low, high). Values outside
+    # trigger an aggregated ``UserWarning`` (they are still kept, not dropped).
+    _PLAUSIBLE_RANGES: Dict[str, tuple] = {
+        "viscosity": (1e-5, 1e3),        # Pa*s  (~0.01 cP .. 1000 Pa*s)
+        "density": (300.0, 3000.0),      # kg/m3
+        "conductivity": (1e-4, 1e3),     # S/m
+        "water_activity": (0.0, 1.0),    # dimensionless
+        "temperature": (150.0, 700.0),   # K
     }
 
     def __init__(
@@ -52,11 +86,23 @@ class FAIRFluidsCMLParser:
         compounds: Optional[List[Dict[str, Any]]] = None,
         document: Optional[FAIRFluidsDocument] = None,
         viscosity_input_unit: str = "cP",
+        input_units: Optional[Dict[str, str]] = None,
     ):
         self.cml_path = cml_path
         self.compounds = compounds or []
         self.ns = "{http://www.xml-cml.org/schema}"
-        self.viscosity_input_unit = (viscosity_input_unit or "cP").strip()
+        # Assumed input unit per property. ``viscosity_input_unit`` is kept for
+        # back-compat; ``input_units`` (property -> unit) overrides any of them.
+        self.input_units: Dict[str, str] = dict(self._DEFAULT_INPUT_UNITS)
+        if viscosity_input_unit:
+            self.input_units["viscosity"] = viscosity_input_unit.strip()
+        if input_units:
+            self.input_units.update(
+                {k.strip().lower(): v.strip() for k, v in input_units.items() if v}
+            )
+        self.viscosity_input_unit = self.input_units["viscosity"]
+        # Accumulates out-of-range values across a parse for one aggregated warning.
+        self._range_violations: Dict[str, List[float]] = {}
         if document is not None:
             self.document = document
         else:
@@ -114,29 +160,97 @@ class FAIRFluidsCMLParser:
     # ------------------------------------------------------------------
     # Unit conversions (input -> canonical SI)
     # ------------------------------------------------------------------
-    def _convert_viscosity_to_pas(self, viscosity_value: float) -> float:
-        """Convert viscosity from the configured CML input unit to Pa*s."""
-        unit_normalized = (
-            self.viscosity_input_unit.lower()
+    @staticmethod
+    def _normalize_unit(unit: str) -> str:
+        """Lower-case and strip a unit string for tolerant matching."""
+        return (
+            (unit or "")
+            .lower()
             .replace("·", "")
+            .replace("*", "")
             .replace(" ", "")
+            .replace("^", "")
+            .replace("µ", "u")
+            .replace("μ", "u")
             .replace("sec", "s")
         )
-        if unit_normalized in {"cp", "centipoise", "mpas"}:
-            return viscosity_value / 1000.0
-        if unit_normalized in {"pas", "pa*s"}:
-            return viscosity_value
-        raise ValueError(
-            f"Unsupported viscosity_input_unit='{self.viscosity_input_unit}'. "
-            "Use 'cP', 'mPa·s', or 'Pa·s'."
-        )
 
-    @staticmethod
-    def _convert_density_to_kg_m3(density_value: float) -> float:
-        """Convert density to kg/m³ (values < 100 are assumed g/cm³)."""
-        if 0 < density_value < 100.0:
-            return density_value * 1000.0
-        return density_value
+    # unit (normalized) -> multiplicative factor to the canonical SI unit.
+    _VISCOSITY_FACTORS = {"cp": 1e-3, "mpas": 1e-3, "centipoise": 1e-3,
+                          "pas": 1.0, "p": 0.1, "poise": 0.1}
+    _DENSITY_FACTORS = {"g/cm3": 1e3, "gcm3": 1e3, "g/ml": 1e3, "gml": 1e3,
+                        "kg/l": 1e3, "kg/dm3": 1e3, "kg/m3": 1.0, "kgm3": 1.0,
+                        "g/l": 1.0, "gl": 1.0}
+    _CONDUCTIVITY_FACTORS = {"s/m": 1.0, "sm": 1.0, "us/cm": 1e-4, "uscm": 1e-4,
+                             "ms/cm": 0.1, "mscm": 0.1, "s/cm": 100.0, "scm": 100.0,
+                             "ms/m": 1e-3, "msm": 1e-3}
+
+    _CONVERSION_FACTORS = {
+        "viscosity": _VISCOSITY_FACTORS,
+        "density": _DENSITY_FACTORS,
+        "conductivity": _CONDUCTIVITY_FACTORS,
+    }
+
+    def _to_canonical_value(self, ptype: str, value: float) -> float:
+        """Convert ``value`` for ``ptype`` from its assumed input unit to SI.
+
+        Dimensionless properties (e.g. water activity) pass through unchanged.
+        Unknown units raise ``ValueError`` naming the property and the supported
+        units, so a misconfiguration fails loudly instead of silently.
+        """
+        factors = self._CONVERSION_FACTORS.get(ptype)
+        if factors is None:  # dimensionless / no conversion
+            return value
+        unit = self.input_units.get(ptype, "")
+        key = self._normalize_unit(unit)
+        if key not in factors:
+            raise ValueError(
+                f"Unsupported input unit {unit!r} for {ptype}. "
+                f"Supported: {sorted(set(factors))}."
+            )
+        return value * factors[key]
+
+    def _check_plausibility(self, ptype: str, value: Optional[float]) -> bool:
+        """Return True if ``value`` sits within the canonical plausibility range."""
+        if value is None:
+            return True
+        rng = self._PLAUSIBLE_RANGES.get(ptype)
+        if rng is None:
+            return True
+        return rng[0] <= value <= rng[1]
+
+    def _record_violation(self, ptype: str, value: float) -> None:
+        """Accumulate an out-of-range value for the aggregated warning."""
+        self._range_violations.setdefault(ptype, []).append(value)
+
+    def _emit_range_warnings(self) -> None:
+        """Emit one aggregated ``UserWarning`` per property with out-of-range values.
+
+        Values are never dropped — the warning flags a likely wrong assumed input
+        unit (CML carries no unit metadata) or a genuine data outlier.
+        """
+        for ptype, bad in self._range_violations.items():
+            if not bad:
+                continue
+            low, high = self._PLAUSIBLE_RANGES[ptype]
+            unit = (
+                "K" if ptype == "temperature"
+                else self._PROPERTY_SPEC[ptype][1]
+            )
+            hint = ""
+            if ptype in self._CONVERSION_FACTORS:
+                hint = (
+                    f" Assumed input unit input_units[{ptype!r}]="
+                    f"{self.input_units.get(ptype)!r}; adjust it if this looks wrong."
+                )
+            warnings.warn(
+                f"{len(bad)} {ptype} value(s) fall outside the plausible range "
+                f"[{low:g}, {high:g}] {unit} "
+                f"(observed {min(bad):g} .. {max(bad):g}).{hint}",
+                UserWarning,
+                stacklevel=3,
+            )
+        self._range_violations = {}
 
     # ------------------------------------------------------------------
     # CML extraction
@@ -296,24 +410,7 @@ class FAIRFluidsCMLParser:
         cit = getattr(self.document, "citation", None)
         if cit is None:
             return CanonicalCitation()
-        authors: List[str] = []
-        for a in (cit.author or []):
-            fam = (a.family_name or "").strip()
-            giv = (a.given_name or "").strip()
-            if fam and giv:
-                authors.append(f"{fam}, {giv}")
-            elif fam or giv:
-                authors.append(fam or giv)
-        return CanonicalCitation(
-            title=cit.title,
-            doi=cit.doi,
-            pub_name=cit.pub_name,
-            pub_year=cit.publication_year,
-            volume=cit.lit_volume_num,
-            page=cit.page,
-            lit_type=(cit.litType.value if cit.litType is not None else None),
-            authors=authors,
-        )
+        return canonical_citation_from_citation(cit)
 
     def _canonical_source_compounds(self) -> List[CanonicalSourceCompound]:
         existing = getattr(self.document, "compound", None)
@@ -357,6 +454,7 @@ class FAIRFluidsCMLParser:
         """
         source_compounds = self._canonical_source_compounds()
         measurement_modules = self._extract_measurement_modules()
+        self._range_violations = {}
 
         # Bucket modules by cleaned DOI (preserving first-seen order); placeholder
         # DOIs collapse into a single ``None`` bucket.
@@ -392,6 +490,7 @@ class FAIRFluidsCMLParser:
                     buckets[doi], source_compounds, citation, doi
                 )
             )
+        self._emit_range_warnings()
         return documents
 
     def to_canonical_document(self) -> CanonicalDocument:
@@ -403,9 +502,12 @@ class FAIRFluidsCMLParser:
         """
         source_compounds = self._canonical_source_compounds()
         measurement_modules = self._extract_measurement_modules()
-        return self._canonical_document_for_modules(
+        self._range_violations = {}
+        document = self._canonical_document_for_modules(
             measurement_modules, source_compounds, self._canonical_citation(), None
         )
+        self._emit_range_warnings()
+        return document
 
     def _canonical_document_for_modules(
         self,
@@ -419,14 +521,9 @@ class FAIRFluidsCMLParser:
 
         # Discover property types present across modules (stable order).
         property_types: List[str] = []
-        value_key_to_type = {
-            "value_viscosity": "viscosity",
-            "value_conductivity": "conductivity",
-            "value_density": "density",
-        }
         for exp, _ in measurement_modules:
             props = self._extract_properties(exp)
-            for key, ptype in value_key_to_type.items():
+            for key, ptype in self._VALUE_KEY_TO_TYPE.items():
                 if key in props and ptype not in property_types:
                     property_types.append(ptype)
 
@@ -519,38 +616,27 @@ class FAIRFluidsCMLParser:
                         row.parameter_values[pid] = calc[i]
                 if temperature is not None:
                     row.parameter_values[temp_pid] = temperature
+                    if not self._check_plausibility("temperature", temperature):
+                        self._record_violation("temperature", temperature)
 
-                if "viscosity" in prop_id_by_type and "value_viscosity" in props:
-                    v = self._safe_float(props.get("value_viscosity"))
-                    if v is not None:
-                        pid = prop_id_by_type["viscosity"]
-                        row.property_values[pid] = self._convert_viscosity_to_pas(v)
-                        unc = self._extract_uncertainty(props, "viscosity", v)
-                        if unc is not None:
-                            row.uncertainties[f"{pid}_unc"] = (
-                                self._convert_viscosity_to_pas(unc)
-                            )
-                if (
-                    "conductivity" in prop_id_by_type
-                    and "value_conductivity" in props
-                ):
-                    c = self._safe_float(props.get("value_conductivity"))
-                    if c is not None:
-                        pid = prop_id_by_type["conductivity"]
-                        row.property_values[pid] = c
-                        unc = self._extract_uncertainty(props, "conductivity", c)
-                        if unc is not None:
-                            row.uncertainties[f"{pid}_unc"] = unc
-                if "density" in prop_id_by_type and "value_density" in props:
-                    d = self._safe_float(props.get("value_density"))
-                    if d is not None:
-                        pid = prop_id_by_type["density"]
-                        row.property_values[pid] = self._convert_density_to_kg_m3(d)
-                        unc = self._extract_uncertainty(props, "density", d)
-                        if unc is not None:
-                            row.uncertainties[f"{pid}_unc"] = (
-                                self._convert_density_to_kg_m3(unc)
-                            )
+                # Convert every property present on this module to canonical SI,
+                # carrying its uncertainty through the same (linear) conversion.
+                for value_key, ptype in self._VALUE_KEY_TO_TYPE.items():
+                    if ptype not in prop_id_by_type or value_key not in props:
+                        continue
+                    raw = self._safe_float(props.get(value_key))
+                    if raw is None:
+                        continue
+                    pid = prop_id_by_type[ptype]
+                    converted = self._to_canonical_value(ptype, raw)
+                    row.property_values[pid] = converted
+                    if not self._check_plausibility(ptype, converted):
+                        self._record_violation(ptype, converted)
+                    unc_raw = self._extract_uncertainty(props, ptype, raw)
+                    if unc_raw is not None:
+                        row.uncertainties[f"{pid}_unc"] = self._to_canonical_value(
+                            ptype, unc_raw
+                        )
 
                 if method_type == "EXPERIMENTAL":
                     row.method = Method.MEASURED
@@ -579,14 +665,23 @@ class FAIRFluidsCMLParser:
             source_doi=source_doi,
         )
 
-    def parse_all(self, fetch_from_pubchem: bool = True) -> List[FAIRFluidsDocument]:
-        """Parse the CML file into one FAIRFluids document per source DOI."""
+    def parse_all(
+        self, fetch_from_pubchem: bool = True, fetch_from_doi: bool = True
+    ) -> List[FAIRFluidsDocument]:
+        """Parse the CML file into one FAIRFluids document per source DOI.
+
+        With ``fetch_from_doi`` (default on), each document's citation block is
+        resolved online from its ``des:DOI`` (Crossref / OpenAlex / Semantic
+        Scholar), filling any fields the template citation left blank.
+        """
         self._warn_if_blocks_undefined()
         canonical_docs = self.to_canonical_documents()
         documents: List[FAIRFluidsDocument] = []
         for canonical in canonical_docs:
             doc_dict = build_fairfluids(
-                canonical, fetch_from_pubchem=fetch_from_pubchem
+                canonical,
+                fetch_from_pubchem=fetch_from_pubchem,
+                fetch_from_doi=fetch_from_doi,
             )
             documents.append(FAIRFluidsDocument.model_validate(doc_dict))
         # Preserve the last document on the instance for back-compat callers.
@@ -594,14 +689,20 @@ class FAIRFluidsCMLParser:
             self.document = documents[-1]
         return documents
 
-    def parse(self, fetch_from_pubchem: bool = True) -> FAIRFluidsDocument:
+    def parse(
+        self, fetch_from_pubchem: bool = True, fetch_from_doi: bool = True
+    ) -> FAIRFluidsDocument:
         """Parse and return a single merged FAIRFluids document (back-compat).
 
         Prefer :meth:`parse_all` for the per-DOI split.
         """
         self._warn_if_blocks_undefined()
         canonical = self.to_canonical_document()
-        doc_dict = build_fairfluids(canonical, fetch_from_pubchem=fetch_from_pubchem)
+        doc_dict = build_fairfluids(
+            canonical,
+            fetch_from_pubchem=fetch_from_pubchem,
+            fetch_from_doi=fetch_from_doi,
+        )
         self.document = FAIRFluidsDocument.model_validate(doc_dict)
         return self.document
 
@@ -612,7 +713,9 @@ def from_cml(
     document: Optional[FAIRFluidsDocument] = None,
     compounds: Optional[List[Dict[str, Any]]] = None,
     viscosity_input_unit: str = "cP",
+    input_units: Optional[Dict[str, str]] = None,
     fetch_from_pubchem: bool = True,
+    fetch_from_doi: bool = True,
 ) -> List[FAIRFluidsDocument]:
     """Convert a CML file into FAIRFluids documents.
 
@@ -627,6 +730,14 @@ def from_cml(
     per-measurement method) which the shared FAIRFluids builder turns into the
     final document.
 
+    Density, viscosity, electrical conductivity and water activity are all
+    parsed and converted to canonical SI units (kg/m³, Pa·s, S/m, dimensionless).
+    CML carries no unit metadata, so the input unit is assumed per property;
+    override the assumptions with ``input_units``, e.g.
+    ``{"conductivity": "mS/cm", "density": "kg/m3"}``. Values landing outside a
+    plausible physical range raise an aggregated ``UserWarning`` (they are kept,
+    not dropped).
+
     Returns:
         A list of :class:`FAIRFluidsDocument`, one per source DOI found in the
         CML file (each measurement module carries its own ``des:DOI``). Modules
@@ -639,8 +750,11 @@ def from_cml(
         compounds=compounds,
         document=document,
         viscosity_input_unit=viscosity_input_unit,
+        input_units=input_units,
     )
-    return parser.parse_all(fetch_from_pubchem=fetch_from_pubchem)
+    return parser.parse_all(
+        fetch_from_pubchem=fetch_from_pubchem, fetch_from_doi=fetch_from_doi
+    )
 
 
 __all__ = ["FAIRFluidsCMLParser", "from_cml"]
